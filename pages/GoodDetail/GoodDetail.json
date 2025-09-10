@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "waterfall-layout": "../../components/GoodList/GoodList",
+    "custom-nav-bar": "/components/CustomNavBar/CustomNavBar"
+  },
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "商品详情"
+}

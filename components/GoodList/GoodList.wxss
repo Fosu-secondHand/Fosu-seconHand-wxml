@@ -1,0 +1,22 @@
+/* components/GoodList/GoodList.wxss */
+.waterfall-container {
+  padding: 10px;
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+
+.waterfall-columns {
+  display: flex;
+  gap: 10px;
+}
+
+.waterfall-column {
+  flex: 1;
+}
+
+.loading-status {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-size: 14px;
+}

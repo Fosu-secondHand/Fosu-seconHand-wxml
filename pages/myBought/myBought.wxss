@@ -1,0 +1,91 @@
+.container {
+  padding: 20rpx;
+  padding-top: 95rpx;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+  margin-bottom: 10rpx;
+}
+
+.order-goods {
+  display: flex;
+  align-items: center;
+}
+
+.order-goods image {
+  width: 100rpx;
+  height: 100rpx;
+  margin-right: 20rpx;
+  overflow: hidden;
+}
+
+.goods-info {
+  flex: 1;
+}
+
+.goods-title {
+  font-size: 28rpx;
+  margin-bottom: 10rpx;
+}
+
+.goods-price {
+  font-size: 24rpx;
+  color: #ff5722;
+}
+
+.order-info {
+  flex: 1;
+}
+
+.seller-name {
+  font-size: 24rpx;
+  margin-bottom: 5rpx;
+}
+
+.order-status {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 5rpx;
+}
+
+.order-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.no-orders {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400rpx;
+}
+
+.no-orders image {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 20rpx;
+}
+
+.no-orders text {
+  font-size: 28rpx;
+  color: #999;
+}

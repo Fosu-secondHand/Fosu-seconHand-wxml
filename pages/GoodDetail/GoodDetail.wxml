@@ -1,0 +1,89 @@
+<!-- 顶部导航栏 -->
+<custom-nav-bar title="商品详情" showBack="true" />
+
+<!-- 商品主图 -->
+<view class="main-image">
+  <image 
+    src="{{goodsDetail.image}}" 
+    mode="aspectFill" 
+    lazy-load
+    class="main-image-item"
+  />
+</view>
+
+<!-- 商品信息区 -->
+<view class="goods-content">
+  <view class="goods-price-row">
+    <view class="goods-price">
+      <text class="price-symbol">¥</text>
+      <text class="price-number">{{goodsDetail.price}}</text>
+    </view>
+    <text class="trade-method">| {{goodsDetail.tradeMethod}}</text>
+  </view>
+  <view class="goods-title">{{goodsDetail.title}}</view>
+
+  <!-- 基础信息 -->
+  <view class="info-item">
+    <text class="label">所在地：</text>
+    <text class="value">{{goodsDetail.location}}</text>
+  </view>
+
+  <view class="info-item">
+    <text class="label">已售：</text>
+    <text class="value">{{goodsDetail.soldCount}}件</text>
+  </view>
+
+  <view class="info-item">
+    <text class="label">发布时间：</text>
+    <text class="value">{{goodsDetail.publishTime}}</text>
+  </view>
+  <view class="info-item">
+    <text class="label">交易地点：</text>
+    <text class="value">{{goodsDetail.tradeLocation}}</text>
+  </view>
+
+  <!-- 统计信息 -->
+  <view class="stats">
+    <text class="stat-item">
+      <icon type="star" size="18" color="#FFD700"></icon>
+      <text>{{starCount}}人收藏</text>
+    </text>
+    <text class="stat-item">
+      <icon type="like" size="18" color="#FF5A5F"></icon>
+      <text>{{wantCount}}人想要</text>
+    </text>
+    <text class="stat-item">
+      <icon type="eye" size="18" color="#999"></icon>
+      <text>{{viewCount}}浏览</text>
+    </text>
+  </view>
+</view>
+
+<!-- 推荐商品瀑布流 -->
+<view class="recommend-section">
+  <view class="section-title-container">
+    <text class="section-title">为你推荐</text>
+  </view>
+  <waterfall-layout 
+    goods-list="{{recommendGoods}}"
+    loading="{{recommendLoading}}"
+    noMore="{{recommendNoMore}}"
+    bind:loadmore="onRecommendLoadMore"
+  />
+</view>
+
+<!-- 收藏星号左下角 -->
+<view class="star-float-btn" bindtap="handleStar">
+  <image src="{{isStarred ? '/static/assets/icons/star-filled.png' : '/static/assets/icons/star-outline.png'}}" class="star-img" />
+</view>
+
+<!-- 底部操作栏 -->
+<view class="bottom-actions">
+  <button class="message-btn" bindtap="handleChat">
+    <icon type="message" size="18" color="#333"></icon>
+    <text>聊一聊</text>
+  </button>
+  <button class="want-btn" bindtap="handleBuy">
+    <text>立即购买</text>
+  </button>
+</view>

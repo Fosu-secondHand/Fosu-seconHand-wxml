@@ -1,0 +1,8 @@
+<!--pages/aboutFosu/aboutFosu.wxml-->
+<view class="container">
+  <custom-nav-bar title="关于佛大" showBack="true" />
+  
+  <view style="padding-top: 88rpx;">
+    <text>pages/aboutFosu/aboutFosu.wxml</text>
+  </view>
+</view>

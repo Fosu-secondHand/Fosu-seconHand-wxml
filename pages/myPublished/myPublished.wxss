@@ -1,0 +1,100 @@
+.container {
+  padding: 20rpx;
+  padding-top: 95rpx;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.goods-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.goods-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+  margin-bottom: 10rpx;
+}
+
+.goods-img {
+  width: 120rpx;
+  height: 120rpx;
+  margin-right: 20rpx;
+  overflow: hidden;
+}
+
+.goods-img image {
+  width: 100%;
+  height: 100%;
+}
+
+.goods-info {
+  flex: 1;
+}
+
+.goods-title {
+  font-size: 28rpx;
+  margin-bottom: 10rpx;
+}
+
+.goods-price {
+  font-size: 24rpx;
+  color: #ff5722;
+  margin-bottom: 5rpx;
+}
+
+.goods-status {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.goods-ops {
+  display: flex;
+  gap: 20rpx;
+}
+
+.edit-btn,
+.delete-btn {
+  padding: 10rpx 30rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+.edit-btn {
+  background-color: #07c160;
+  color: #fff;
+}
+
+.delete-btn {
+  background-color: #ff4d4f;
+  color: #fff;
+}
+
+.no-goods {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400rpx;
+}
+
+.no-goods image {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 20rpx;
+}
+
+.no-goods text {
+  font-size: 28rpx;
+  color: #999;
+}

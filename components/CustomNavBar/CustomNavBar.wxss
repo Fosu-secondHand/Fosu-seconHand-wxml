@@ -1,0 +1,33 @@
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  color: #000;
+  z-index: 1000;
+}
+.nav-content {
+  height: 44px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.left, .right {
+  position: absolute;
+  top: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+.left { left: 12px; }
+.right { right: 12px; }
+.back-icon {
+  width: 24px;
+  height: 24px;
+}
+.title {
+  font-size: 16px;
+  font-weight: 600;
+}
+

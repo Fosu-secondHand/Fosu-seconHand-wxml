@@ -1,0 +1,5 @@
+<view class="net-error-box">
+  <image class="net-error-img" src="/static/assets/icons/net_error.png" mode="aspectFit"/>
+  <view class="net-error-text">网络出错啦，请检查网络或点击下方按钮重试</view>
+  <button class="net-error-btn" bindtap="onReload">刷新</button>
+</view> 

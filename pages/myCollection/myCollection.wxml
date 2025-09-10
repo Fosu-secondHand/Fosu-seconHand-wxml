@@ -1,0 +1,8 @@
+<!--pages/myCollection/myCollection.wxml-->
+<view class="container">
+  <custom-nav-bar title="我的收藏" showBack="true" />
+  
+  <view style="padding-top: 88rpx;">
+    <text>pages/myCollection/myCollection.wxml</text>
+  </view>
+</view>

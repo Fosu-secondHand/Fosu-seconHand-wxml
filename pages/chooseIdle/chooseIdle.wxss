@@ -1,0 +1,33 @@
+.choose-idle-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #fff;
+}
+.choose-btn {
+  width: 320rpx;
+  height: 20rpx;
+  margin: 60rpx 0;
+  border-radius: 32rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.08);
+  background: #f8f8f8;
+}
+
+.choose-idle-container-horizontal {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #fff;
+}
+.choose-btn-horizontal {
+  width: 320rpx;
+  height: 320rpx;
+  margin: 0 40rpx;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+} 

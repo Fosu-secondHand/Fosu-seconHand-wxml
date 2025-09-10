@@ -1,0 +1,10 @@
+<view class="container">
+  <custom-nav-bar title="选择类型" />
+  
+  <view style="padding-top: 88rpx;">
+    <view class="choose-idle-container-horizontal">
+      <image class="choose-btn-horizontal" src="/static/unused.png" mode="aspectFit" bindtap="goPublish" />
+      <image class="choose-btn-horizontal" src="/static/want.png" mode="aspectFit" bindtap="goWant" />
+    </view>
+  </view>
+</view>

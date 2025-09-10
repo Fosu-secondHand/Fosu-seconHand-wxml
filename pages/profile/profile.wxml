@@ -1,0 +1,87 @@
+<view class="container">
+  <custom-nav-bar title="我的" />
+  <net-error wx:if="{{netError}}" bind:reload="reloadPage" />
+  <view wx:else style="padding-top: 88rpx;">
+    <!-- 个人信息头部 -->
+    <view class="header" bindtap="goToUserHome">
+      <image class="avatar" src="{{avatarUrl}}" mode="aspectFill" bindtap="onChooseAvatar"></image>
+      <view class="user-info">
+        <text class="nickname">{{nickname}}</text>
+        <text class="account">{{accountNumber}}</text>
+      </view>
+      <!-- 设置按钮使用 navigator 组件，路径需正确 -->
+      <navigator url="/pages/setting/setting" class="setting-btn">
+        <image src="/static/assets/icons/setting.png" mode="aspectFill"></image>
+      </navigator>
+    </view>
+
+    <!-- 数据统计 -->
+    <view class="stats">
+      <!-- 我发布的 - 绑定 navigateToMyGoods 事件 -->
+      <view class="stat-item" bindtap="navigateToMyGoods">
+        <text class="stat-value">{{myGoodsCount}}</text>
+        <text class="stat-label">我发布的</text>
+      </view>
+      <!-- 我卖出的 - 绑定 navigateToSold 事件 -->
+      <view class="stat-item" bindtap="navigateToSold">
+        <text class="stat-value">{{soldCount}}</text>
+        <text class="stat-label">我卖出的</text>
+      </view>
+      <!-- 我买到的 - 绑定 navigateToBought 事件 -->
+      <view class="stat-item" bindtap="navigateToBought">
+        <text class="stat-value">{{boughtCount}}</text>
+        <text class="stat-label">我买到的</text>
+      </view>
+    </view>
+
+    <!-- 功能列表 -->
+    <view class="function-list">
+      <!-- 我的收藏 - 使用 navigator 组件 -->
+      <navigator 
+        url="/pages/myCollection/myCollection" 
+        class="function-item"
+      >
+        <image src="/static/assets/icons/collection.png" mode="aspectFill"></image>
+        <text>我的收藏</text>
+        <image src="/static/assets/icons/arrowright.png" mode="aspectFill"></image>
+      </navigator>
+      
+      <!-- 宿舍地址 - 绑定 navigateToAddress 事件 -->
+      <view class="function-item" bindtap="navigateToAddress">
+        <image src="/static/assets/icons/address.png" mode="aspectFill"></image>
+        <text>宿舍地址</text>
+        <image src="/static/assets/icons/arrowright.png" mode="aspectFill"></image>
+      </view>
+      
+      <!-- 联系客服 - 使用 navigator 组件 -->
+      <navigator 
+        url="/pages/customerService/customerService" 
+        class="function-item"
+      >
+        <image src="/static/assets/icons/customer.png" mode="aspectFill"></image>
+        <text>联系客服</text>
+        <image src="/static/assets/icons/arrowright.png" mode="aspectFill"></image>
+      </navigator>
+      
+      <!-- 意见反馈 - 使用 navigator 组件 -->
+      <navigator 
+        url="/pages/feedback/feedback" 
+        class="function-item"
+      >
+        <image src="/static/assets/icons/feedback.png" mode="aspectFill"></image>
+        <text>意见反馈</text>
+        <image src="/static/assets/icons/arrowright.png" mode="aspectFill"></image>
+      </navigator>
+      
+      <!-- 关于FOSU - 绑定正确的事件名 navigateToAboutFOSU -->
+      <view class="function-item" bindtap="navigateToAboutFOSU">
+        <image src="/static/assets/icons/about_fosu.png" mode="aspectFill"></image>
+        <text>关于FOSU</text>
+        <image src="/static/assets/icons/arrowright.png" mode="aspectFill"></image>
+      </view>
+    </view>
+
+    <!-- 退出登录 - 绑定 logout 事件 -->
+    <button class="logout-btn" bindtap="logout">退出登录</button>
+  </view>
+</view>

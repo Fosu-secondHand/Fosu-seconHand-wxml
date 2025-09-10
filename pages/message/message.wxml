@@ -1,0 +1,21 @@
+<custom-nav-bar title="消息" />
+<view class="message-container">
+  <custom-nav-bar title="消息" showBack="true" />
+  
+  <view style="padding-top: 88rpx;">
+    <block wx:for="{{messages}}" wx:key="index">
+      <view class="message-item" bindtap="navigateToChat" data-receiver="{{item.receiver}}">
+        <view class="message-avatar">
+          <image src="{{item.avatar}}" mode="aspectFit" class="avatar-image"></image>
+        </view>
+        <view class="message-content">
+          <view class="message-title">{{item.title}}</view>
+          <view class="message-text">{{item.text}}</view>
+        </view>
+        <view class="message-date">{{item.date}}</view>
+      </view>
+    </block>
+    <view wx:if="{{hasMoreData && !loading}}" class="loading-more">加载更多...</view>
+    <view wx:if="{{loading}}" class="loading">正在加载...</view>
+  </view>
+</view>

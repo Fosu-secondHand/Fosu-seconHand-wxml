@@ -1,0 +1,32 @@
+<!--components/GoodList/GoodList.wxml-->
+<view class="waterfall-container" bindscrolltolower="onScrollToLower" style="height: 100%;">
+  <view class="waterfall-columns">
+    <!-- 左侧列 -->
+    <view class="waterfall-column" wx:if="{{columns.length > 0}}">
+      <goods-card 
+        wx:for="{{columns[0]}}" 
+        wx:key="index" 
+        goods="{{item}}"
+      />
+    </view>
+    
+    <!-- 右侧列 -->
+    <view class="waterfall-column" wx:if="{{columns.length > 1}}">
+      <goods-card 
+        wx:for="{{columns[1]}}" 
+        wx:key="index" 
+        goods="{{item}}"
+      />
+    </view>
+  </view>
+  
+  <!-- 加载状态 -->
+  <view class="loading-status" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+  
+  <!-- 无更多数据 -->
+  <view class="loading-status" wx:if="{{noMore && !loading}}">
+    <text>没有更多商品了</text>
+  </view>
+</view>

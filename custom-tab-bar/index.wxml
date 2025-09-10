@@ -1,0 +1,9 @@
+<view class="tabbar">
+  <block wx:for="{{list}}" wx:key="index">
+    <view class="tab-item {{selected === index ? 'active' : ''}}" bindtap="onTabTap" data-index="{{index}}">
+      <image class="icon" src="{{selected === index ? item.selectedIconPath : item.iconPath}}" mode="aspectFit" />
+      <text class="text">{{item.text}}</text>
+    </view>
+  </block>
+</view>
+

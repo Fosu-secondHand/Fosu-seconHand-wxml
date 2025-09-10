@@ -1,0 +1,285 @@
+/* pages/idle/idle.wxss */
+.container {
+  padding: 15px;
+  padding-top: 45px;
+  background-color: #f8f8f8;
+}
+
+.section {
+  background-color: #fff;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  padding: 15px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 120px;
+  font-size: 14px;
+}
+
+.section-title {
+  color: #333;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.image-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.image-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.image-item image {
+  width: 100%;
+  height: 100%;
+}
+
+.delete-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 24px;
+  height: 24px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn image {
+  width: 12px;
+  height: 12px;
+}
+
+.add-image-btn {
+  width: 80px;
+  height: 80px;
+  border: 2px dashed #ddd;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-image-btn image {
+  width: 30px;
+  height: 30px;
+  opacity: 0.6;
+}
+
+.price-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price-value {
+  color: #e64340;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.radio-item {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 20px;
+  font-size: 14px;
+}
+
+radio {
+  transform: scale(0.9);
+}
+
+.publish-btn {
+  width: 100%;
+  height: 44px;
+  background-color: #ffd500;
+  color: #333;
+  font-size: 16px;
+  border-radius: 22px;
+  margin-top: 20px;
+}
+
+.publish-btn.loading {
+  background-color: #ffd50080;
+}
+
+.price-input {
+  width: 120px;
+  height: 32px;
+  font-size: 16px;
+  color: #e64340;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 0 8px;
+  margin-left: 10px;
+}
+
+.modal {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  width: 80vw;
+  max-width: 480px;
+  padding: 32rpx 24rpx 24rpx 24rpx;
+  z-index: 1001;
+  box-sizing: border-box;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 32rpx;
+}
+
+.auction-entry {
+  color: #07c160;
+  font-size: 28rpx;
+  cursor: pointer;
+}
+
+.modal-body {
+  margin-bottom: 32rpx;
+}
+
+.price-input-row {
+  display: flex;
+  align-items: center;
+  font-size: 36rpx;
+  margin-bottom: 16rpx;
+}
+
+.price-input {
+  width: 240rpx;
+  height: 60rpx;
+  font-size: 36rpx;
+  color: #e64340;
+  border: 1px solid #eee;
+  border-radius: 8rpx;
+  padding: 0 16rpx;
+  margin-left: 10rpx;
+  background: #fafafa;
+}
+
+.tip-text {
+  color: #999;
+  font-size: 24rpx;
+  margin-bottom: 24rpx;
+  margin-left: 4rpx;
+}
+
+.origin-price-row {
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  margin-bottom: 8rpx;
+}
+
+.origin-price-input {
+  width: 260rpx;
+  height: 48rpx;
+  font-size: 28rpx;
+  color: #333;
+  border: 1px solid #eee;
+  border-radius: 8rpx;
+  padding: 0 12rpx;
+  margin-left: 10rpx;
+  background: #fafafa;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.confirm-btn {
+  width: 100%;
+  height: 80rpx;
+  background: #07c160;
+  color: #fff;
+  font-size: 32rpx;
+  border-radius: 40rpx;
+  margin-top: 8rpx;
+  font-weight: bold;
+}
+
+.category-section,
+.condition-section {
+  margin-top: 32rpx;
+}
+
+.category-title {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+}
+
+.category-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx 24rpx;
+}
+
+.category-item {
+  padding: 10rpx 28rpx;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  cursor: pointer;
+}
+
+.category-item.active {
+  background: #ffd500;
+  color: #222;
+  border: 1px solid #ffd500;
+  font-weight: bold;
+}
+
+.modal-fee {
+  color: #ff5722;
+  font-weight: bold;
+}
+
+.modal-final {
+  color: #07c160;
+  font-weight: bold;
+}

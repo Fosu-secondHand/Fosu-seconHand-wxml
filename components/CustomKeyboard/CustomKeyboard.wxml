@@ -1,0 +1,30 @@
+<view class="custom-keyboard" wx:if="{{visible}}">
+  <view class="keyboard-row">
+    <view class="key" bindtap="onKeyTap" data-key="1">1</view>
+    <view class="key" bindtap="onKeyTap" data-key="2">2</view>
+    <view class="key" bindtap="onKeyTap" data-key="3">3</view>
+    <view class="key icon-key" bindtap="onDelete">
+      <text class="iconfont">⌫</text>
+    </view>
+  </view>
+  <view class="keyboard-row">
+    <view class="key" bindtap="onKeyTap" data-key="4">4</view>
+    <view class="key" bindtap="onKeyTap" data-key="5">5</view>
+    <view class="key" bindtap="onKeyTap" data-key="6">6</view>
+    <view class="key empty"></view>
+  </view>
+  <view class="keyboard-row">
+    <view class="key" bindtap="onKeyTap" data-key="7">7</view>
+    <view class="key" bindtap="onKeyTap" data-key="8">8</view>
+    <view class="key" bindtap="onKeyTap" data-key="9">9</view>
+    <view class="key confirm-key" rowspan="2" bindtap="onConfirm">确定</view>
+  </view>
+  <view class="keyboard-row">
+    <view class="key" bindtap="onKeyTap" data-key=".">.</view>
+    <view class="key" bindtap="onKeyTap" data-key="0">0</view>
+    <view class="key icon-key" bindtap="onHide">
+      <text class="iconfont">⌨️</text>
+    </view>
+    <view class="key empty"></view>
+  </view>
+</view> 

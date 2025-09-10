@@ -1,0 +1,62 @@
+<!--pages/about/about.wxml-->
+<view class="container">
+  <custom-nav-bar title="关于我们" showBack="true" />
+  
+  <view style="padding-top: 88rpx;">
+  <!-- Logo和版本信息 -->
+  <view class="header">
+    <image class="logo" src="/static/assets/icons/fosu_logo.png" mode="aspectFit"></image>
+    <text class="app-name">佛大二手</text>
+    <text class="version">Version 1.0.0</text>
+  </view>
+
+  <!-- 功能介绍 -->
+  <view class="section">
+    <view class="section-title">功能介绍</view>
+    <view class="feature-list">
+      <view class="feature-item">
+        <image src="/static/assets/icons/feature_trade.png" mode="aspectFit"></image>
+        <view class="feature-info">
+          <text class="feature-title">校园二手交易</text>
+          <text class="feature-desc">便捷的校园二手物品交易平台</text>
+        </view>
+      </view>
+      <view class="feature-item">
+        <image src="/static/assets/icons/feature_safe.png" mode="aspectFit"></image>
+        <view class="feature-info">
+          <text class="feature-title">安全可靠</text>
+          <text class="feature-desc">实名认证，保障交易安全</text>
+        </view>
+      </view>
+      <view class="feature-item">
+        <image src="/static/assets/icons/feature_community.png" mode="aspectFit"></image>
+        <view class="feature-info">
+          <text class="feature-title">校园社区</text>
+          <text class="feature-desc">打造佛大专属的校园社区</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 联系我们 -->
+  <view class="section">
+    <view class="section-title">联系我们</view>
+    <view class="contact-list">
+      <view class="contact-item" bindtap="copyWechat">
+        <text class="contact-label">官方微信</text>
+        <text class="contact-value">FOSU_Official</text>
+      </view>
+      <view class="contact-item" bindtap="copyEmail">
+        <text class="contact-label">官方邮箱</text>
+        <text class="contact-value">support@fosu.edu.cn</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 版权信息 -->
+  <view class="footer">
+    <text class="copyright">Copyright © 2024 佛大二手</text>
+    <text class="rights">All Rights Reserved</text>
+  </view>
+  </view>
+</view>

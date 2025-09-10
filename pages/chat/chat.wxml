@@ -1,0 +1,37 @@
+<view class="container">
+  <view class="container-inner">
+    <custom-nav-bar title="私聊" showBack="true" />
+    
+    <view style="padding-top: 88rpx;">
+      <scroll-view 
+        scroll-y="true" 
+        class="chat-scroll-view" 
+        id="chatScrollView"
+        scroll-into-view="{{scrollIntoView}}"  
+        scroll-with-animation="false"  
+        style="height: calc(100vh - 88rpx - 120rpx);">
+        <view id="{{'msg-' + index}}" wx:for="{{messages}}" wx:key="id" class="message-item {{item.senderId === userInfo.openid ? 'self' : 'other'}}">
+          <image wx:if="{{item.senderId !== userInfo.openid}}" class="avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+          <view class="message-content">
+            <text class="message-text">{{item.content}}</text>
+            <text class="message-time">{{item.createTime}}</text>
+          </view>
+          <image wx:if="{{item.senderId === userInfo.openid}}" class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+        </view>
+      </scroll-view>
+      
+      <view class="chat-input-container">
+        <view class="input-wrapper">
+          <input 
+            class="chat-input" 
+            placeholder="请输入消息内容" 
+            value="{{inputValue}}" 
+            bindinput="onInput"
+            bindconfirm="sendMessage"
+          />
+          <button class="send-btn" bindtap="sendMessage" disabled="{{!inputValue.trim()}}">发送</button>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

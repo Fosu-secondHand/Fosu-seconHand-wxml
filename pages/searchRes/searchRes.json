@@ -1,0 +1,10 @@
+{
+  "usingComponents": {
+    "van-search": "../../miniprogram_npm/vant-weapp/search",
+    "waterfall-layout": "../../components/GoodList/GoodList",
+    "net-error": "/components/NetError/NetError",
+    "custom-nav-bar": "/components/CustomNavBar/CustomNavBar"
+  },
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "搜索结果"
+}

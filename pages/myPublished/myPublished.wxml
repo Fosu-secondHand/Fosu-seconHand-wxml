@@ -1,0 +1,29 @@
+<view class="container">
+  <custom-nav-bar title="我的发布" showBack="true" />
+  
+  <view style="padding-top: 88rpx;">
+    <view class="title">我的发布</view>
+    <view class="goods-list">
+      <block wx:for="{{goodsList}}" wx:key="id">
+        <view class="goods-item">
+          <view class="goods-img">
+            <image src="{{item.imageUrl}}" mode="aspectFill"></image>
+          </view>
+          <view class="goods-info">
+            <view class="goods-title">{{item.title}}</view>
+            <view class="goods-price">价格：{{item.price}} 元</view>
+            <view class="goods-status">状态：{{item.status}}</view>
+          </view>
+          <view class="goods-ops">
+            <view class="edit-btn" bindtap="editGoods" data-id="{{item.id}}">编辑</view>
+            <view class="delete-btn" bindtap="deleteGoods" data-id="{{item.id}}">删除</view>
+          </view>
+        </view>
+      </block>
+    </view>
+    <view class="no-goods" wx:if="{{!goodsList.length}}">
+      <image src="/images/no_goods.png" mode="aspectFit"></image>
+      <text>您还没有发布任何商品</text>
+    </view>
+  </view>
+</view>

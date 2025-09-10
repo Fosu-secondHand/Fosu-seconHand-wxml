@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "选择类型",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "custom-nav-bar": "/components/CustomNavBar/CustomNavBar"
+  }
+} 

@@ -1,0 +1,12 @@
+{
+  "usingComponents": {
+    "van-search": "../../miniprogram_npm/vant-weapp/search",
+    "van-tab": "../../miniprogram_npm/vant-weapp/tab",
+    "van-tabs": "../../miniprogram_npm/vant-weapp/tabs",
+    "waterfall-layout": "../../components/GoodList/GoodList",
+    "net-error": "/components/NetError/NetError",
+    "custom-nav-bar": "/components/CustomNavBar/CustomNavBar"
+  },
+  "enablePullDownRefresh": true,
+  "navigationStyle": "custom"
+}

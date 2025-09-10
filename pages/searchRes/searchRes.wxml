@@ -1,0 +1,100 @@
+<!--pages/searchRes/searchRes.wxml-->
+<view class="container">
+  <custom-nav-bar title="搜索结果" showBack="true" />
+  
+  <view style="padding-top: 88rpx;">
+    <view class="search-header">
+      <van-search
+        value="{{ keyword }}"
+        shape="round"
+        background="#FBEC9B"
+        placeholder="请输入搜索关键词"
+        bind:search="onSearch"
+        bind:input="onInput"
+        bindtap="toggleHistory"
+      />
+    </view>
+
+    <!-- 搜索历史（点击搜索框时显示） -->
+    <view class="search-history" wx:if="{{ showHistory }}">
+      <view class="history-header">
+        <text>搜索历史</text>
+        <text class="clear-btn" bindtap="clearAllHistory">清空</text>
+      </view>
+      <view class="history-list">
+        <view class="history-item" 
+              wx:for="{{ historyKeywords }}" 
+              wx:key="index"
+              data-keyword="{{ item }}"
+              bindtap="useHistoryKeyword">
+          <text>{{ item }}</text>
+          <image class="delete-icon" 
+                 src="../../static/delete.png" 
+                 mode="aspectFit"
+                 data-index="{{ index }}"
+                 catchtap="deleteHistory" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 搜索结果区域 -->
+    <view class="result-container" wx:if="{{ !showHistory }}">
+      <!-- 排序栏 -->
+      <view class="sort-bar">
+        <view 
+          class="sort-item {{sortType === 'price' ? 'active' : ''}}" 
+          bindtap="handleSort" 
+          data-type="price"
+        >
+          价格 <text class="sort-arrow">{{priceOrder === 'asc' ? '↑' : '↓'}}</text>
+        </view>
+        <view 
+          class="sort-item {{sortType === 'publishTime' ? 'active' : ''}}" 
+          bindtap="handleSort" 
+          data-type="publishTime"
+        >
+          发布时间 <text class="sort-arrow">{{timeOrder === 'asc' ? '↑' : '↓'}}</text>
+        </view>
+        <view 
+          class="sort-item {{sortType === 'views' ? 'active' : ''}}" 
+          bindtap="handleSort" 
+          data-type="views"
+        >
+          浏览量 <text class="sort-arrow">{{viewsOrder === 'desc' ? '↑' : '↓'}}</text>
+        </view>
+      </view>
+
+      <view class="result-header">
+        <text>搜索结果："{{ keyword }}"</text>
+        <text class="result-count">{{ goodsList.length }}个结果</text>
+      </view>
+
+      <!-- 瀑布流组件 -->
+      <waterfall-layout 
+        goods-list="{{sortedGoodsList}}" 
+        loading="{{loading}}"
+        noMore="{{noMore}}"
+        bind:loadmore="onLoadMore"
+      />
+
+      <!-- 加载状态 -->
+      <view class="loading" wx:if="{{ loading }}">
+        <van-loading type="spinner" text="加载中..." />
+      </view>
+
+      <!-- 无结果提示 -->
+      <view class="empty-result" wx:if="{{ !loading && searchResults.length === 0 }}">
+        <image src="../../static/empty.png" mode="aspectFit" />
+        <text>没有找到相关商品</text>
+        <button class="search-again" bindtap="toggleHistory">重新搜索</button>
+      </view>
+
+      <!-- 没有更多数据 -->
+      <view class="no-more" wx:if="{{ !loading && !hasMore && searchResults.length > 0 }}">
+        <text>已经到底啦</text>
+      </view>
+
+      <net-error wx:if="{{netError}}" bind:reload="reloadPage" />
+    </view>
+  </view>
+</view>

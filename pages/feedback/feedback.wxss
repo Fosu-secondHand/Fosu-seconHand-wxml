@@ -1,0 +1,70 @@
+.container {
+  padding: 30rpx;
+  padding-top: 95rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  text-align: center;
+  margin: 20rpx 0 40rpx;
+}
+
+.feedback-textarea {
+  width: 100%;
+  height: 300rpx;
+  border: 1rpx solid #e5e5e5;
+  border-radius: 10rpx;
+  padding: 20rpx;
+  margin-bottom: 30rpx;
+  font-size: 28rpx;
+  background: #fafafa;
+}
+
+.form-item {
+  margin-bottom: 30rpx;
+}
+
+.form-item label {
+  display: block;
+  margin-bottom: 15rpx;
+  color: #333;
+  font-size: 28rpx;
+}
+
+.image-upload {
+  width: 160rpx;
+  height: 160rpx;
+  border: 2rpx dashed #e5e5e5;
+  border-radius: 10rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8f8f8;
+  margin-bottom: 10rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+.image-upload image {
+  width: 80rpx;
+  height: 80rpx;
+  opacity: 0.7;
+}
+
+.image-hint {
+  display: block;
+  margin-top: 10rpx;
+  color: #999;
+  font-size: 24rpx;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 90rpx;
+  margin-top: 40rpx;
+  background-color: #ffd700;
+  color: #000;
+  border-radius: 45rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+}

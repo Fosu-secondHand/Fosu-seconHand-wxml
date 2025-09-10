@@ -1,0 +1,39 @@
+<view class="container">
+  <custom-nav-bar title="收货地址列表" showBack="true" />
+  
+  <view style="padding-top: 88rpx;">
+    <view class="header">
+      <text class="title">我的收货地址</text>
+      <button class="add-btn" bindtap="navigateToAddAddress">+ 添加地址</button>
+    </view>
+    <view class="address-list">
+    <block wx:for="{{addressList}}" wx:key="id">
+      <view class="address-item {{item.isDefault? 'default' : ''}}">
+        <view class="address-info">
+          <view class="top-info">
+            <text class="name">{{item.contactName}} {{item.gender}}</text>
+            <text class="phone">{{item.phoneNumber}}</text>
+          </view>
+          <view class="middle-info">
+            <text class="location">
+              {{item.dormitory}} {{item.roomNumber}}
+            </text>
+            <text class="tag {{item.tag === 'dormitory'? 'dorm-tag' : item.tag ==='school'? 'chool-tag' : 'home-tag'}}">
+              {{item.tag === 'dormitory'? '宿舍' : item.tag ==='school'? '学校' : '家'}}
+            </text>
+          </view>
+        </view>
+        <view class="operations">
+          <button class="edit-btn" bindtap="navigateToEditAddress" data-id="{{item.id}}">编辑</button>
+          <button class="delete-btn" bindtap="deleteAddress" data-id="{{item.id}}">删除</button>
+          <button class="default-btn" bindtap="setDefaultAddress" data-id="{{item.id}}" wx:if="{{!item.isDefault}}">设为默认</button>
+        </view>
+      </view>
+    </block>
+  </view>
+  <view class="empty-state" wx:if="{{!addressList.length}}">
+    <image src="/static/assets/icons/no_address.png" mode="aspectFit"></image>
+    <text class="empty-text">暂无收货地址</text>
+  </view>
+  </view>
+</view>

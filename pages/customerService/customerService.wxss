@@ -1,0 +1,142 @@
+.container {
+  padding: 20rpx;
+  padding-top: 95rpx;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 客服入口样式 */
+.service-entry {
+  background-color: #fff;
+  border-radius: 12rpx;
+  overflow: hidden;
+  margin-bottom: 20rpx;
+}
+
+.service-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx 24rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  position: relative;
+}
+
+.service-item:last-child {
+  border-bottom: none;
+}
+
+.service-item image {
+  width: 48rpx;
+  height: 48rpx;
+  margin-right: 24rpx;
+}
+
+.service-item text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.service-item .phone,
+.service-item .email {
+  font-size: 26rpx;
+  color: #666;
+  position: absolute;
+  right: 72rpx;
+}
+
+.service-item .arrow {
+  position: absolute;
+  right: 24rpx;
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 2rpx solid #999;
+  border-right: 2rpx solid #999;
+  transform: rotate(45deg);
+}
+
+/* FAQ样式 */
+.faq-container {
+  background-color: #fff;
+  border-radius: 12rpx;
+  overflow: hidden;
+  margin-bottom: 20rpx;
+}
+
+.faq-title {
+  padding: 24rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.faq-list {
+  padding: 0 24rpx;
+}
+
+.faq-item {
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.faq-item:last-child {
+  border-bottom: none;
+}
+
+.question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.question text {
+  font-size: 28rpx;
+  color: #333;
+  max-width: 600rpx;
+}
+
+.question image {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.answer {
+  margin-top: 20rpx;
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.5;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.answer.show {
+  max-height: 1000rpx;
+}
+
+.answer.hide {
+  max-height: 0;
+}
+
+/* 反馈入口样式 */
+.feedback-container {
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 30rpx 24rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.feedback-container text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.feedback-container image {
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 2rpx solid #999;
+  border-right: 2rpx solid #999;
+  transform: rotate(45deg);
+}

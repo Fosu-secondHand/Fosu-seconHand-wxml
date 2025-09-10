@@ -1,0 +1,133 @@
+/* pages/about/about.wxss */
+.container {
+  padding: 40rpx 30rpx;
+  padding-top: 45px;
+  background-color: #f8f8f8;
+  min-height: 100vh;
+}
+
+/* 头部样式 */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0;
+}
+
+.logo {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 20rpx;
+}
+
+.app-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.version {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 章节样式 */
+.section {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 30rpx;
+}
+
+/* 功能列表样式 */
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.feature-item image {
+  width: 80rpx;
+  height: 80rpx;
+}
+
+.feature-info {
+  flex: 1;
+}
+
+.feature-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.feature-desc {
+  font-size: 24rpx;
+  color: #666;
+  display: block;
+}
+
+/* 联系方式样式 */
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.contact-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.contact-item:last-child {
+  border-bottom: none;
+}
+
+.contact-label {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.contact-value {
+  font-size: 28rpx;
+  color: #2867CE;
+}
+
+/* 页脚样式 */
+.footer {
+  text-align: center;
+  padding: 40rpx 0;
+}
+
+.copyright {
+  font-size: 24rpx;
+  color: #999;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.rights {
+  font-size: 24rpx;
+  color: #999;
+  display: block;
+}

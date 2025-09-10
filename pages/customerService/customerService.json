@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "custom-nav-bar": "/components/CustomNavBar/CustomNavBar"
+  },
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "客服中心"
+}

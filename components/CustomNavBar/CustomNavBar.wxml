@@ -1,0 +1,12 @@
+<view class="nav-bar" style="padding-top: {{statusBarHeight}}px; height: {{statusBarHeight + 44}}px; {{bgImageStyle}}">
+  <view class="nav-content">
+    <view class="left" bindtap="onBack" wx:if="{{showBack}}">
+      <image class="back-icon" src="/static/assets/icons/arrowleft.png" mode="aspectFit" />
+    </view>
+    <view class="title">{{title}}</view>
+    <view class="right">
+      <slot name="right" />
+    </view>
+  </view>
+</view>
+

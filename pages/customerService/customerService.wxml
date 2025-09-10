@@ -1,0 +1,49 @@
+<view class="container">
+  <custom-nav-bar title="客服中心" showBack="true" />
+  
+  <view style="padding-top: 88rpx;">
+    <!-- 客服入口 -->
+    <view class="service-entry">
+      <view class="service-item" bindtap="openOnlineChat">
+        <image src="/static/assets/icons/customer.png"></image>
+        <text>在线客服</text>
+        <view class="arrow"></view>
+      </view>
+    <view class="service-item" bindtap="makePhoneCall">
+      <image src="/static/assets/icons/service_phone.png"></image>
+      <text>电话客服</text>
+      <text class="phone">400-123-4567</text>
+      <view class="arrow"></view>
+    </view>
+    <view class="service-item" bindtap="sendEmail">
+      <image src="/static/assets/icons/email.png"></image>
+      <text>邮件咨询</text>
+      <text class="email">support@example.com</text>
+      <view class="arrow"></view>
+    </view>
+  </view>
+
+  <!-- 常见问题 -->
+  <view class="faq-container">
+    <view class="faq-title">常见问题</view>
+    <view class="faq-list">
+      <block wx:for="{{faqList}}" wx:key="id">
+        <view class="faq-item">
+          <view class="question" bindtap="toggleFaq" data-id="{{item.id}}">
+            <text>{{item.question}}</text>
+            <image src="{{item.expanded ? '/static/assets/icons/arrowdown.png' : '/static/assets/icons/arrowright.png'}}"></image>
+          </view>
+          <view class="answer {{item.expanded ? 'show' : 'hide'}}">
+            <text>{{item.answer}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 反馈入口 -->
+  <view class="feedback-container" bindtap="navigateToFeedback">
+    <text>还有其他问题？提交反馈</text>
+  </view>
+  </view>
+</view>

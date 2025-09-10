@@ -1,0 +1,33 @@
+@import "../idle/idle.wxss"; 
+
+.category-section, .condition-section {
+  margin-top: 32rpx;
+}
+.category-title {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+}
+.category-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx 24rpx;
+}
+.category-item {
+  padding: 10rpx 28rpx;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 12rpx;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  cursor: pointer;
+}
+.category-item.active {
+  background: #ffd500;
+  color: #222;
+  border: 1px solid #ffd500;
+  font-weight: bold;
+} 

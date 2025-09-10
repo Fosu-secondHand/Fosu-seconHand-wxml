@@ -1,0 +1,14 @@
+<view wx:if="{{visible}}" class="price-detail-modal">
+  <view class="modal-mask" bindtap="onClose"></view>
+  <view class="modal-content">
+    <view class="modal-title">定价</view>
+    <view class="modal-input-row">
+      <text>￥</text>
+      <input class="modal-price-input" type="digit" value="{{price}}" bindinput="onInput" placeholder="输入定价" focus="true" />
+    </view>
+    <view class="modal-tip">卖闲置以新品价6折更容易售出</view>
+    <view class="modal-row">服务费（0.6%）：<text class="modal-fee">-￥{{serviceFee}}</text></view>
+    <view class="modal-row">到手价：<text class="modal-final">￥{{finalAmount}}</text></view>
+    <button class="modal-confirm-btn" bindtap="onConfirm">确定</button>
+  </view>
+</view> 

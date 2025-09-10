@@ -1,0 +1,16 @@
+<view class="container">
+  <custom-nav-bar title="填写反馈内容" showBack="true" />
+  
+  <view style="padding-top: 88rpx;">
+    <view class="title">填写反馈内容</view>
+    <textarea class="feedback-textarea" placeholder="写下您的反馈内容或建议，我们会尽快优化" bindinput="handleTextareaInput" value="{{feedbackContent}}"></textarea>
+    <view class="form-item">
+      <label>上传图片（可选）</label>
+      <view class="image-upload" bindtap="chooseImage">
+        <image src="{{imageSrc || '/static/assets/icons/add.png'}}" mode="aspectFit"></image>
+      </view>
+      <text class="image-hint">（可选）上传图片帮助我们更好地理解您的问题</text>
+    </view>
+    <button class="submit-btn" bindtap="submitFeedback">确认提交</button>
+  </view>
+</view>

@@ -1,0 +1,29 @@
+<view class="container">
+  <custom-nav-bar title="我买到的" showBack="true" />
+  
+  <view style="padding-top: 88rpx;">
+    <view class="title">我买到的</view>
+    <view class="orders-list">
+      <block wx:for="{{ordersList}}" wx:key="id">
+        <view class="order-item">
+          <view class="order-goods">
+            <image src="{{item.goods.imageUrl}}" mode="aspectFill"></image>
+            <view class="goods-info">
+              <view class="goods-title">{{item.goods.title}}</view>
+              <view class="goods-price">价格：{{item.goods.price}} 元</view>
+            </view>
+          </view>
+          <view class="order-info">
+            <view class="seller-name">卖家：{{item.sellerName}}</view>
+            <view class="order-status">状态：{{item.status}}</view>
+            <view class="order-time">交易时间：{{item.tradeTime}}</view>
+          </view>
+        </view>
+      </block>
+    </view>
+    <view class="no-orders" wx:if="{{!ordersList.length}}">
+      <image src="/images/no_orders.png" mode="aspectFit"></image>
+      <text>您还没有买到任何商品</text>
+    </view>
+  </view>
+</view>

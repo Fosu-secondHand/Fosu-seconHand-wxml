@@ -1,0 +1,46 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/chooseIdle/chooseIdle",
+    "pages/wantIdle/wantIdle",
+    "pages/idle/idle",
+    "pages/message/message",
+    "pages/profile/profile",
+    "pages/logs/logs",
+    "components/GoodItem/GoodItem",
+    "components/GoodList/GoodList",
+    "pages/GoodDetail/GoodDetail",
+    "pages/searchRes/searchRes",
+    "pages/myPublished/myPublished",
+    "pages/mySold/mySold",
+    "pages/myBought/myBought",
+    "pages/myCollection/myCollection",
+    "pages/address/address",
+    "pages/addAddress/addAddress",
+    "pages/customerService/customerService",
+    "pages/feedback/feedback",
+    "pages/about/about",
+    "pages/setting/setting",
+    "pages/editIdle/editIdle",
+    "pages/userHome/userHome",
+    "pages/chat/chat"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "佛大二手交易小程序",
+    "navigationBarBackgroundColor": "#54CC70",
+    "backgroundColor": "#F8F8F8",
+    "enablePullDownRefresh": true,  
+    "backgroundTextStyle": "dark" 
+  },
+  "tabBar": {
+    "custom": true,
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/chooseIdle/chooseIdle", "text": "闲置" },
+      { "pagePath": "pages/message/message", "text": "消息" },
+      { "pagePath": "pages/profile/profile", "text": "我的" }
+    ]
+  },
+  "usingComponents": {}
+}

@@ -1,0 +1,6 @@
+.skeleton-list { padding: 16px; }
+.skeleton-item { display: flex; margin-bottom: 20px; }
+.skeleton-img { width: 80px; height: 80px; background: #eee; border-radius: 8px; }
+.skeleton-lines { flex: 1; margin-left: 12px; }
+.skeleton-line { height: 16px; background: #eee; border-radius: 8px; margin-bottom: 8px; }
+.skeleton-line.short { width: 60%; } 

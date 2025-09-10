@@ -1,0 +1,360 @@
+.container {
+  background-color: #f8f8f8;
+  min-height: 100vh;
+  padding-top: 45px;
+  
+}
+.header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background-color: #fff;
+  margin-bottom: 0;
+}
+.avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  margin-right: 15px;
+}
+.user-info {
+  flex: 1;
+}
+.nickname {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  margin-bottom: 5px;
+}
+.account {
+  font-size: 14px;
+  color: #999;
+}
+.setting-btn {
+  width: 20px;
+  height: 20px;
+}
+.setting-btn image {
+  width: 100%;
+  height: 100%;
+}
+.divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 0 20px 18px 20px;
+}
+.profile-desc-row {
+  display: flex;
+  align-items: center;
+  margin: 18px 20px 0 20px;
+}
+.profile-desc {
+  font-size: 15px;
+  color: #333;
+  margin-right: 10px;
+}
+.edit-desc-btn {
+  font-size: 14px;
+  color: #ffb400;
+  background: #fff;
+  border-radius: 12px;
+  padding: 2px 10px;
+  margin-left: 4px;
+  cursor: pointer;
+  border: 1px solid #ffb400;
+}
+/* 优化弹窗按钮 */
+.modal-btn {
+  padding: 6px 18px;
+  border-radius: 8px;
+  border: none;
+  background: #f0f0f0;
+  color: #333;
+  font-size: 16px;
+}
+.modal-btn.confirm {
+  background: #ffb400;
+  color: #fff;
+  font-weight: bold;
+}
+.user-home-header {
+  position: relative;
+  height: 180px;
+  background: #fff;
+}
+.bg-img {
+  width: 100%;
+  height: 31%;
+  position: absolute;
+  left: 0; top: 0;
+  z-index: 1;
+  opacity: 0.7;
+  pointer-events: auto;
+}
+.header-content {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  z-index: 20;
+  padding: 30px 20px 0 20px;
+  pointer-events: none;
+}
+.avatar-box {
+  position: relative;
+  width: 110px; /* 头像70+按钮宽度约40 */
+  height: 70px;
+  margin-right: 0;
+  display: flex;
+  align-items: flex-start;
+}
+.avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+.user-main { flex: 1; }
+.nickname-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nickname {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  margin-right: 10px;
+}
+.edit-btn {
+  position: absolute;
+  top: 0;
+  left: 75px;
+  /* 按钮紧贴头像右侧 */
+  font-size: 12px;
+  padding: 2px 10px;
+  background: #fff;
+  color: #ffb400;
+  border: 1px solid #ffb400;
+  border-radius: 12px;
+  z-index: 3;
+  height: 26px;
+  line-height: 22px;
+}
+.tags {
+  margin: 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+.tag {
+  font-size: 12px;
+  color: #ffb400;
+  background: #fff3cd;
+  border-radius: 8px;
+  padding: 2px 8px;
+  margin-right: 6px;
+  white-space: nowrap;
+}
+.add-tag {
+  color: #ffb400;
+  background: #fff;
+  border: 1px dashed #ffb400;
+  margin-left: 0;
+}
+.desc {
+  font-size: 14px;
+  color: #666;
+  margin-top: 4px;
+  font-weight: bold;
+}
+.credit-bar {
+  display: flex;
+  background: #fff;
+  border-radius: 12px;
+  margin-top: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 3;
+}
+.credit-item {
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+  font-size: 15px;
+  color: #ffb400;
+}
+.credit-item text {
+  display: block;
+  font-size: 12px;
+  color: #999;
+}
+.user-tabs {
+  margin-top: 10px;
+  background: #fff;
+}
+.goods-list {
+  padding: 16px;
+  background: #fff;
+}
+.good-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 8px;
+}
+.good-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  margin-right: 12px;
+}
+.good-info {
+  display: flex;
+  flex-direction: column;
+}
+.good-title {
+  font-size: 16px;
+  color: #333;
+}
+.good-price {
+  font-size: 14px;
+  color: #ffb400;
+  margin-top: 4px;
+}
+.end-tip {
+  text-align: center;
+  color: #bbb;
+  font-size: 13px;
+  margin: 20px 0 10px 0;
+}
+.custom-modal-mask {
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.custom-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 20px 16px 20px;
+  width: 80vw;
+  max-width: 340px;
+  box-sizing: border-box;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.modal-input {
+  width: 100%;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 14px 12px;
+  font-size: 18px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+  background: #fafafa;
+  height: 48px;
+  line-height: 20px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.edit-btn-global {
+  position: absolute;
+  top: 98px;
+  right: 18px;
+  font-size: 12px;
+  padding: 2px 10px;
+  background: #fff;
+  color: #ffb400;
+  border: 1px solid #ffb400;
+  border-radius: 12px;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(255,180,0,0.08);
+  height: 26px;
+  line-height: 22px;
+}
+.tab-title-box {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+.tab-title {
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+  letter-spacing: 1px;
+  padding: 0 8px 0 8px;
+}
+.tab-badge {
+  position: absolute;
+  top: -10px;
+  right: -18px;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  background: linear-gradient(135deg, #ff6b81 60%, #ffb400 100%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 9px;
+  text-align: center;
+  padding: 0 5px;
+  box-sizing: border-box;
+  font-style: normal;
+  box-shadow: 0 2px 8px rgba(255, 180, 0, 0.18), 0 1px 4px rgba(255,107,129,0.18);
+  border: 1.5px solid #fff;
+  z-index: 2;
+}
+.user-tabs-custom {
+  display: flex;
+  background: #fff;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 0;
+  padding: 0 10px;
+  position: relative;
+  z-index: 2;
+}
+.tab-item {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  padding: 14px 0 6px 0;
+  cursor: pointer;
+}
+.tab-underline {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 3px;
+  background: linear-gradient(90deg, #ffb400 0%, #ff6b81 100%);
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(255,180,0,0.12);
+}
+.credit-score {
+  margin: 10px 0 6px 0;
+  font-size: 13px;
+  color: #ffb400;
+  font-weight: bold;
+  background: #fffbe6;
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px #ffe7ba;
+} 

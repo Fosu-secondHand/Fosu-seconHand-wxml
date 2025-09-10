@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "个人主页",
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "van-tabs": "/miniprogram_npm/vant-weapp/tabs/index",
+    "van-tab": "/miniprogram_npm/vant-weapp/tab/index",
+    "custom-nav-bar": "/components/CustomNavBar/CustomNavBar"
+  }
+}

@@ -1,0 +1,17 @@
+<!--components/GoodItem/GoodItem.wxml-->
+<navigator 
+  class="goods-card" 
+  url="/pages/GoodDetail/GoodDetail?id={{goods.id}}"  
+  hover-class="navigator-hover" 
+>
+  <image 
+    class="goods-image" 
+    src="{{goods.image}}" 
+    mode="aspectFill" 
+    lazy-load
+  />
+  <view class="goods-info">
+    <text class="goods-title">{{goods.title}}</text>
+    <text class="goods-price">¥{{goods.price}}</text>
+  </view>
+</navigator>
