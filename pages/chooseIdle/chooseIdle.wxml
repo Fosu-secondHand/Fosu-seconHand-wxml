@@ -1,4 +1,7 @@
 <view class="container">
+  <!-- 背景图片 - 移至最顶部确保完全显示 -->
+  <image class="background-image" src="/static/微信图片_20250911191036_7_15.png" mode="scaleToFill" />
+  
   <custom-nav-bar title="选择类型" />
   
   <view style="padding-top: 88rpx;">

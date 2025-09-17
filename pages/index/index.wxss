@@ -11,7 +11,7 @@
 
 .header {
   position: fixed;
-  top: 75px;
+  top: 85px;
   left: 0;
   right: 0;
   display: flex;
@@ -39,7 +39,7 @@
 
 .fixed-tabs {
   position: fixed;
-  top: 185px;
+  top: 195px;
   left: 0;
   right: 0;
   background-color: white;
@@ -48,7 +48,7 @@
 }
 
 .scroll-content {
-  margin-top: 225px;
+  margin-top: 245px;
   flex: 1;
   height: calc(100vh - 150px);
   overflow-y: auto;
@@ -81,7 +81,7 @@
 
 .filter-bar-wrapper {
   position: fixed;
-  top: 140px;
+  top: 150px;
   left: 0;
   right: 0;
   z-index: 99;

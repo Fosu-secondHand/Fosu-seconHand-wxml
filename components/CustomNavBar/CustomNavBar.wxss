@@ -1,13 +1,13 @@
 .nav-bar {
   position: fixed;
-  top: 0;
+  top: -21px;
   left: 0;
   right: 0;
   color: #000;
   z-index: 1000;
 }
 .nav-content {
-  height: 44px;
+  height: 75px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -25,9 +25,13 @@
 .back-icon {
   width: 24px;
   height: 24px;
+  position: absolute; 
+  z-index: 99; 
+  top: 70px; 
 }
 .title {
   font-size: 16px;
   font-weight: 600;
+  color: #f3f312;
 }
 

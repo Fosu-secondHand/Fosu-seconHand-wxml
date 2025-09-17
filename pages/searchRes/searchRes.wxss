@@ -2,12 +2,13 @@
 .container {
   min-height: 100vh; /* 初始最小高度（视口高度） */
   background-color: #f5f5f5;
+  padding-top: 30rpx;
   padding-bottom: 30rpx; /* 底部留白，避免内容紧贴底部 */
 }
 
 .search-header {
   position: fixed;
-  top: 0;
+  top: 180rpx;
   left: 0;
   right: 0;
   display: flex;
@@ -21,7 +22,7 @@
 
 van-search {
   flex: 1; /* 让搜索框占据剩余空间 */
-  margin-right: 10rpx; 
+  margin-right: 0rpx; 
 }
 
 .search-history {
@@ -86,7 +87,7 @@ van-search {
 .sort-bar {
   position: fixed;
   display: flex;
-  top: 0;
+  top: 200rpx;
   left: 0;
   right: 0;
   justify-content: space-around;

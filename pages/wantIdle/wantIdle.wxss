@@ -2,6 +2,7 @@
 
 .category-section, .condition-section {
   margin-top: 32rpx;
+  
 }
 .category-title {
   font-size: 28rpx;

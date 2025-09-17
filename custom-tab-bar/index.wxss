@@ -1,4 +1,4 @@
-.tabbar {
+.tab-bar {
   position: fixed;
   left: 0;
   right: 0;
@@ -11,6 +11,20 @@
   align-items: center;
   justify-content: space-around;
   z-index: 1000;
+  overflow: hidden;
+  position: relative;
+}
+
+.tab-bar-bg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 1; /* 不透明，使颜色更鲜艳 */
 }
 
 .tab-item {
@@ -22,15 +36,18 @@
   justify-content: center;
   color: #7A7E83;
   font-size: 22rpx;
+  position: relative;
+  z-index: 10; /* 确保内容在背景图片上方 */
+  pointer-events: auto;
 }
 
 .tab-item.active {
-  color: #54CC70;
+  color: #ecea56;
 }
 
 .icon {
   width: 48rpx;
   height: 48rpx;
-  margin-bottom: 6rpx;
+  margin-bottom: 10rpx;
 }
 

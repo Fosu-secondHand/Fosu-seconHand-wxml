@@ -44,8 +44,12 @@ Page({
 
   navigateToChat: function(event) {
     const receiver = event.currentTarget.dataset.receiver;
+    // 获取对应的消息项，找到title字段
+    const messageItem = this.data.messages.find(item => item.receiver === receiver) || 
+                        this.data.originalMessages.find(item => item.receiver === receiver);
+    const name = messageItem ? messageItem.title : '未知用户';
     wx.navigateTo({
-      url: `/pages/chat/chat?receiver=${receiver}` // 跳转到私聊页面，并传递接收者ID
+      url: `/pages/chat/chat?receiver=${receiver}&name=${encodeURIComponent(name)}` // 同时传递接收者ID和名称
     });
   },
   onShow() {

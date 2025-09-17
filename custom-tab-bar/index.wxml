@@ -1,4 +1,8 @@
-<view class="tabbar">
+<view class="tab-bar">
+  <!-- 背景图片 -->
+  <image class="tab-bar-bg" src="/static/下目录栏.png" mode="aspectFill"></image>
+  
+  <!-- tabbar内容 -->
   <block wx:for="{{list}}" wx:key="index">
     <view class="tab-item {{selected === index ? 'active' : ''}}" bindtap="onTabTap" data-index="{{index}}">
       <image class="icon" src="{{selected === index ? item.selectedIconPath : item.iconPath}}" mode="aspectFit" />

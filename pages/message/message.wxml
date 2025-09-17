@@ -1,6 +1,5 @@
-<custom-nav-bar title="消息" />
 <view class="message-container">
-  <custom-nav-bar title="消息" showBack="true" />
+  <custom-nav-bar title="消息" />
   
   <view style="padding-top: 88rpx;">
     <block wx:for="{{messages}}" wx:key="index">

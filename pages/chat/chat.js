@@ -17,7 +17,8 @@ Page({
 
   onLoad: function (options) {
     const receiver = options.receiver;
-    const chatName = options.name || '聊天';
+    // 优先使用从message页面传递过来的name参数作为聊天标题，这也是实际上线后应该使用的方式
+    const chatName = options.name ? decodeURIComponent(options.name) : receiver;
     this.setData({ receiver, chatName });
 
     wx.setNavigationBarTitle({ title: chatName });
@@ -243,12 +244,28 @@ Page({
   scrollToBottom: function () {
     wx.nextTick(() => {
       setTimeout(() => {
-        if (this.data.chatRecords.length > 0) {
-          const lastMsg = this.data.chatRecords[this.data.chatRecords.length - 1];
-          console.log('滚动到消息id:', lastMsg.id);
-          this.setData({ scrollIntoView: lastMsg.id });
+        try {
+          const query = wx.createSelectorQuery().in(this);
+          query.select('#chatScrollView').boundingClientRect();
+          query.selectViewport().scrollOffset();
+          query.exec(res => {
+            if (res && res[0] && res[1]) {
+              // 直接滚动到底部而不依赖于消息ID
+              this.setData({
+                scrollTop: 99999
+              });
+              console.log('滚动到底部完成');
+            }
+          });
+        } catch (e) {
+          console.error('滚动到底部失败:', e);
+          // 降级方案：使用原来的方法
+          if (this.data.chatRecords.length > 0) {
+            const lastMsg = this.data.chatRecords[this.data.chatRecords.length - 1];
+            this.setData({ scrollIntoView: lastMsg.id });
+          }
         }
-      }, 100);
+      }, 50);
     });
   },
 
