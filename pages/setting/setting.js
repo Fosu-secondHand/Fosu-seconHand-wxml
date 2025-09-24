@@ -336,8 +336,42 @@ Page({
       confirmColor: '#e64340',
       success: (res) => {
         if (res.confirm) {
-          wx.clearStorageSync();
-          wx.reLaunch({ url: '/pages/login/login' });
+          try {
+            // 获取App实例
+            const app = getApp();
+            
+            // 调用全局logout方法进行全面清理
+            if (app && app.logout) {
+              app.logout();
+            }
+            
+            // 额外清除，确保万无一失
+            wx.clearStorageSync();
+            
+            // 强制设置用户未登录状态
+            wx.setStorageSync('userInfo', { isLogin: false });
+            
+            console.log('登录状态已完全清除');
+            
+            // 短暂延迟后再跳转，确保清除操作完全执行
+            setTimeout(() => {
+              wx.reLaunch({
+                url: '/pages/login/login',
+                success: () => {
+                  console.log('成功跳转到登录页面');
+                },
+                fail: (err) => {
+                  console.error('跳转登录页面失败:', err);
+                  // 备用方案：如果reLaunch失败，尝试其他跳转方式
+                  wx.redirectTo({ url: '/pages/login/login' });
+                }
+              });
+            }, 100);
+          } catch (e) {
+            console.error('退出登录过程发生异常:', e);
+            // 即使出现异常，也尝试跳转到登录页
+            wx.reLaunch({ url: '/pages/login/login' });
+          }
         }
       }
     });

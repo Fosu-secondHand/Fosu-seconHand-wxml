@@ -1,0 +1,82 @@
+<!-- pages/login/login.wxml -->
+<view class="container">
+  <!-- 顶部logo和标题 -->
+  <view class="header">
+    <image class="logo" src="/static/assets/login/logo.svg" mode="aspectFit"></image>
+    <view class="title">佛大二手交易小程序</view>
+    <view class="subtitle">让闲置物品流动起来</view>
+  </view>
+
+  <!-- 登录表单 -->
+  <view class="form-container">
+    <!-- 用户名输入 -->
+    <view class="input-group">
+      <image class="input-icon" src="/static/assets/login/user.svg"></image>
+      <input 
+        class="input" 
+        placeholder="请输入用户名" 
+        placeholder-class="placeholder"
+        value="{{username}}"
+        bindinput="onUsernameInput"
+        focus="{{isFirstLogin}}"
+      />
+    </view>
+
+    <!-- 密码输入 -->
+    <view class="input-group">
+      <image class="input-icon" src="/static/assets/login/lock.svg"></image>
+      <input 
+        class="input" 
+        placeholder="请输入密码" 
+        placeholder-class="placeholder"
+        password="true"
+        value="{{password}}"
+        bindinput="onPasswordInput"
+      />
+    </view>
+
+    <!-- 错误提示 -->
+    <view class="error-msg" wx:if="{{errorMsg}}">{{errorMsg}}</view>
+
+    <!-- 登录按钮 -->
+    <button 
+      class="login-btn" 
+      type="primary" 
+      bindtap="login"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+    >
+      登录
+    </button>
+
+    <!-- 微信登录 -->
+    <button 
+      class="wx-login-btn" 
+      open-type="getUserInfo"
+      bindtap="wxLogin"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+    >
+      <image class="wx-icon" src="/static/assets/login/wechat.svg"></image>
+      微信一键登录
+    </button>
+
+    <!-- 其他操作 -->
+    <view class="other-actions">
+      <text class="action-text" bindtap="register">注册账号</text>
+      <text class="action-text" bindtap="forgotPassword">忘记密码</text>
+    </view>
+  </view>
+
+  <!-- 协议说明 -->
+  <view class="agreement">
+    <text>登录即表示您同意</text>
+    <text class="link" bindtap="viewUserAgreement">《用户协议》</text>
+    <text>和</text>
+    <text class="link" bindtap="viewPrivacyPolicy">《隐私政策》</text>
+  </view>
+
+  <!-- 背景装饰 -->
+  <!-- 背景装饰 -->
+  <image class="background-decoration" src="/static/assets/login/bg-pattern.svg" mode="scaleToFill"></image>
+</view>

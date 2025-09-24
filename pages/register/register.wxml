@@ -1,0 +1,125 @@
+<!-- pages/register/register.wxml -->
+<view class="container">
+  <!-- 顶部标题 -->
+  <view class="header">
+    <view class="title">创建新账号</view>
+    <view class="subtitle">填写以下信息完成注册</view>
+  </view>
+
+  <!-- 注册表单 -->
+  <view class="form-container">
+    <!-- 用户名输入 -->
+    <view class="input-group">
+      <image class="input-icon" src="/static/assets/login/user.svg"></image>
+      <input 
+        class="input" 
+        placeholder="请输入用户名（3-20位）" 
+        placeholder-class="placeholder"
+        value="{{username}}"
+        bindinput="onUsernameInput"
+        focus="true"
+      />
+    </view>
+
+    <!-- 密码输入 -->
+    <view class="input-group">
+      <image class="input-icon" src="/static/assets/login/lock.svg"></image>
+      <input 
+        class="input" 
+        placeholder="请输入密码（6-20位）" 
+        placeholder-class="placeholder"
+        password="true"
+        value="{{password}}"
+        bindinput="onPasswordInput"
+      />
+    </view>
+
+    <!-- 确认密码 -->
+    <view class="input-group">
+      <image class="input-icon" src="/static/assets/login/lock-confirm.svg"></image>
+      <input 
+        class="input" 
+        placeholder="请再次输入密码" 
+        placeholder-class="placeholder"
+        password="true"
+        value="{{confirmPassword}}"
+        bindinput="onConfirmPasswordInput"
+      />
+    </view>
+
+    <!-- 昵称输入 -->
+    <view class="input-group">
+      <image class="input-icon" src="/static/assets/login/nickname.svg"></image>
+      <input 
+        class="input" 
+        placeholder="请输入昵称" 
+        placeholder-class="placeholder"
+        value="{{nickname}}"
+        bindinput="onNicknameInput"
+      />
+    </view>
+
+    <!-- 手机号输入 -->
+    <view class="input-group">
+      <image class="input-icon" src="/static/assets/login/phone.svg"></image>
+      <input 
+        class="input phone-input" 
+        placeholder="请输入手机号" 
+        placeholder-class="placeholder"
+        value="{{phone}}"
+        bindinput="onPhoneInput"
+        type="number"
+      />
+      <button 
+        class="code-btn {{isCountingDown ? 'disabled' : ''}}"
+        size="mini"
+        bindtap="getVerificationCode"
+        disabled="{{isCountingDown}}"
+      >
+        {{isCountingDown ? (countdown + 's后重发') : '获取验证码'}}
+      </button>
+    </view>
+
+    <!-- 验证码输入 -->
+    <view class="input-group">
+      <image class="input-icon" src="/static/assets/login/code.svg"></image>
+      <input 
+        class="input" 
+        placeholder="请输入验证码" 
+        placeholder-class="placeholder"
+        type="number"
+      />
+    </view>
+
+    <!-- 错误提示 -->
+    <view class="error-msg" wx:if="{{errorMsg}}">{{errorMsg}}</view>
+
+    <!-- 注册按钮 -->
+    <button 
+      class="register-btn" 
+      type="primary" 
+      bindtap="register"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+    >
+      立即注册
+    </button>
+
+    <!-- 其他操作 -->
+    <view class="login-action">
+      <text>已有账号？</text>
+      <text class="link" bindtap="backToLogin">立即登录</text>
+    </view>
+  </view>
+
+  <!-- 协议说明 -->
+  <view class="agreement">
+    <text>注册即表示您同意</text>
+    <text class="link" bindtap="viewUserAgreement">《用户协议》</text>
+    <text>和</text>
+    <text class="link" bindtap="viewPrivacyPolicy">《隐私政策》</text>
+  </view>
+
+  <!-- 背景装饰 -->
+  <image class="background-decoration" src="/static/assets/login/bg-pattern.svg" mode="scaleToFill"></image>
+</view>

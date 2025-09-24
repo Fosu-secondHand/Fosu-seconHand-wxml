@@ -13,12 +13,21 @@ Page({
     this.loadUserInfoWithNetError();
   },
 
+  // 合并后的onShow方法，包含更新发布数量和设置tabbar选中状态
   onShow() {
-    // 每次页面显示时更新发布数量
+    // 1. 更新发布商品数量
     const myPublishGoodsList = wx.getStorageSync('myPublishGoodsList') || [];
     this.setData({
       myGoodsCount: myPublishGoodsList.length
     });
+    
+    // 2. 设置tabbar选中状态
+    if (this.getTabBar) {
+      const tabbar = this.getTabBar();
+      if (tabbar && tabbar.setData) {
+        tabbar.setData({ selected: 3 });
+      }
+    }
   },
 
   loadUserInfoWithNetError() {
@@ -84,18 +93,18 @@ Page({
     });
   },
 
-  // 导航到关于页面
+  // 导航到关于FOSU页面（修复路径）
   navigateToAboutFOSU() {
     wx.navigateTo({
-      url: '/pages/about/about'
+      url: '/pages/aboutFosu/aboutFosu'
     });
   },
 
   // ===== 新增功能 =====
-  // 导航到我的发布页面
+  // 导航到我的发布页面（修复路径）
   navigateToMyPublish() {
     wx.navigateTo({
-      url: '/pages/myPublish/myPublish'
+      url: '/pages/myPublished/myPublished'
     });
   },
 
@@ -106,17 +115,49 @@ Page({
     });
   },
 
-  // 退出登录
+  // 退出登录（修复：添加页面跳转逻辑）
   logout() {
     wx.showModal({
       title: '确认退出',
       content: '确定要退出当前账号吗？',
       success: (res) => {
         if (res.confirm) {
-          wx.clearStorageSync();
-          wx.reLaunch({
-            url: '/pages/login/login'
-          });
+          try {
+            // 获取App实例
+            const app = getApp();
+            
+            // 调用全局logout方法进行全面清理
+            if (app && app.logout) {
+              app.logout();
+            }
+            
+            // 额外清除，确保万无一失
+            wx.clearStorageSync();
+            
+            // 强制设置用户未登录状态
+            wx.setStorageSync('userInfo', { isLogin: false });
+            
+            console.log('登录状态已完全清除');
+            
+            // 短暂延迟后再跳转，确保清除操作完全执行
+            setTimeout(() => {
+              wx.reLaunch({
+                url: '/pages/login/login',
+                success: () => {
+                  console.log('成功跳转到登录页面');
+                },
+                fail: (err) => {
+                  console.error('跳转登录页面失败:', err);
+                  // 备用方案：如果reLaunch失败，尝试其他跳转方式
+                  wx.redirectTo({ url: '/pages/login/login' });
+                }
+              });
+            }, 100);
+          } catch (e) {
+            console.error('退出登录过程发生异常:', e);
+            // 即使出现异常，也尝试跳转到登录页
+            wx.reLaunch({ url: '/pages/login/login' });
+          }
         }
       }
     });
@@ -128,7 +169,13 @@ Page({
     });
   },
 
-  onChooseAvatar() {
+  // 修复头像点击事件冲突，添加e.stopPropagation()阻止事件冒泡
+  onChooseAvatar(e) {
+    // 阻止事件冒泡到父元素，避免同时触发goToUserHome
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
+    
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
@@ -146,14 +193,5 @@ Page({
         wx.showToast({ title: '未选择头像', icon: 'none' });
       }
     });
-  }
-  ,
-  onShow() {
-    if (this.getTabBar) {
-      const tabbar = this.getTabBar();
-      if (tabbar && tabbar.setData) {
-        tabbar.setData({ selected: 3 });
-      }
-    }
   }
 });
