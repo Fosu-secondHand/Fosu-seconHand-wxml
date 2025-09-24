@@ -43,14 +43,29 @@
     <view class="section category-section">
       <view class="category-title">分类</view>
       <view class="category-list">
-        <view class="category-item {{category === item ? 'active' : ''}}" wx:for="{{categoryOptions}}" wx:key="item" bindtap="onCategorySelect" data-value="{{item}}">{{item}}</view>
+        <view class="category-item {{category && category.id === item.id ? 'active' : ''}}" wx:for="{{categoryOptions}}" wx:key="id" bindtap="onCategorySelect" data-id="{{item.id}}" data-index="{{index}}">{{item.name}}</view>
+      </view>
+      
+      <!-- 添加新分类输入框 -->
+      <view wx:if="{{showAddCategory}}" class="add-category-section">
+        <input 
+          class="new-category-input" 
+          placeholder="请输入新的分类名称" 
+          value="{{newCategoryName}}" 
+          bindinput="onNewCategoryInput" 
+        />
+        <view class="add-category-buttons">
+          <button class="cancel-btn" bindtap="cancelAddCategory">取消</button>
+          <button class="confirm-btn" bindtap="confirmAddCategory">确定</button>
+        </view>
       </view>
     </view>
+    
     <!-- 成色栏 -->
     <view class="section condition-section">
       <view class="category-title">成色</view>
       <view class="category-list">
-        <view class="category-item {{condition === item ? 'active' : ''}}" wx:for="{{conditionOptions}}" wx:key="item" bindtap="onConditionSelect" data-value="{{item}}">{{item}}</view>
+        <view class="category-item {{condition && condition.value === item.value ? 'active' : ''}}" wx:for="{{conditionOptions}}" wx:key="value" bindtap="onConditionSelect" data-value="{{item.value}}" data-index="{{index}}">{{item.label}}</view>
       </view>
     </view>
 
@@ -59,10 +74,10 @@
       <view class="section-title">交易方式</view>
       <radio-group bindchange="onShippingChange">
         <label class="radio-item">
-          <radio value="seller" checked="{{shippingMethod === 'seller'}}"/>送货上门
+          <radio value="buyer" checked="{{shippingMethod === 'Pickup'}}"/>自取
         </label>
         <label class="radio-item">
-          <radio value="buyer" checked="{{shippingMethod === 'buyer'}}"/>自取
+          <radio value="seller" checked="{{shippingMethod === 'Delivery'}}"/>送货上门
         </label>
       </radio-group>
     </view>

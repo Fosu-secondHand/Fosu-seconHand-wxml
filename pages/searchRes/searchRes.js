@@ -1,5 +1,5 @@
 // pages/searchRes/searchRes.js
-const { mockGoodsData } = require("../../mock/goods.js");
+const app = getApp();
 
 Page({
   data: {
@@ -26,11 +26,13 @@ Page({
       this.searchGoods(keyword, true); // 初始加载默认排序
       this.addSearchHistory(keyword);
     }
-    this.loadSearchResults();
+    // 移除原来的loadSearchResults调用，因为我们现在使用真实的搜索接口
   },
 
   // 执行搜索（含排序和分页）
   searchGoods(keyword, isReset = false) {
+    if (!keyword) return;
+    
     if (isReset) {
       this.setData({
         currentPage: 1,
@@ -40,32 +42,63 @@ Page({
       });
     }
 
-    this.setData({ loading: true });
+    this.setData({ loading: true, netError: false });
 
-    setTimeout(() => {
-      // 1. 过滤数据
-      const filteredData = mockGoodsData.filter(item => 
-        item.title.includes(keyword) || 
-        (item.description && item.description.includes(keyword)) ||
-        (item.tags && item.tags.some(tag => tag.includes(keyword)))
-      );
+    // 构建请求URL
+    let url = `${app.globalData.baseUrl}/products/search?keyword=${encodeURIComponent(keyword)}`;
+    url += `&page=${this.data.currentPage}`;
+    url += `&size=${this.data.pageSize}`;
+    
+    // 添加排序参数
+    const { sortType, priceOrder, timeOrder, viewsOrder } = this.data;
+    switch (sortType) {
+      case 'price':
+        url += `&sortBy=price&order=${priceOrder}`;
+        break;
+      case 'publishTime':
+        url += `&sortBy=time&order=${timeOrder}`;
+        break;
+      case 'views':
+        url += `&sortBy=views&order=${viewsOrder}`;
+        break;
+      default:
+        url += `&sortBy=default`;
+        break;
+    }
 
-      // 2. 应用排序
-      const sortedData = this.sortGoods(filteredData);
-
-      // 3. 分页处理
-      const start = (this.data.currentPage - 1) * this.data.pageSize;
-      const newResults = sortedData.slice(start, start + this.data.pageSize);
-      const hasMore = sortedData.length > start + this.data.pageSize;
-
-      this.setData({
-        goodsList: isReset ? sortedData : this.data.goodsList.concat(newResults),
-        sortedGoodsList: sortedData, // 保存完整排序数据用于后续加载
-        currentPage: this.data.currentPage + 1,
-        hasMore,
-        loading: false,
-      });
-    }, 800);
+    wx.request({
+      url: url,
+      method: 'GET',
+      timeout: 10000,
+      success: (res) => {
+        if (res.statusCode === 200 && res.data.code === 200) {
+          const newData = res.data.data || [];
+          const hasMore = newData.length === this.data.pageSize;
+          
+          // 更新数据
+          this.setData({
+            goodsList: isReset ? newData : this.data.goodsList.concat(newData),
+            sortedGoodsList: isReset ? newData : this.data.sortedGoodsList.concat(newData),
+            currentPage: this.data.currentPage + 1,
+            hasMore: hasMore,
+            loading: false
+          });
+        } else {
+          console.error('搜索接口返回错误:', res);
+          this.setData({ 
+            netError: true, 
+            loading: false 
+          });
+        }
+      },
+      fail: (err) => {
+        console.error('搜索请求失败:', err);
+        this.setData({ 
+          netError: true, 
+          loading: false 
+        });
+      }
+    });
   },
 
   // 排序处理函数
@@ -98,36 +131,10 @@ Page({
     });
   },
 
-  // 统一排序算法
-  sortGoods(data) {
-    const { sortType, priceOrder, timeOrder, viewsOrder } = this.data;
-    const tempData = [...data];
-
-    switch (sortType) {
-      case 'price':
-        return priceOrder === 'asc' 
-          ? tempData.sort((a, b) => a.price - b.price) 
-          : tempData.sort((a, b) => b.price - a.price);
-          
-      case 'publishTime':
-        return timeOrder === 'asc' 
-          ? tempData.sort((a, b) => new Date(a.publishTime) - new Date(b.publishTime)) 
-          : tempData.sort((a, b) => new Date(b.publishTime) - new Date(a.publishTime));
-          
-      case 'views':
-        return viewsOrder === 'desc' 
-          ? tempData.sort((a, b) => b.views - a.views) 
-          : tempData.sort((a, b) => a.views - b.views);
-          
-      default: // 默认按最新发布（ID降序）
-        return tempData.sort((a, b) => b.id - a.id);
-    }
-  },
-
   // 加载更多
   onLoadMore() {
     if (this.data.hasMore && !this.data.loading) {
-      this.searchGoods(this.data.keyword); // 保持当前排序和分页状态
+      this.searchGoods(this.data.keyword, false); // 保持当前排序和分页状态
     }
   },
 
@@ -182,22 +189,7 @@ Page({
     wx.navigateBack();
   },
 
-  loadSearchResults() {
-    this.setData({ netError: false });
-    // 这里用真实网络请求替换
-    wx.request({
-      url: 'https://jsonplaceholder.typicode.com/posts',
-      timeout: 8000,
-      success: (res) => {
-        // 正常处理
-      },
-      fail: (err) => {
-        this.setData({ netError: true });
-      }
-    });
-  },
-
   reloadPage() {
-    this.loadSearchResults();
+    this.searchGoods(this.data.keyword, true);
   }
 });

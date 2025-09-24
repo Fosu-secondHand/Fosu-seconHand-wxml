@@ -1,15 +1,11 @@
 {
-  "compileType": "miniprogram",
-  "libVersion": "trial",
-  "packOptions": {
-    "ignore": [],
-    "include": []
-  },
+  "description": "项目配置文件",
   "setting": {
-    "coverView": true,
+    "urlCheck": false,
     "es6": true,
     "postcss": true,
     "minified": true,
+    "coverView": true,
     "enhance": true,
     "showShadowRootInWxmlPanel": true,
     "packNpmRelationList": [],
@@ -31,11 +27,18 @@
     "swc": false,
     "disableSWC": true
   },
+  "libVersion": "3.8.9",
+  "appid": "wxb466e6daf5ddc663",
+  "projectname": "miniapp-local",
+  "compileType": "miniprogram",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
   "condition": {},
   "editorSetting": {
     "tabIndent": "auto",
     "tabSize": 2
   },
-  "appid": "wxb466e6daf5ddc663",
   "simulatorPluginLibVersion": {}
 }

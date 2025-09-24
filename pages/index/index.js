@@ -1,4 +1,4 @@
-const { mockGoodsData } = require("../../mock/goods.js");
+const app = getApp();
 
 Page({
   data: {
@@ -32,8 +32,10 @@ Page({
 
   onLoad() {
     this.setData({ selectedCategories: [] });
-    this.filterGoodsListByCategory();
+    this.loadGoodsList(true); // 页面加载时调用真实API
     console.log('页面加载');
+    // 加载搜索历史
+    this.loadSearchHistory();
   },
 
   onShow() {
@@ -55,38 +57,64 @@ Page({
         tabData: { [activeTab]: { goodsList: [], currentPage: 1, hasMore: true } }
       });
     }
+
     this.setData({ loading: true, netError: false });
-    try {
-      const categoryMap = this.data.categoryMap;
-      // 由于mock数据的分类与categoryMap不匹配，暂时显示所有数据
-      const filteredData = mockGoodsData;
-      console.log('当前标签页:', activeTab, '分类名称:', categoryMap[activeTab]);
-      console.log('过滤后的数据总量:', filteredData.length);
-      const start = (this.data.currentPage - 1) * this.data.pageSize;
-      const end = start + this.data.pageSize;
-      console.log('分页范围:', start, '到', end);
-      const newData = filteredData.slice(start, end);
-      console.log('本次加载的数据量:', newData.length);
-      const hasMore = end < filteredData.length;
-      console.log('是否还有更多数据:', hasMore);
-      this.setData({
-        goodsList: this.data.goodsList.concat(newData),
-        currentPage: this.data.currentPage + 1,
-        hasMore,
-        loading: false
-      });
-      if (!reset) {
-        this.data.tabData[activeTab] = {
-          goodsList: this.data.goodsList,
-          currentPage: this.data.currentPage,
-          hasMore
-        };
-        this.setData({ tabData: this.data.tabData });
+
+    // 调用后端API获取商品列表
+    wx.request({
+      url: app.globalData.baseUrl + '/products/list', // 使用您定义的基础URL
+      method: 'GET',
+      success: (res) => {
+        console.log('API返回数据:', res);
+        if (res.statusCode === 200 && res.data.code === 200) {
+          // 根据您的response格式，数据在res.data.data中
+          const productsData = res.data.data || [];
+
+
+          console.log('商品列表数据:', productsData);
+          // 检查每个商品的ID字段
+          productsData.forEach((product, index) => {
+            console.log(`商品${index} ID信息:`, {
+              id: product.id,
+              product_ld: product.product_ld,
+              productId: product.productId,
+              otherIdFields: Object.keys(product).filter(key => key.toLowerCase().includes('id'))
+            });
+          });
+
+
+          // 处理分页逻辑
+          const start = (this.data.currentPage - 1) * this.data.pageSize;
+          const end = start + this.data.pageSize;
+          const newData = productsData.slice(start, end);
+          const hasMore = end < productsData.length;
+
+          this.setData({
+            goodsList: reset ? newData : this.data.goodsList.concat(newData),
+            currentPage: this.data.currentPage + 1,
+            hasMore: hasMore,
+            loading: false
+          });
+
+          // 更新tabData
+          if (!reset) {
+            this.data.tabData[activeTab] = {
+              goodsList: this.data.goodsList,
+              currentPage: this.data.currentPage,
+              hasMore: hasMore
+            };
+            this.setData({ tabData: this.data.tabData });
+          }
+        } else {
+          console.error('API返回错误:', res);
+          this.setData({ netError: true, loading: false });
+        }
+      },
+      fail: (err) => {
+        console.error('请求失败:', err);
+        this.setData({ netError: true, loading: false });
       }
-    } catch (err) {
-      console.error('加载数据出错:', err);
-      this.setData({ netError: true, loading: false });
-    }
+    });
   },
 
   onTabChange(event) {
@@ -115,6 +143,7 @@ Page({
     const keyword = e.detail.trim();
     console.log("搜索关键词（从事件获取）:", keyword);
     if (keyword) {
+      this.saveSearchHistory(keyword);
       wx.navigateTo({
         url: `/pages/searchRes/searchRes?keyword=${keyword}`
       });
@@ -162,18 +191,8 @@ Page({
   },
 
   filterGoodsListByCategory() {
-    const { selectedCategories } = this.data;
-    let filtered = [];
-    if (selectedCategories.length === 0) {
-      filtered = mockGoodsData;
-    } else {
-      filtered = mockGoodsData.filter(item => selectedCategories.includes(item.category));
-    }
-    this.setData({
-      goodsList: filtered.slice(0, this.data.pageSize),
-      currentPage: 2,
-      hasMore: filtered.length > this.data.pageSize
-    });
+    // 这里也应该调用带分类筛选的API
+    this.loadGoodsList(true);
   },
 
   toggleCampusDropdown() {
@@ -209,5 +228,93 @@ Page({
   reloadPage() {
     this.setData({ netError: false });
     this.loadGoodsList(true);
+  },
+
+  // 加载搜索历史
+  loadSearchHistory() {
+    const history = wx.getStorageSync('searchHistory') || [];
+    this.setData({ historyKeywords: history });
+  },
+
+  // 保存搜索历史
+  saveSearchHistory(keyword) {
+    let history = wx.getStorageSync('searchHistory') || [];
+    // 如果关键词已存在，先移除它
+    const index = history.indexOf(keyword);
+    if (index > -1) {
+      history.splice(index, 1);
+    }
+    // 将新关键词添加到开头
+    history.unshift(keyword);
+    // 限制历史记录数量为10条
+    if (history.length > 10) {
+      history = history.slice(0, 10);
+    }
+    wx.setStorageSync('searchHistory', history);
+    this.setData({ historyKeywords: history });
+  },
+
+  // 显示搜索历史
+  showSearchHistory() {
+    this.loadSearchHistory();
+    this.setData({ showHistory: true });
+  },
+
+  // 隐藏搜索历史
+  hideSearchHistory() {
+    this.setData({ showHistory: false });
+  },
+
+  // 清除搜索历史
+  clearSearchHistory() {
+    wx.removeStorageSync('searchHistory');
+    this.setData({
+      historyKeywords: [],
+      showHistory: false
+    });
+    wx.showToast({
+      title: '搜索历史已清除',
+      icon: 'none'
+    });
+  },
+
+  // 点击历史记录进行搜索
+  searchByHistory(e) {
+    const keyword = e.currentTarget.dataset.keyword;
+    if (keyword) {
+      this.setData({
+        value: keyword,
+        showHistory: false
+      });
+      // 触发搜索
+      this.onSearch({ detail: keyword });
+    }
+  },
+
+  // 输入框聚焦时显示搜索历史
+  onSearchFocus() {
+    this.loadSearchHistory();
+    this.setData({ showHistory: true });
+  },
+
+  // 输入框失去焦点时隐藏搜索历史（延迟一点时间以确保点击事件能正常执行）
+  onSearchBlur() {
+    setTimeout(() => {
+      this.setData({ showHistory: false });
+    }, 200);
+  },
+
+  // 输入框内容变化时的处理
+  onSearchInput(e) {
+    const value = e.detail.value;
+    this.setData({ value: value });
+
+    // 如果输入框有内容，显示搜索历史
+    if (value.trim()) {
+      this.showSearchHistory();
+    } else {
+      // 如果输入框为空，也显示搜索历史
+      this.showSearchHistory();
+    }
   }
 });
