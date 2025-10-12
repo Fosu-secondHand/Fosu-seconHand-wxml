@@ -30,14 +30,14 @@
         <text class="price-symbol">¥</text>
         <text class="price-number">{{goodsDetail.price}}</text>
       </view>
-      <text class="trade-method">| {{goodsDetail.tradeMethod}}</text>
+         <text class="condition">| {{goodsDetail.condition === 'NEW' ? '全新' : goodsDetail.condition === 'LIKE_NEW' ? '几乎全新' : goodsDetail.condition === 'GOOD' ? '轻微使用痕迹' : goodsDetail.condition === 'FAIR' ? '明显使用痕迹' : goodsDetail.condition}}</text>
     </view>
     <view class="goods-title">{{goodsDetail.title}}</view>
 
     <!-- 基础信息 -->
     <view class="info-item">
       <text class="label">所在地：</text>
-      <text class="value">{{goodsDetail.location}}</text>
+      <text class="value">{{goodsDetail.campus}} {{goodsDetail.seller.address}}</text>
     </view>
 
     <view class="info-item">
@@ -47,11 +47,11 @@
 
     <view class="info-item">
       <text class="label">发布时间：</text>
-      <text class="value">{{goodsDetail.publishTime}}</text>
+      <text class="value">{{formattedPostTime}}</text>
     </view>
     <view class="info-item">
-      <text class="label">交易地点：</text>
-      <text class="value">{{goodsDetail.tradeLocation}}</text>
+      <text class="label">交易方式：</text>
+      <text class="value">{{goodsDetail.transactionMethod === 'Pickup' ? '自取' : goodsDetail.transactionMethod === 'Delivery' ? '送货上门' : goodsDetail.transactionMethod}}</text>
     </view>
 
     <!-- 统计信息 -->
@@ -72,27 +72,22 @@
   </view>
 
   <!-- 推荐商品瀑布流 -->
-  <view class="recommend-section">
-    <view class="section-title-container">
-      <text class="section-title">为你推荐</text>
-    </view>
-    <waterfall-layout 
-      goods-list="{{recommendGoods}}"
-      loading="{{recommendLoading}}"
-      noMore="{{recommendNoMore}}"
-      bind:loadmore="onRecommendLoadMore"
-    />
+<view class="recommend-section">
+  <view class="section-title-container">
+    <text class="section-title">为你推荐</text>
   </view>
+  <waterfall-layout 
+    goods-list="{{recommendGoods}}"
+    loading="{{recommendLoading}}"
+    noMore="{{recommendNoMore}}"
+    bind:loadmore="onRecommendLoadMore"
+  />
+</view>
 </view>
 
 <!-- 收藏星号左下角 -->
 <view class="star-float-btn" bindtap="handleStar">
   <image src="{{isStarred ? '/static/assets/icons/star-filled.png' : '/static/assets/icons/star-outline.png'}}" class="star-img" />
-</view>
-
-<!-- 想要按钮 -->
-<view class="want-float-btn" bindtap="handleWant">
-  <image src="/static/assets/icons/heart-outline.png" class="want-img" />
 </view>
 
 <!-- 底部操作栏 -->

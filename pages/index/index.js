@@ -47,6 +47,27 @@ Page({
     }
   },
 
+  // 字段映射方法，确保后端数据与前端模板字段一致
+  mapGoodsFields(originalData) {
+    if (!originalData) return {};
+    
+    return {
+      id: originalData.id || originalData.productId || originalData.product_ld,
+      product_ld: originalData.productId || originalData.id || originalData.product_ld,
+      productId: originalData.productId || originalData.id || originalData.product_ld,
+      title: originalData.title,
+      price: originalData.price,
+      image: originalData.image || originalData.images,
+      images: Array.isArray(originalData.image) ? originalData.image : [originalData.image],
+      postTime: originalData.postTime || originalData.post_time,
+      viewCount: originalData.viewCount || originalData.view_count,
+      favoriteCount: originalData.favoriteCount || originalData.favorite_count,
+      category: originalData.category,
+      // 添加其他需要的字段
+      ...originalData // 保留所有原始字段
+    };
+  },
+
   loadGoodsList(reset = false) {
     console.log('loadGoodsList 被调用，reset:', reset);
     const activeTab = this.data.active;
@@ -86,8 +107,10 @@ Page({
           // 处理分页逻辑
           const start = (this.data.currentPage - 1) * this.data.pageSize;
           const end = start + this.data.pageSize;
-          const newData = productsData.slice(start, end);
-          const hasMore = end < productsData.length;
+          // 对商品数据进行字段映射处理
+          const mappedData = productsData.map(item => this.mapGoodsFields(item));
+          const newData = mappedData.slice(start, end);
+          const hasMore = end < mappedData.length;
 
           this.setData({
             goodsList: reset ? newData : this.data.goodsList.concat(newData),

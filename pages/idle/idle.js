@@ -61,6 +61,12 @@ Page({
     },
 
     fetchCategories() {
+        // 检查baseUrl是否有效
+        if (!this.baseURL) {
+            console.error('API地址未配置');
+            return;
+        }
+        
         wx.request({
             url: this.baseURL + '/products/categories', // 假设这个接口获取分类列表
             method: 'GET',
@@ -69,11 +75,16 @@ Page({
                     this.setData({
                         categoryOptions: res.data
                     });
+                } else {
+                    console.error('获取分类列表失败，状态码:', res.statusCode);
                 }
             },
             fail: (err) => {
                 console.error('获取分类列表失败:', err);
-                // 使用默认分类
+                wx.showToast({
+                    title: '获取分类失败',
+                    icon: 'none'
+                });
             }
         });
     },
@@ -98,6 +109,15 @@ Page({
         sourceType: ['album', 'camera'],
         success: (res) => {
           this.setData({ images: [...this.data.images, ...res.tempFilePaths] });
+        },
+        fail: (err) => {
+          console.error('选择图片失败:', err);
+          if (err.errMsg && !err.errMsg.includes('fail cancel')) {
+            wx.showToast({
+              title: '选择图片失败',
+              icon: 'none'
+            });
+          }
         }
       });
     },
@@ -105,6 +125,11 @@ Page({
     // 删除图片
     deleteImage(e) {
       const index = e.currentTarget.dataset.index;
+      // 边界检查
+      if (index < 0 || index >= this.data.images.length) {
+        console.warn('无效的图片索引:', index);
+        return;
+      }
       const images = [...this.data.images];
       images.splice(index, 1);
       this.setData({ images });
@@ -115,6 +140,11 @@ Page({
       let value = e.detail.value.replace(/[^\d.]/g, ''); // 只保留数字和小数点
       // 只允许一个小数点，且最多两位小数
       value = value.replace(/^(\d+)(\.\d{0,2})?.*$/, (match, int, dec) => int + (dec || ''));
+      // 防止负数和过大数值
+      const numValue = parseFloat(value);
+      if (numValue > 999999) {
+        value = '999999';
+      }
       this.setData({ price: value });
     },
   
@@ -140,13 +170,19 @@ Page({
   
     // 处理定价弹窗输入
     onModalPriceInput(e) {
-      this.setData({ modalPrice: e.detail });
+      let value = e.detail.replace(/[^\d.]/g, '');
+      value = value.replace(/^(\d+)(\.\d{0,2})?.*$/, (match, int, dec) => int + (dec || ''));
+      const numValue = parseFloat(value);
+      if (numValue > 999999) {
+        value = '999999';
+      }
+      this.setData({ modalPrice: value });
     },
   
     // 处理定价弹窗确定
     onModalPriceConfirm() {
       const price = parseFloat(this.data.modalPrice);
-      if (!price || isNaN(price)) {
+      if (!price || isNaN(price) || price <= 0) {
         wx.showToast({ title: '请输入正确价格', icon: 'none' });
         return;
       }
@@ -166,7 +202,6 @@ Page({
       wx.navigateTo({ url: '/pages/auctionPrice/auctionPrice' }); // 如无此页面可后续补充
     },
 
-    // ... existing code ...
     // 提交发布
     submitPublish() {
         // 表单验证
@@ -176,8 +211,8 @@ Page({
         if (this.data.images.length === 0) {
             return wx.showToast({ title: '请上传图片', icon: 'none' });
         }
-        if (!this.data.price) {
-            return wx.showToast({ title: '请设置价格', icon: 'none' });
+        if (!this.data.price || parseFloat(this.data.price) <= 0) {
+            return wx.showToast({ title: '请设置正确价格', icon: 'none' });
         }
         if (!this.data.category) {
             return wx.showToast({ title: '请选择分类', icon: 'none' });
@@ -230,6 +265,11 @@ Page({
         this.uploadImages().then(imageUrls => {
             // 替换图片路径为上传后的URL
             newGoods.image = imageUrls;
+
+            // 检查baseUrl是否有效
+            if (!this.baseURL) {
+                throw new Error('API地址未配置');
+            }
 
             // 调用商品发布接口
             wx.request({
@@ -331,7 +371,7 @@ Page({
             console.error('图片上传失败:', err);
             this.setData({ loading: false });
             wx.showToast({
-                title: '图片上传失败',
+                title: '图片上传失败: ' + (err.message || ''),
                 icon: 'none'
             });
         });
@@ -345,22 +385,42 @@ Page({
                 return;
             }
 
-            const uploadPromises = this.data.images.map((imagePath) => {
+            // 检查baseUrl是否有效
+            if (!this.baseURL) {
+                reject(new Error('API地址未配置'));
+                return;
+            }
+
+            const uploadPromises = this.data.images.map((imagePath, index) => {
                 return new Promise((resolve, reject) => {
                     wx.uploadFile({
                         url: this.baseURL + '/upload', // 假设这是图片上传接口
                         filePath: imagePath,
                         name: 'file',
+                        header: {
+                            // 如果需要认证，可以添加认证头
+                        },
                         success: (res) => {
                             if (res.statusCode === 200) {
-                                const data = JSON.parse(res.data);
-                                resolve(data.url || data.data); // 根据实际返回结构调整
+                                try {
+                                    const data = JSON.parse(res.data);
+                                    // 根据实际返回结构调整，尝试多种可能的字段名
+                                    const imageUrl = data.url || data.data || data.imageUrl || data.path || null;
+                                    if (imageUrl) {
+                                        resolve(imageUrl);
+                                    } else {
+                                        reject(new Error(`第${index+1}张图片上传返回数据格式不正确`));
+                                    }
+                                } catch (parseError) {
+                                    reject(new Error(`第${index+1}张图片上传数据解析失败`));
+                                }
                             } else {
-                                reject(new Error('图片上传失败'));
+                                reject(new Error(`第${index+1}张图片上传失败，状态码: ${res.statusCode}`));
                             }
                         },
                         fail: (err) => {
-                            reject(err);
+                            console.error(`第${index+1}张图片上传失败:`, err);
+                            reject(new Error(`第${index+1}张图片上传失败: ${err.errMsg || '网络错误'}`));
                         }
                     });
                 });
@@ -371,7 +431,6 @@ Page({
                 .catch(reject);
         });
     },
-// ... existing code ...
 
 
     // 显示自定义数字键盘
@@ -409,6 +468,12 @@ Page({
       const categoryId = e.currentTarget.dataset.id;
       const categoryIndex = e.currentTarget.dataset.index;
       
+      // 边界检查
+      if (categoryIndex < 0 || categoryIndex >= this.data.categoryOptions.length) {
+        console.warn('无效的分类索引:', categoryIndex);
+        return;
+      }
+      
       // 根据ID找到对应的分类对象
       const selectedCategory = this.data.categoryOptions[categoryIndex];
       
@@ -422,6 +487,13 @@ Page({
     // 成色选择
     onConditionSelect(e) {
       const conditionIndex = e.currentTarget.dataset.index;
+      
+      // 边界检查
+      if (conditionIndex < 0 || conditionIndex >= this.data.conditionOptions.length) {
+        console.warn('无效的成色索引:', conditionIndex);
+        return;
+      }
+      
       const selectedCondition = this.data.conditionOptions[conditionIndex];
       
       this.setData({ condition: selectedCondition });
@@ -436,6 +508,12 @@ Page({
     confirmAddCategory() {
       if (!this.data.newCategoryName.trim()) {
         wx.showToast({ title: '请输入分类名称', icon: 'none' });
+        return;
+      }
+      
+      // 检查baseUrl是否有效
+      if (!this.baseURL) {
+        wx.showToast({ title: 'API地址未配置', icon: 'none' });
         return;
       }
       
@@ -474,7 +552,10 @@ Page({
         },
         fail: (err) => {
           console.error('创建分类请求失败:', err);
-          wx.showToast({ title: '网络错误，创建失败', icon: 'none' });
+          wx.showToast({ 
+            title: '网络错误，创建失败: ' + (err.errMsg || ''),
+            icon: 'none' 
+          });
         }
       });
     },

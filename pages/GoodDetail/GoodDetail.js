@@ -15,13 +15,23 @@ Page({
     recommendNoMore: false,    // 推荐无更多数据
     loading: true,             // 页面加载状态
     error: false,              // 加载错误
-    userInfo: null             // 用户信息
+    userInfo: null,            // 用户信息
+    formattedPostTime: ''      // 格式化后的发布时间
   },
 
+  // 修改 onLoad 方法，确保 syncLoginStatus 完成后再执行 checkLoginStatus
   onLoad(options) {
+    // 添加调试代码检查本地存储
+    console.log('=== 检查本地存储 ===');
+    console.log('token:', wx.getStorageSync('token'));
+    console.log('userInfo:', wx.getStorageSync('userInfo'));
+    console.log('====================');
     console.log('🎯 ========== 页面加载开始 ==========');
     console.log('📍 页面路径:', this.route);
     console.log('📦 原始options参数:', options);
+
+    // 等待同步登录状态完成
+    this.syncLoginStatus();
 
     // 检查是否通过分享卡片进入
     if (options.scene) {
@@ -66,9 +76,17 @@ Page({
     console.log('准备调用 loadGoodsDetail 方法...');
     this.loadGoodsDetail(goodsId);
     console.log('loadGoodsDetail 方法调用完成');
-    this.checkLoginStatus();
+
+    // 延迟一段时间再检查登录状态，确保 syncLoginStatus 完成
+    setTimeout(() => {
+      this.checkLoginStatus().then(loggedIn => {
+        console.log('登录状态检查完成:', loggedIn ? '已登录' : '未登录');
+      });
+    }, 500);
+
     console.log('🎯 ========== 页面加载结束 ==========');
   },
+
 
   // 解析商品ID
   parseGoodsId(options) {
@@ -182,24 +200,77 @@ Page({
     });
   },
 
-  // 检查登录状态
+  // 修改 checkLoginStatus 方法，添加更详细的错误处理和调试信息
   async checkLoginStatus() {
     try {
       const token = wx.getStorageSync('token');
+      console.log('检查登录状态，token:', token ? '存在' : '不存在');
+      console.log('获取到的token值:', token);
+
       if (token && app.globalData.baseUrl) {
-        const res = await wx.request({
-          url: `${app.globalData.baseUrl}/user/info?token=${token}`,
-          method: 'GET'
+        const requestUrl = `${app.globalData.baseUrl}/users/info?token=${token}`;
+        console.log('请求用户信息接口:', requestUrl);
+
+        // 添加更详细的请求配置
+        const res = await new Promise((resolve, reject) => {
+          wx.request({
+            url: requestUrl,
+            method: 'GET',
+            timeout: 10000,
+            success: (result) => {
+              console.log('请求成功，原始响应:', result);
+              resolve(result);
+            },
+            fail: (error) => {
+              console.error('请求失败:', error);
+              reject(error);
+            }
+          });
         });
 
-        if (res.statusCode === 200 && res.data.success) {
-          this.setData({ userInfo: res.data.data });
+        console.log('用户信息接口响应:', res);
+        console.log('响应状态码:', res.statusCode);
+        console.log('响应数据:', res.data);
+
+        // 检查响应对象
+        if (!res) {
+          console.error('网络请求无响应');
+          return false;
         }
+
+        // 检查响应对象是否包含必要的字段
+        if (res.statusCode === undefined || res.data === undefined) {
+          console.error('响应格式不正确，可能后端接口异常或请求失败');
+          console.error('完整的响应对象:', res);
+          return false;
+        }
+
+        // 关键修改：正确访问嵌套的数据结构
+        if (res.statusCode === 200 && res.data && res.data.data && res.data.data.success) {
+          console.log('用户登录有效，用户信息:', res.data.data.data);
+          this.setData({ userInfo: res.data.data.data });
+          return true;
+        } else {
+          console.warn('用户token无效:', res.data);
+          console.warn('响应状态码:', res.statusCode);
+          wx.removeStorageSync('token');
+          wx.removeStorageSync('userInfo');
+          return false;
+        }
+      } else {
+        console.log('缺少token或baseUrl');
+        console.log('token:', token);
+        console.log('baseUrl:', app.globalData.baseUrl);
+        return false;
       }
     } catch (error) {
       console.error('获取用户信息失败:', error);
+      wx.removeStorageSync('token');
+      wx.removeStorageSync('userInfo');
+      return false;
     }
   },
+
 
   // 加载商品详情
   async loadGoodsDetail(goodsId) {
@@ -305,6 +376,9 @@ Page({
       const mappedGoodsDetail = this.mapGoodsDetailFields(goodsDetail);
       console.log('映射后的商品详情:', mappedGoodsDetail);
 
+      // 格式化发布时间
+      const formattedPostTime = this.formatPostTime(mappedGoodsDetail.postTime);
+
       // 检查当前用户是否已收藏该商品
       const isStarred = await this.checkIfStarred(this.data.userInfo?.id, goodsDetail.productId);
 
@@ -314,7 +388,8 @@ Page({
         wantCount: mappedGoodsDetail.wantCount || 0,
         viewCount: mappedGoodsDetail.view_count || 0,
         isStarred: isStarred,
-        loading: false
+        loading: false,
+        formattedPostTime: formattedPostTime
       });
 
       // 加载推荐商品 - 使用映射后的分类字段
@@ -419,7 +494,8 @@ Page({
       category: originalData.category ? originalData.category.name : null,
       seller: originalData.seller,
       wantCount: originalData.wantToBuy,
-      want_count: originalData.wantToBuy
+      want_count: originalData.wantToBuy,
+      soldCount: originalData.soldCount || 0
     };
 
     // 复制所有原始数据字段
@@ -473,6 +549,30 @@ Page({
 
     return [];
   },
+
+// 格式化发布时间
+formatPostTime(postTime) {
+    if (!postTime) return '';
+  
+    try {
+      // 后端返回的UTC时间比数据库时间多了8小时，需要减回去
+      const date = new Date(postTime);
+      // 减去8小时（8 * 60 * 60 * 1000 毫秒）
+      const correctDate = new Date(date.getTime() - 8 * 60 * 60 * 1000);
+      
+      const year = correctDate.getFullYear();
+      const month = String(correctDate.getMonth() + 1).padStart(2, '0');
+      const day = String(correctDate.getDate()).padStart(2, '0');
+      const hours = String(correctDate.getHours()).padStart(2, '0');
+      const minutes = String(correctDate.getMinutes()).padStart(2, '0');
+  
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
+    } catch (error) {
+      console.error('格式化发布时间失败:', error);
+      return postTime;
+    }
+  },
+  
 
   // 加载推荐商品
   async loadRecommendGoods(category, reset = false) {
@@ -537,8 +637,8 @@ Page({
     }
   },
 
-  // 聊一聊按钮点击事件
-  handleChat() {
+  // 聊一聊按钮点击事件 - 修改为包含想要功能
+  async handleChat() {
     if (!this.checkAuth()) return;
 
     const { goodsDetail } = this.data;
@@ -551,6 +651,38 @@ Page({
       return;
     }
 
+    // 先执行想要的操作
+    const token = wx.getStorageSync('token');
+    if (!token) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      return;
+    }
+
+    const { wantCount } = this.data;
+    const productId = goodsDetail.product_ld || goodsDetail.id;
+
+    try {
+      const requestUrl = `${app.globalData.baseUrl}/products/detail/toggleWant?userId=${this.data.userInfo.id}&productId=${productId}&method=add`;
+      console.log('想要操作请求URL:', requestUrl);
+
+      const res = await wx.request({
+        url: requestUrl,
+        method: 'GET',
+        timeout: 10000
+      });
+
+      if (res.statusCode === 200 && res.data.success) {
+        this.setData({ wantCount: wantCount + 1 });
+        wx.showToast({ title: '已通知卖家', icon: 'success' });
+      } else {
+        throw new Error(res.data?.message || '操作失败');
+      }
+    } catch (error) {
+      console.error('想要操作失败:', error);
+      wx.showToast({ title: '操作失败', icon: 'none' });
+    }
+
+    // 然后跳转到聊天页面
     wx.switchTab({
       url: '/pages/message/message'
     });
@@ -566,26 +698,61 @@ Page({
       showCancel: false
     });
   },
+ // 添加token验证方法（放在页面对象内，与其他方法同级）
+ async validateToken(token) {
+    try {
+      const res = await wx.request({
+        url: `${app.globalData.baseUrl}/user/info?token=${token}`,
+        method: 'GET'
+      });
+      return res.statusCode === 200;
+    } catch (error) {
+      return false;
+    }
+  },
 
+  // 收藏按钮点击事件
   // 收藏按钮点击事件
   async handleStar() {
     if (!this.checkAuth()) return;
 
+    // 确保用户信息是最新的
+    await this.checkLoginStatus();
+    const { userInfo, goodsDetail, isStarred, starCount } = this.data;
+
     const token = wx.getStorageSync('token');
+
     if (!token) {
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
 
-    const { goodsDetail, isStarred, starCount } = this.data;
+    // 检查用户信息
+    if (!userInfo || !userInfo.id) {
+      wx.showToast({ title: '用户信息异常，请重新登录', icon: 'none' });
+      return;
+    }
+
     if (!goodsDetail) return;
 
-    const method = isStarred ? 'reduce' : 'add';
-    const productId = goodsDetail.product_ld || goodsDetail.id || goodsDetail.productId;
+    // 修改这里：使用后端期望的参数名
+    const reduceOrAdd = isStarred ? 'reduce' : 'add';
+    const productId = goodsDetail.productId || goodsDetail.product_ld || goodsDetail.id;
+
+    // 验证商品ID
+    if (!productId) {
+      wx.showToast({ title: '商品信息异常', icon: 'none' });
+      return;
+    }
 
     try {
-      const requestUrl = `${app.globalData.baseUrl}/product/detail/toggleStar?userId=${this.data.userInfo.id}&productId=${productId}&method=${method}`;
+      const requestUrl = `${app.globalData.baseUrl}/products/detail/toggleStar?userId=${userInfo.id}&productId=${productId}&reduceOrAdd=${reduceOrAdd}`;
       console.log('收藏操作请求URL:', requestUrl);
+
+      // 验证参数
+      if (!userInfo.id || !productId) {
+        throw new Error('用户ID或商品ID无效');
+      }
 
       const res = await new Promise((resolve, reject) => {
         wx.request({
@@ -620,57 +787,45 @@ Page({
       }
     } catch (error) {
       console.error('收藏操作失败:', error);
-      wx.showToast({ title: '操作失败', icon: 'none' });
+      wx.showToast({ title: '操作失败: ' + (error.message || ''), icon: 'none' });
     }
   },
 
-  // 我想要按钮点击事件
-  async handleWant() {
-    if (!this.checkAuth()) return;
-
-    const token = wx.getStorageSync('token');
-    if (!token) {
-      wx.showToast({ title: '请先登录', icon: 'none' });
-      return;
-    }
-
-    const { goodsDetail, wantCount } = this.data;
-    if (!goodsDetail) return;
-
-    const productId = goodsDetail.product_ld || goodsDetail.id;
-
-    try {
-      const requestUrl = `${app.globalData.baseUrl}/product/detail/toggleWant?userId=${this.data.userInfo.id}&productId=${productId}&method=add`;
-      console.log('想要操作请求URL:', requestUrl);
-
-      const res = await wx.request({
-        url: requestUrl,
-        method: 'GET',
-        timeout: 10000
-      });
-
-      if (res.statusCode === 200 && res.data.success) {
-        this.setData({ wantCount: wantCount + 1 });
-        wx.showToast({ title: '已通知卖家', icon: 'success' });
-      } else {
-        throw new Error(res.data?.message || '操作失败');
-      }
-    } catch (error) {
-      console.error('想要操作失败:', error);
-      wx.showToast({ title: '操作失败', icon: 'none' });
-    }
-  },
-
-  // 检查授权状态
   checkAuth() {
-    const token = wx.getStorageSync('token');
-    if (!token) {
+    let userInfo = wx.getStorageSync('userInfo');
+    let token = wx.getStorageSync('token');
+
+    console.log('检查用户登录状态:', {
+      userInfo: userInfo,
+      token: token,
+      isLogin: userInfo?.isLogin
+    });
+
+    // 添加更详细的调试信息
+    console.log('详细检查:', {
+      userInfoExists: !!userInfo,
+      isLoginValid: !!userInfo?.isLogin,
+      tokenExists: !!token,
+      tokenLength: token ? token.length : 0
+    });
+
+    // 如果 token 不存在但 userInfo 中有 token，则使用 userInfo 中的 token
+    if (!token && userInfo && userInfo.token) {
+      token = userInfo.token;
+      // 同步存储 token
+      wx.setStorageSync('token', token);
+    }
+
+    // 检查用户是否登录（增强判断逻辑）
+    if (!userInfo || !userInfo.isLogin || !token) {
+      console.log('用户未登录，准备跳转到登录页面');
       wx.showModal({
         title: '提示',
         content: '请先登录后再操作',
         confirmText: '去登录',
         success: (res) => {
           if (res.confirm) {
+            console.log('用户点击去登录');
             wx.navigateTo({
               url: '/pages/login/login'
             });
@@ -679,9 +834,46 @@ Page({
       });
       return false;
     }
+    console.log('用户已登录');
     return true;
   },
 
+// 添加同步登录状态方法
+  syncLoginStatus() {
+    try {
+      let token = wx.getStorageSync('token');
+      const userInfo = wx.getStorageSync('userInfo');
+
+      console.log('同步登录状态 - token:', token ? '存在' : '不存在');
+      console.log('同步登录状态 - userInfo:', userInfo);
+      console.log('同步登录状态 - userInfo.isLogin:', userInfo?.isLogin);
+
+      // 如果 token 不存在但 userInfo 中有 token，则同步存储
+      if (!token && userInfo && userInfo.token) {
+        token = userInfo.token;
+        wx.setStorageSync('token', token);
+        console.log('从 userInfo 中提取 token 并存储');
+      }
+
+      if (token && userInfo && userInfo.isLogin) {
+        // 确保userInfo结构正确
+        const normalizedUserInfo = {
+          id: userInfo.id || userInfo.userId,
+          ...userInfo
+        };
+        this.setData({ userInfo: normalizedUserInfo });
+        console.log('同步登录状态成功:', normalizedUserInfo);
+      } else if (token) {
+        // 有token但没有userInfo，尝试获取用户信息
+        this.checkLoginStatus();
+      } else {
+        // 没有token，清除用户信息
+        wx.removeStorageSync('userInfo');
+      }
+    } catch (error) {
+      console.error('同步登录状态失败:', error);
+    }
+  },
   // 重新加载
   onRetry() {
     console.log('重新加载商品详情');

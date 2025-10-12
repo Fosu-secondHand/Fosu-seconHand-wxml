@@ -2,7 +2,7 @@
 <view class="container">
   <!-- 顶部logo和标题 -->
   <view class="header">
-    <image class="logo" src="/static/assets/login/logo.svg" mode="aspectFit"></image>
+    <image class="logo" src="/static/方形logo.png" mode="scaleToFill"></image>
     <view class="title">佛大二手交易小程序</view>
     <view class="subtitle">让闲置物品流动起来</view>
   </view>
@@ -35,6 +35,21 @@
       />
     </view>
 
+   <view class="agreement-section">
+     <view class="agreement-checkbox" bindtap="toggleAgreement">
+       <image
+         class="checkbox-image"
+         src="{{agreedToPolicy ? '/static/assets/icons/方框-勾选.png' : '/static/assets/icons/方框勾选 (1).png'}}"
+       ></image>
+       <text class="checkbox-label">我已阅读并同意</text>
+     </view>
+     <view class="agreement-links">
+       <text class="link" bindtap="viewUserAgreement">《用户协议》</text>
+       <text>和</text>
+       <text class="link" bindtap="viewPrivacyPolicy">《隐私政策》</text>
+     </view>
+   </view>
+
     <!-- 错误提示 -->
     <view class="error-msg" wx:if="{{errorMsg}}">{{errorMsg}}</view>
 
@@ -44,7 +59,7 @@
       type="primary" 
       bindtap="login"
       loading="{{loading}}"
-      disabled="{{loading}}"
+      disabled="{{loading || !agreedToPolicy}}"
     >
       登录
     </button>
@@ -52,10 +67,9 @@
     <!-- 微信登录 -->
     <button 
       class="wx-login-btn" 
-      open-type="getUserInfo"
       bindtap="wxLogin"
       loading="{{loading}}"
-      disabled="{{loading}}"
+      disabled="{{loading || !agreedToPolicy}}"
     >
       <image class="wx-icon" src="/static/assets/login/wechat.svg"></image>
       微信一键登录
@@ -68,15 +82,8 @@
     </view>
   </view>
 
-  <!-- 协议说明 -->
-  <view class="agreement">
-    <text>登录即表示您同意</text>
-    <text class="link" bindtap="viewUserAgreement">《用户协议》</text>
-    <text>和</text>
-    <text class="link" bindtap="viewPrivacyPolicy">《隐私政策》</text>
-  </view>
 
-  <!-- 背景装饰 -->
+
   <!-- 背景装饰 -->
   <image class="background-decoration" src="/static/assets/login/bg-pattern.svg" mode="scaleToFill"></image>
 </view>
