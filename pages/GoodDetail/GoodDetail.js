@@ -373,7 +373,30 @@ Page({
       console.log('原始商品详情数据:', goodsDetail);
 
       // 关键修改：根据数据库表头映射字段
+      // 在 loadGoodsDetail 方法中处理返回的数据时
       const mappedGoodsDetail = this.mapGoodsDetailFields(goodsDetail);
+
+      // 处理图片URL - 修复图片路径问题
+      const baseURL = app.globalData.baseUrl; // 使用全局baseUrl而不是this.baseURL
+      if (mappedGoodsDetail.image) {
+        if (Array.isArray(mappedGoodsDetail.image)) {
+          mappedGoodsDetail.image = mappedGoodsDetail.image.map(img => {
+            // 如果已经是完整URL，直接返回
+            if (img.startsWith('http')) {
+              return img;
+            }
+            // 如果是相对路径，拼接基础URL
+            // 确保路径正确连接（处理baseURL末尾是否有/的情况）
+            return baseURL + (img.startsWith('/') ? img : '/' + img);
+          });
+        } else {
+          // 单个图片处理
+          if (!mappedGoodsDetail.image.startsWith('http')) {
+            mappedGoodsDetail.image = baseURL + (mappedGoodsDetail.image.startsWith('/') ? mappedGoodsDetail.image : '/' + mappedGoodsDetail.image);
+          }
+        }
+      }
+
       console.log('映射后的商品详情:', mappedGoodsDetail);
 
       // 格式化发布时间
@@ -415,6 +438,7 @@ Page({
       });
     }
   },
+
   // 检查当前用户是否已收藏该商品
   async checkIfStarred(userId, productId) {
     if (!userId || !productId) {
@@ -551,28 +575,28 @@ Page({
   },
 
 // 格式化发布时间
-formatPostTime(postTime) {
+  formatPostTime(postTime) {
     if (!postTime) return '';
-  
+
     try {
       // 后端返回的UTC时间比数据库时间多了8小时，需要减回去
       const date = new Date(postTime);
       // 减去8小时（8 * 60 * 60 * 1000 毫秒）
       const correctDate = new Date(date.getTime() - 8 * 60 * 60 * 1000);
-      
+
       const year = correctDate.getFullYear();
       const month = String(correctDate.getMonth() + 1).padStart(2, '0');
       const day = String(correctDate.getDate()).padStart(2, '0');
       const hours = String(correctDate.getHours()).padStart(2, '0');
       const minutes = String(correctDate.getMinutes()).padStart(2, '0');
-  
+
       return `${year}-${month}-${day} ${hours}:${minutes}`;
     } catch (error) {
       console.error('格式化发布时间失败:', error);
       return postTime;
     }
   },
-  
+
 
   // 加载推荐商品
   async loadRecommendGoods(category, reset = false) {
@@ -637,7 +661,7 @@ formatPostTime(postTime) {
     }
   },
 
-  // 聊一聊按钮点击事件 - 修改为包含想要功能
+// 聊一聊按钮点击事件 - 修改为包含想要功能
   async handleChat() {
     if (!this.checkAuth()) return;
 
@@ -662,27 +686,59 @@ formatPostTime(postTime) {
     const productId = goodsDetail.product_ld || goodsDetail.id;
 
     try {
-      const requestUrl = `${app.globalData.baseUrl}/products/detail/toggleWant?userId=${this.data.userInfo.id}&productId=${productId}&method=add`;
+      // 修改参数名以匹配后端期望的参数
+      const requestUrl = `${app.globalData.baseUrl}/products/detail/toggleWant?userId=${this.data.userInfo.id}&productId=${productId}&reduceOrAdd=add`;
       console.log('想要操作请求URL:', requestUrl);
 
-      const res = await wx.request({
-        url: requestUrl,
-        method: 'GET',
-        timeout: 10000
+      const res = await new Promise((resolve, reject) => {
+        wx.request({
+          url: requestUrl,
+          method: 'GET',
+          header: {
+            'Authorization': `Bearer ${token}`  // 添加认证头
+          },
+          timeout: 10000,
+          success: (result) => {
+            console.log('想要操作请求成功回调:', result);
+            resolve(result);
+          },
+          fail: (error) => {
+            console.error('想要操作请求失败回调:', error);
+            reject(error);
+          }
+        });
       });
 
-      if (res.statusCode === 200 && res.data.success) {
-        this.setData({ wantCount: wantCount + 1 });
-        wx.showToast({ title: '已通知卖家', icon: 'success' });
-      } else {
-        throw new Error(res.data?.message || '操作失败');
+      // 添加更多调试信息
+      console.log('想要操作响应:', res);
+
+      // 增强响应检查
+      if (!res) {
+        console.warn('网络请求无响应');
+      } else if (res.statusCode === undefined || res.data === undefined) {
+        console.warn('响应格式不正确:', res);
+      } else if (res.statusCode === 200) {
+        if (res.data && res.data.success) {
+          // 操作成功，更新想要数
+          this.setData({ wantCount: wantCount + 1 });
+          wx.showToast({ title: '已通知卖家', icon: 'success' });
+        } else if (res.data && res.data.code === 500) {
+          // 静默处理：已经添加过的情况，不显示错误提示
+          if (res.data.message && res.data.message.includes("already in the user's want list")) {
+            console.log('用户已添加过想要，无需重复添加');
+            // 不显示错误提示，继续执行跳转
+          } else {
+            // 其他500错误仍需处理
+            console.error('服务器内部错误:', res.data.message);
+          }
+        }
       }
     } catch (error) {
       console.error('想要操作失败:', error);
-      wx.showToast({ title: '操作失败', icon: 'none' });
+      // 静默处理错误，不向用户显示
     }
 
-    // 然后跳转到聊天页面
+    // 然后跳转到聊天页面（无论想要操作是否成功）
     wx.switchTab({
       url: '/pages/message/message'
     });
@@ -698,8 +754,8 @@ formatPostTime(postTime) {
       showCancel: false
     });
   },
- // 添加token验证方法（放在页面对象内，与其他方法同级）
- async validateToken(token) {
+  // 添加token验证方法（放在页面对象内，与其他方法同级）
+  async validateToken(token) {
     try {
       const res = await wx.request({
         url: `${app.globalData.baseUrl}/user/info?token=${token}`,

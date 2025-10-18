@@ -50,6 +50,7 @@
     
     <!-- 先放下拉栏 -->
     <view class="filter-bar-wrapper">
+      <!-- 修改筛选栏显示逻辑 -->
       <view class="filter-bar-horizontal">
         <view class="filter-item-horizontal" bindtap="toggleCampusDropdown">
           <text>{{selectedCampus || '校区'}}</text>
@@ -64,10 +65,17 @@
       <view class="dropdown" wx:if="{{showCampusDropdown}}">
         <view class="dropdown-option" wx:for="{{campusOptions}}" wx:key="item" bindtap="selectCampus" data-value="{{item}}">{{item}}</view>
       </view>
-      <!-- 分类下拉框 -->
-      <view class="dropdown" wx:if="{{showCategoryDropdown}}">
-        <view class="dropdown-option" wx:for="{{categoryOptions}}" wx:key="item" bindtap="selectCategory" data-value="{{item}}">{{item}}</view>
+    <!-- 分类下拉框 -->
+    <view class="dropdown" wx:if="{{showCategoryDropdown}}">
+      <view class="dropdown-option {{selectedCategory === item ? 'selected' : ''}}"
+            wx:for="{{categoryOptions}}"
+            wx:key="index"
+            data-value="{{item}}"
+            bindtap="selectCategory">
+        <text>{{item}}</text>
+        <text wx:if="{{selectedCategory === item}}" class="selected-mark">✓</text>
       </view>
+    </view>
     </view>
     <!-- 再放标签栏 -->
     <view class="fixed-tabs">
@@ -88,11 +96,19 @@
     </view>
     <scroll-view 
       wx:else
-      scroll-y="true" 
-      scroll-top="{{scrollTop}}" 
+      scroll-y="true"
+      scroll-top="{{scrollTop}}"
       class="scroll-content"
     >
-      <waterfall-layout 
+      <!-- 空状态提示 -->
+      <view wx:if="{{goodsList.length === 0 && !loading}}" class="empty-state">
+        <image class="empty-icon" src="/static/assets/icons/empty-box-copy-copy-copy.png" mode="aspectFit" />
+        <text class="empty-text">暂时没有这个品类的商品喔</text>
+      </view>
+
+      <!-- 商品列表 -->
+      <waterfall-layout
+        wx:else
         goods-list="{{goodsList}}"
         loading="{{loading}}"
         noMore="{{!hasMore}}"
