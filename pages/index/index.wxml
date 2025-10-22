@@ -1,4 +1,4 @@
-  <view class="container">
+<view class="container">
     <custom-nav-bar title="佛大二手交易小程序" />
     <!-- 顶部绿色和标题 -->
     <view class="header">
@@ -10,11 +10,47 @@
         placeholder="请输入搜索关键词"
         class="search-bar"
         bind:search="onSearch"
-        bind:input="onInput"
+        bind:input="onSearchInput"
+        bind:focus="onSearchFocus"
+        bind:blur="onSearchBlur"
       />
     </view>
+    
+    <!-- 搜索历史和热门关键词面板 -->
+    <view wx:if="{{showHistory}}" class="search-history-panel">
+      <!-- 热门搜索 -->
+      <view class="history-section">
+        <view class="history-header">
+          <text class="history-title">热门搜索</text>
+        </view>
+        <view class="history-tags">
+          <block wx:for="{{['手机', '电脑', '书籍', '耳机']}}" wx:key="index">
+            <view class="history-tag" bindtap="searchByHistory" data-keyword="{{item}}">
+              <text>{{item}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <!-- 搜索历史 -->
+      <view wx:if="{{historyKeywords.length > 0}}" class="history-section">
+        <view class="history-header">
+          <text class="history-title">搜索历史</text>
+          <text class="clear-history" bindtap="clearSearchHistory">清空</text>
+        </view>
+        <view class="history-tags">
+          <block wx:for="{{historyKeywords}}" wx:key="index">
+            <view class="history-tag" bindtap="searchByHistory" data-keyword="{{item}}">
+              <text>{{item}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
+    </view>
+    
     <!-- 先放下拉栏 -->
     <view class="filter-bar-wrapper">
+      <!-- 修改筛选栏显示逻辑 -->
       <view class="filter-bar-horizontal">
         <view class="filter-item-horizontal" bindtap="toggleCampusDropdown">
           <text>{{selectedCampus || '校区'}}</text>
@@ -29,10 +65,17 @@
       <view class="dropdown" wx:if="{{showCampusDropdown}}">
         <view class="dropdown-option" wx:for="{{campusOptions}}" wx:key="item" bindtap="selectCampus" data-value="{{item}}">{{item}}</view>
       </view>
-      <!-- 分类下拉框 -->
-      <view class="dropdown" wx:if="{{showCategoryDropdown}}">
-        <view class="dropdown-option" wx:for="{{categoryOptions}}" wx:key="item" bindtap="selectCategory" data-value="{{item}}">{{item}}</view>
+    <!-- 分类下拉框 -->
+    <view class="dropdown" wx:if="{{showCategoryDropdown}}">
+      <view class="dropdown-option {{selectedCategory === item ? 'selected' : ''}}"
+            wx:for="{{categoryOptions}}"
+            wx:key="index"
+            data-value="{{item}}"
+            bindtap="selectCategory">
+        <text>{{item}}</text>
+        <text wx:if="{{selectedCategory === item}}" class="selected-mark">✓</text>
       </view>
+    </view>
     </view>
     <!-- 再放标签栏 -->
     <view class="fixed-tabs">
@@ -53,11 +96,19 @@
     </view>
     <scroll-view 
       wx:else
-      scroll-y="true" 
-      scroll-top="{{scrollTop}}" 
+      scroll-y="true"
+      scroll-top="{{scrollTop}}"
       class="scroll-content"
     >
-      <waterfall-layout 
+      <!-- 空状态提示 -->
+      <view wx:if="{{goodsList.length === 0 && !loading}}" class="empty-state">
+        <image class="empty-icon" src="/static/assets/icons/empty-box-copy-copy-copy.png" mode="aspectFit" />
+        <text class="empty-text">暂时没有这个品类的商品喔</text>
+      </view>
+
+      <!-- 商品列表 -->
+      <waterfall-layout
+        wx:else
         goods-list="{{goodsList}}"
         loading="{{loading}}"
         noMore="{{!hasMore}}"
