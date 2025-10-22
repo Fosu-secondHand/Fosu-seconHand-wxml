@@ -1,8 +1,5 @@
 {
   "pages": [
-    "pages/login/login",
-    "pages/register/register",
-    "pages/forgotPassword/forgotPassword",
     "pages/index/index",
     "pages/chooseIdle/chooseIdle",
     "pages/wantIdle/wantIdle",
@@ -26,7 +23,8 @@
     "pages/setting/setting",
     "pages/editIdle/editIdle",
     "pages/userHome/userHome",
-    "pages/chat/chat"
+    "pages/chat/chat",
+    "pages/payment/payment"
   ],
   "window": {
     "navigationBarTextStyle": "black",

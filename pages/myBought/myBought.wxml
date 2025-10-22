@@ -2,7 +2,6 @@
   <custom-nav-bar title="我买到的" showBack="true" />
   
   <view style="padding-top: 88rpx;">
-    <view class="title">我买到的</view>
     <view class="orders-list">
       <block wx:for="{{ordersList}}" wx:key="id">
         <view class="order-item">

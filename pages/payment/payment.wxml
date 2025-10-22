@@ -1,0 +1,59 @@
+<!-- payment.wxml -->
+<custom-nav-bar title="确认订单" showBack="true" />
+
+<view class="payment-container">
+  <!-- 商品信息 -->
+  <view class="goods-info">
+    <image src="{{goodsInfo.image || '/static/assets/default-image.png'}}" mode="aspectFill" class="goods-image" />
+    <view class="goods-detail">
+      <text class="goods-title">{{goodsInfo.title || '加载中...'}}</text>
+      <text class="goods-price">¥{{goodsInfo.price || '0.00'}}</text>
+    </view>
+  </view>
+
+  <!-- 收货地址 -->
+  <view class="address-section" bindtap="chooseAddress">
+    <view class="address-content">
+      <view class="address-header" wx:if="{{address}}">
+        <text class="contact-name">{{address.contactName}}</text>
+        <text class="phone-number">{{address.phoneNumber}}</text>
+        <text class="campus-info">{{address.campus || ''}}</text>
+      </view>
+      <text class="full-address">{{address ? (address.dormitory || '') + (address.roomNumber ? ' ' + address.roomNumber : '') : '请选择收货地址'}}</text>
+    </view>
+    <view class="arrow-icon">></view>
+  </view>
+
+  <!-- 购买数量 -->
+  <view class="quantity-section">
+    <text class="section-title">购买数量</text>
+    <view class="quantity-control">
+      <view class="quantity-btn minus" bindtap="decreaseQuantity" wx:if="{{quantity > 1}}">-</view>
+      <view class="quantity-btn minus disabled" wx:else>-</view>
+      <text class="quantity-value">{{quantity}}</text>
+      <view class="quantity-btn plus" bindtap="increaseQuantity">+</view>
+    </view>
+  </view>
+
+  <!-- 支付方式 -->
+  <view class="payment-section">
+    <view class="payment-title">支付方式</view>
+    <view class="payment-item" bindtap="selectPaymentMethod" data-method="wechatpay">
+      <image src="/static/WeChatpay.png" class="payment-icon" />
+      <text class="payment-name">微信支付</text>
+      <view class="payment-check" wx:if="{{paymentMethod === 'wechatpay'}}">
+        ✓
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部结算栏 -->
+  <view class="bottom-bar">
+    <view class="confirm-btn-container">
+      <view class="confirm-btn" bindtap="confirmPurchase">
+        确认购买
+        <text class="total-amount">¥{{totalPrice || '0.00'}}</text>
+      </view>
+    </view>
+  </view>
+</view>

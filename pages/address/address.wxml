@@ -18,9 +18,6 @@
             <text class="location">
               {{item.dormitory}} {{item.roomNumber}}
             </text>
-            <text class="tag {{item.tag === 'dormitory'? 'dorm-tag' : item.tag ==='school'? 'chool-tag' : 'home-tag'}}">
-              {{item.tag === 'dormitory'? '宿舍' : item.tag ==='school'? '学校' : '家'}}
-            </text>
           </view>
         </view>
         <view class="operations">

@@ -5,8 +5,7 @@ Page({
     contactName: '',
     phoneNumber: '',
     gender: 'male',
-    tag: 'dormitory',
-    imageSrc: '',
+    campus: '北区',        // 校区选择：仙溪北区或仙溪南区
     addressId: null,      // 地址ID（编辑时存在）
     isSubmitting: false
   },
@@ -15,16 +14,18 @@ Page({
     // 检查是否为编辑模式
     const addressId = options.id;
     if (addressId) {
-      this.setData({ addressId });
+      // 确保addressId为数字类型
+      const numAddressId = parseInt(addressId);
+      this.setData({ addressId: numAddressId });
       this.loadAddressData();
     }
   },
 
   // 加载要编辑的地址数据
   loadAddressData() {
-    const addressId = this.data.addressId;
+    const addressId = this.data.addressId; // 已经是数字类型
     const addressList = wx.getStorageSync('addressList') || [];
-    const addressData = addressList.find(item => item.id === parseInt(addressId));
+    const addressData = addressList.find(item => item.id === addressId);
     
     if (addressData) {
       this.setData({
@@ -33,8 +34,7 @@ Page({
         contactName: addressData.contactName,
         phoneNumber: addressData.phoneNumber,
         gender: addressData.gender === '先生' ? 'male' : 'female',
-        tag: addressData.tag,
-        imageSrc: addressData.imageUrl || ''
+        campus: addressData.campus || '北区'
       });
     } else {
       wx.showToast({
@@ -48,6 +48,7 @@ Page({
   },
 
   // ===== 表单输入处理 =====
+  
   handleDormitoryInput(e) {
     this.setData({ dormitory: e.detail.value });
   },
@@ -64,29 +65,13 @@ Page({
     this.setData({ phoneNumber: e.detail.value });
   },
 
-  // ===== 性别和标签选择 =====
+  // ===== 性别和校区选择 =====
   selectGender(e) {
     this.setData({ gender: e.currentTarget.dataset.gender });
   },
 
-  selectTag(e) {
-    this.setData({ tag: e.currentTarget.dataset.tag });
-  },
-
-  // ===== 图片上传 =====
-  chooseImage() {
-    wx.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        this.setData({ imageSrc: res.tempFilePaths[0] });
-      },
-      fail: (err) => {
-        console.error('选择图片失败:', err);
-        wx.showToast({ title: '选择图片失败', icon: 'none' });
-      }
-    });
+  selectCampus(e) {
+    this.setData({ campus: e.currentTarget.dataset.campus });
   },
 
   // ===== 表单验证 =====
@@ -134,21 +119,24 @@ Page({
     wx.showLoading({ title: '提交中...' });
     
     // 构建地址数据
+    const addressId = this.data.addressId;
+    const numAddressId = addressId || Date.now();
+    
     const addressData = {
-      id: this.data.addressId || Date.now(),  // 编辑时使用原有ID，新增时生成新ID
+      id: numAddressId,  // 编辑时使用数字类型的ID，新增时生成新ID
       dormitory: this.data.dormitory,
       roomNumber: this.data.roomNumber,
       contactName: this.data.contactName,
       phoneNumber: this.data.phoneNumber,
       gender: this.data.gender === 'male' ? '先生' : '女士',
-      tag: this.data.tag,
-      imageUrl: this.data.imageSrc || '',
-      createTime: this.data.addressId 
-        ? wx.getStorageSync('addressList').find(item => item.id === this.data.addressId)?.createTime 
+      campus: this.data.campus,
+      createTime: addressId 
+        ? wx.getStorageSync('addressList').find(item => item.id === addressId)?.createTime 
         : new Date().toISOString(),  // 保留原有创建时间
-      isDefault: this.data.addressId 
-        ? wx.getStorageSync('addressList').find(item => item.id === this.data.addressId)?.isDefault 
-        : wx.getStorageSync('addressList').length === 0  // 新增时如果是第一个地址设为默认
+      isDefault: addressId 
+        ? wx.getStorageSync('addressList').find(item => item.id === addressId)?.isDefault 
+        : wx.getStorageSync('addressList').length === 0,  // 新增时如果是第一个地址设为默认
+
     };
     
     // 保存到本地缓存
@@ -156,6 +144,7 @@ Page({
     
     if (this.data.addressId) {
       // 编辑模式：替换原有地址
+      // addressId已经是数字类型，可以直接比较
       const index = addressList.findIndex(item => item.id === this.data.addressId);
       if (index !== -1) {
         addressList[index] = addressData;

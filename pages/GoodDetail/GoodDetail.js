@@ -8,7 +8,6 @@ Page({
     starCount: 0,         // 收藏数
     wantCount: 0,         // 想要数
     viewCount: 0,          // 浏览量
-    goodsDetail: null,         // 当前商品详情
     recommendGoods: [],        // 推荐商品列表
     recommendCurrentPage: 1,   // 推荐商品页码
     recommendPageSize: 6,      // 推荐每页数量
@@ -86,11 +85,32 @@ Page({
 
   // 立即购买按钮点击事件
   handleBuy() {
-    wx.showModal({
-      title: '支付提示',
-      content: '支付页面开发中，敬请期待~',
-      showCancel: false
-    });
+    console.log('handleBuy called', this.data.goodsDetail);
+    
+    if (!this.data.goodsDetail) {
+      wx.showToast({ title: '商品信息加载中...', icon: 'none' });
+      return;
+    }
+    
+    // 跳转到支付页面，只传递商品ID，避免复杂参数序列化问题
+    try {
+      const goodsId = this.data.goodsDetail.id;
+      console.log('准备跳转支付页面，商品ID:', goodsId);
+      
+      wx.navigateTo({
+        url: `/pages/payment/payment?goodsId=${goodsId}`,
+        success: function(res) {
+          console.log('跳转成功');
+        },
+        fail: function(error) {
+          console.error('跳转失败:', error);
+          wx.showToast({ title: '跳转失败，请检查页面路径', icon: 'none' });
+        }
+      });
+    } catch (error) {
+      console.error('导航到支付页面失败:', error);
+      wx.showToast({ title: '操作失败，请重试', icon: 'none' });
+    }
   },
 
   // 收藏按钮点击事件

@@ -23,21 +23,23 @@ Page({
   },
 
   navigateToEditAddress(e) {
-    const addressId = e.currentTarget.dataset.id;
+    // 确保获取到的ID是数字类型
+    const addressId = parseInt(e.currentTarget.dataset.id);
     wx.navigateTo({
       url: `/pages/addAddress/addAddress?id=${addressId}`
     });
   },
 
   deleteAddress(e) {
-    const addressId = e.currentTarget.dataset.id;
+    // 确保使用数字类型的ID
+    const addressId = parseInt(e.currentTarget.dataset.id);
     const addressList = this.data.addressList;
     wx.showModal({
       title: '确认删除',
       content: '确定要删除这个地址吗？',
       success: (res) => {
         if (res.confirm) {
-          const newAddressList = addressList.filter(item => item.id!== addressId);
+          const newAddressList = addressList.filter(item => item.id !== addressId);
           wx.setStorageSync('addressList', newAddressList);
           this.setData({ addressList: newAddressList });
           wx.showToast({ title: '地址已删除' });
@@ -47,7 +49,8 @@ Page({
   },
 
   setDefaultAddress(e) {
-    const addressId = e.currentTarget.dataset.id;
+    // 确保使用数字类型的ID
+    const addressId = parseInt(e.currentTarget.dataset.id);
     let addressList = this.data.addressList;
     addressList = addressList.map(item => ({
       ...item,
