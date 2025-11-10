@@ -236,7 +236,7 @@ Page({
         wx.navigateTo({ url: '/pages/auctionPrice/auctionPrice' }); // 如无此页面可后续补充
     },
 
-    // 提交发布
+    // 修改 submitPublish 方法
     submitPublish() {
         // 表单验证
         if (!this.data.description.trim()) {
@@ -286,119 +286,194 @@ Page({
             return;
         }
 
-        // 显示加载状态
+        // 检查用户地址信息
+        this.checkUserAddress(userInfo, token);
+    },
+
+// 新增检查用户地址信息的方法
+    checkUserAddress(userInfo, token) {
         this.setData({ loading: true });
 
-        // 直接继续执行发布流程
-        this.continuePublish(userInfo, token);
+        // 获取用户详细信息
+        this.getUserDetail(userInfo.id, token).then(userDetail => {
+            // 检查用户是否有地址信息
+            if (!userDetail.address || userDetail.address.trim() === '') {
+                this.setData({ loading: false });
+                // 如果没有地址信息，提示用户先填写地址
+                wx.showModal({
+                    title: '提示',
+                    content: '请先完善您的收货地址信息',
+                    confirmText: '去填写',
+                    cancelText: '取消',
+                    success: (res) => {
+                        if (res.confirm) {
+                            wx.navigateTo({
+                                url: '/pages/address/address'
+                            });
+                        }
+                    }
+                });
+                return;
+            }
+
+            // 如果有地址信息，继续执行发布操作
+            this.continuePublish(userInfo, token);
+        }).catch(err => {
+            console.error('获取用户信息失败:', err);
+            this.setData({ loading: false });
+            wx.showToast({
+                title: '获取用户信息失败',
+                icon: 'none'
+            });
+        });
     },
+
 
 
     // 继续执行发布流程
     continuePublish(userInfo, token) {
         const sellerId = userInfo.id;
 
-        // 首先上传图片
-        this.uploadImages().then(imageUrls => {
-            // 图片上传成功后，构建新商品数据（符合后端要求的格式）
-            const newGoods = {
-                sellerId: sellerId,
-                title: this.data.description,
-                description: this.data.description,
-                transactionMethod: this.data.shippingMethod,
-                categoryId: this.data.category.id,
-                price: parseFloat(this.data.price),
-                condition: this.data.condition.value,
-                image: imageUrls, // 使用上传后的URL数组
-                status: "ON_SALE",
-                postTime: new Date().toISOString(),
-                updateTime: new Date().toISOString(),
-                viewCount: 0,
-                campus: "佛山大学",
-                favoriteCount: 0,
-                wantToBuy: 0
-            };
+        // 首先获取用户详细信息
+        this.getUserDetail(sellerId, token).then(userDetail => {
+            // 首先上传图片
+            this.uploadImages().then(imageUrls => {
+                // 解析用户地址信息
+                let campus = "佛山大学";
+                let address = "";
 
-            // 如果是编辑模式，添加商品ID
-            if (this.data.isEditMode && this.data.editingGoodsId) {
-                newGoods.id = this.data.editingGoodsId;
-            }
+                if (userDetail.address) {
+                    const addressParts = userDetail.address.split('-');
+                    if (addressParts.length >= 3) {
+                        campus = addressParts[0];  // 校区
+                        address = `${addressParts[1]}-${addressParts[2]}`;  // 宿舍楼栋-宿舍号
+                    } else if (addressParts.length === 2) {
+                        campus = addressParts[0];
+                        address = addressParts[1];
+                    } else {
+                        address = userDetail.address;
+                    }
+                }
 
-            // 打印请求数据以便调试
-            console.log('准备发送的商品数据:', JSON.stringify(newGoods, null, 2));
+                // 图片上传成功后，构建新商品数据（符合后端要求的格式）
+                const newGoods = {
+                    sellerId: sellerId,
+                    title: this.data.description,
+                    description: this.data.description,
+                    transactionMethod: this.data.shippingMethod,
+                    categoryId: this.data.category.id,
+                    price: parseFloat(this.data.price),
+                    condition: this.data.condition.value,
+                    image: imageUrls, // 使用上传后的URL数组
+                    status: "ON_SALE",
+                    postTime: new Date().toISOString(),
+                    updateTime: new Date().toISOString(),
+                    viewCount: 0,
+                    campus: campus, // 解析后的校区
+                    address: address, // 解析后的宿舍信息
+                    favoriteCount: 0,
+                    wantToBuy: 0,
+                    productType: "SELL" //标识为出售商品
+                };
 
-            // 检查关键字段
-            console.log('关键字段检查:', {
-                sellerId: newGoods.sellerId,
-                title: newGoods.title,
-                categoryId: newGoods.categoryId,
-                price: newGoods.price,
-                condition: newGoods.condition,
-                image: newGoods.image
-            });
+                // 如果是编辑模式，添加商品ID
+                if (this.data.isEditMode && this.data.editingGoodsId) {
+                    newGoods.id = this.data.editingGoodsId;
+                }
 
-            // 打印请求数据以便调试
-            console.log('发送商品发布请求:', newGoods);
+                // 打印请求数据以便调试
+                console.log('准备发送的商品数据:', JSON.stringify(newGoods, null, 2));
 
-            // 检查baseUrl是否有效
-            if (!this.baseURL) {
-                throw new Error('API地址未配置');
-            }
+                // 检查关键字段
+                console.log('关键字段检查:', {
+                    sellerId: newGoods.sellerId,
+                    title: newGoods.title,
+                    categoryId: newGoods.categoryId,
+                    price: newGoods.price,
+                    condition: newGoods.condition,
+                    image: newGoods.image,
+                    productType: newGoods.productType
+                });
 
-            // 调用商品发布接口
-            wx.request({
-                url: this.baseURL + '/products/publish',
-                method: 'POST',
-                header: {
-                    'content-type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                data: newGoods,
-                success: (res) => {
-                    console.log('发布接口返回:', res);
+                // 打印请求数据以便调试
+                console.log('发送商品发布请求:', newGoods);
 
-                    // 检查响应状态码和业务状态码
-                    if (res.statusCode === 200 || res.statusCode === 201) {
-                        // 检查业务是否成功
-                        if (res.data && (res.data.code === 200 || res.data.code === 201 || !res.data.code)) {
-                            // 发布成功提示
-                            wx.showToast({
-                                title: this.data.isEditMode ? '修改成功' : '发布成功',
-                                icon: 'success',
-                                duration: 2000,
-                                success: () => {
-                                    // 重置所有输入状态
-                                    this.setData({
-                                        description: '',
-                                        images: [],
-                                        price: '',
-                                        shippingMethod: 'Pickup',
-                                        loading: false,
-                                        isEditMode: false,
-                                        editingGoodsId: null,
-                                        category: null,
-                                        condition: null
-                                    });
+                // 检查baseUrl是否有效
+                if (!this.baseURL) {
+                    throw new Error('API地址未配置');
+                }
 
-                                    // 返回上一页
-                                    setTimeout(() => {
-                                        wx.navigateBack();
-                                    }, 2000);
+                // 调用商品发布接口
+                wx.request({
+                    url: this.baseURL + '/products/publish',
+                    method: 'POST',
+                    header: {
+                        'content-type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    data: newGoods,
+                    success: (res) => {
+                        console.log('发布接口返回:', res);
+
+                        // 检查响应状态码和业务状态码
+                        if (res.statusCode === 200 || res.statusCode === 201) {
+                            // 检查业务是否成功
+                            if (res.data && (res.data.code === 200 || res.data.code === 201 || !res.data.code)) {
+                                // 发布成功提示
+                                wx.showToast({
+                                    title: this.data.isEditMode ? '修改成功' : '发布成功',
+                                    icon: 'success',
+                                    duration: 2000,
+                                    success: () => {
+                                        // 重置所有输入状态
+                                        this.setData({
+                                            description: '',
+                                            images: [],
+                                            price: '',
+                                            shippingMethod: 'Pickup',
+                                            loading: false,
+                                            isEditMode: false,
+                                            editingGoodsId: null,
+                                            category: null,
+                                            condition: null
+                                        });
+
+                                        // 返回上一页
+                                        setTimeout(() => {
+                                            wx.navigateBack();
+                                        }, 2000);
+                                    }
+                                });
+                            } else {
+                                // 业务处理失败
+                                this.setData({ loading: false });
+
+                                let errorMsg = '发布失败';
+                                if (res.data && res.data.message) {
+                                    errorMsg = res.data.message;
+                                    // 对于服务器内部错误，给出通用提示
+                                    if (errorMsg.includes('服务器内部错误')) {
+                                        errorMsg = '发布失败，请稍后重试';
+                                    } else if (errorMsg.length > 20) {
+                                        errorMsg = errorMsg.substring(0, 20) + '...';
+                                    }
                                 }
-                            });
+
+                                wx.showToast({
+                                    title: errorMsg,
+                                    icon: 'none',
+                                    duration: 3000
+                                });
+                                console.error('业务处理失败:', res);
+                            }
                         } else {
-                            // 业务处理失败
+                            // 服务器返回错误状态码
                             this.setData({ loading: false });
 
-                            let errorMsg = '发布失败';
+                            // 显示详细的错误信息
+                            let errorMsg = `发布失败: ${res.statusCode}`;
                             if (res.data && res.data.message) {
-                                errorMsg = res.data.message;
-                                // 对于服务器内部错误，给出通用提示
-                                if (errorMsg.includes('服务器内部错误')) {
-                                    errorMsg = '发布失败，请稍后重试';
-                                } else if (errorMsg.length > 20) {
-                                    errorMsg = errorMsg.substring(0, 20) + '...';
-                                }
+                                errorMsg += ` - ${res.data.message}`;
                             }
 
                             wx.showToast({
@@ -406,50 +481,65 @@ Page({
                                 icon: 'none',
                                 duration: 3000
                             });
-                            console.error('业务处理失败:', res);
+                            console.error('服务器返回错误:', res);
                         }
-                    } else {
-                        // 服务器返回错误状态码
+                    },
+                    fail: (err) => {
+                        console.error('发布请求失败:', err);
                         this.setData({ loading: false });
 
-                        // 显示详细的错误信息
-                        let errorMsg = `发布失败: ${res.statusCode}`;
-                        if (res.data && res.data.message) {
-                            errorMsg += ` - ${res.data.message}`;
+                        // 如果是URL错误，给出更具体的提示
+                        if (err.errno === 600009) {
+                            wx.showToast({
+                                title: '配置错误，请检查API地址',
+                                icon: 'none'
+                            });
+                        } else {
+                            wx.showToast({
+                                title: '发布失败，请重试',
+                                icon: 'none'
+                            });
                         }
+                    }
+                });
+            }).catch(err => {
+                console.error('图片上传失败:', err);
+                this.setData({ loading: false });
+                wx.showToast({
+                    title: '图片上传失败: ' + (err.message || ''),
+                    icon: 'none'
+                });
+            });
+        }).catch(err => {
+            console.error('获取用户信息失败:', err);
+            this.setData({ loading: false });
+            wx.showToast({
+                title: '获取用户信息失败',
+                icon: 'none'
+            });
+        });
+    },
 
-                        wx.showToast({
-                            title: errorMsg,
-                            icon: 'none',
-                            duration: 3000
-                        });
-                        console.error('服务器返回错误:', res);
+// 获取用户详细信息
+    getUserDetail(userId, token) {
+        return new Promise((resolve, reject) => {
+            wx.request({
+                url: `${this.baseURL}/users/${userId}`,
+                method: 'GET',
+                header: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                success: (res) => {
+                    if (res.statusCode === 200 && res.data.code === 200) {
+                        resolve(res.data.data);
+                    } else {
+                        reject(new Error(res.data.message || '获取用户信息失败'));
                     }
                 },
                 fail: (err) => {
-                    console.error('发布请求失败:', err);
-                    this.setData({ loading: false });
-
-                    // 如果是URL错误，给出更具体的提示
-                    if (err.errno === 600009) {
-                        wx.showToast({
-                            title: '配置错误，请检查API地址',
-                            icon: 'none'
-                        });
-                    } else {
-                        wx.showToast({
-                            title: '发布失败，请重试',
-                            icon: 'none'
-                        });
-                    }
+                    reject(err);
                 }
-            });
-        }).catch(err => {
-            console.error('图片上传失败:', err);
-            this.setData({ loading: false });
-            wx.showToast({
-                title: '图片上传失败: ' + (err.message || ''),
-                icon: 'none'
             });
         });
     },

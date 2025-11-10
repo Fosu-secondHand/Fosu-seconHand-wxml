@@ -53,16 +53,18 @@
 /* 商品信息 */
 .goods-info {
   margin-top: 16rpx;
-  padding: 24rpx;
+  padding: 30rpx; /* 增加内边距 */
   background-color: #fff;
   display: flex;
+  align-items: center; /* 垂直居中 */
 }
 
 .goods-image {
-  width: 160rpx;
-  height: 160rpx;
+  width: 180rpx; /* 增加图片宽度 */
+  height: 180rpx; /* 增加图片高度 */
   border-radius: 8rpx;
 }
+
 
 .goods-detail {
   flex: 1;
@@ -91,7 +93,7 @@
 /* 收货地址 */
 .address-section {
   margin-top: 16rpx;
-  padding: 24rpx;
+  padding: 30rpx; /* 增加内边距 */
   background-color: #fff;
   display: flex;
   justify-content: space-between;
@@ -147,12 +149,13 @@
 /* 购买数量 */
 .quantity-section {
   margin-top: 16rpx;
-  padding: 24rpx;
+  padding: 30rpx; /* 增加内边距 */
   background-color: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 
 .section-title {
   font-size: 28rpx;
@@ -197,12 +200,13 @@
 }
 
 .payment-item {
-  padding: 24rpx;
+  padding: 30rpx; /* 增加内边距 */
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1rpx solid #f0f0f0;
 }
+
 
 .payment-left {
   display: flex;
@@ -225,49 +229,43 @@
   font-size: 26rpx;
   color: #333;
   flex: 1;
-}
+}/* 底部结算栏 */
+ .bottom-bar {
+   position: fixed;
+   bottom: 0;
+   left: 0;
+   right: 0;
+   height: auto; /* 让高度自适应内容 */
+   background-color: transparent; /* 设置背景透明，去除白边 */
+   padding: 20rpx 0; /* 可以调整上下内边距 */
+   box-shadow: none; /* 去除阴影 */
+   z-index: 100;
+    display: flex; 
+     justify-content: center;
+ }
 
-/* 底部结算栏 */
-.bottom-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 96rpx;
-  background-color: #fff;
-  padding: 0 30rpx;
-  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.1);
-  z-index: 100;
-}
+ .confirm-btn-container {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   height: 100%;
+   width: 100%;
+   padding: 0 20rpx; /* 在容器上添加水平内边距 */
+ }
 
-.confirm-btn-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-}
+ .confirm-btn {
+   width: 90%; /* 让按钮占满容器宽度 */
+   max-width: none; /* 去除最大宽度限制 */
+   height: 90rpx; /* 可以进一步增加按钮高度 */
+   background-color: #ff6b81;
+   color: #fff;
+   border-radius: 40rpx;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   font-size: 32rpx;
+   padding: 0; /* 去除内边距，让文字居中 */
+   white-space: nowrap;
+   line-height: 100rpx; /* 与按钮高度一致 */
+ }
 
-.confirm-btn {
-  width: auto;
-  max-width: 80%;
-  height: 40rpx;
-  background-color: #ff6b81;
-  color: #fff;
-  border-radius: 35rpx;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 28rpx;
-  padding: 20rpx 40rpx;
-  white-space: nowrap;
-  line-height: 70rpx;
-}
-
-.total-amount {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: white;
-  margin-left: 20rpx;
-  white-space: nowrap;
-}

@@ -1,36 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="2e22c8ad-9cb2-476e-a336-9cec52ed2c06" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/Fosu-seconHand-wxml.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/assets/icons/empty-box-copy-copy-copy.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/assets/icons/方框-勾选.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/assets/icons/方框勾选 (1).png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/方形logo.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/绘制像素风格按钮_副本.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/authMixin.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/config.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/messageService.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/GoodItem/GoodItem.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/components/GoodItem/GoodItem.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/addAddress/addAddress.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/addAddress/addAddress.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/address/address.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/address/address.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/address/address.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/address/address.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/address/address.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/address/address.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/customerService/customerService.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/customerService/customerService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/editIdle/editIdle.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/editIdle/editIdle.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/editIdle/editIdle.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/editIdle/editIdle.wxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/idle/idle.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/idle/idle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/idle/idle.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/idle/idle.wxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/index/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/index/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/index/index.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/index/index.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/index/index.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/index/index.wxss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/login/login.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/login/login.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/login/login.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/login/login.wxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/login/login.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/login/login.wxss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/searchRes/searchRes.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/searchRes/searchRes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/userHome/userHome.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/userHome/userHome.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project.config.json" beforeDir="false" afterPath="$PROJECT_DIR$/project.config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project.private.config.json" beforeDir="false" afterPath="$PROJECT_DIR$/project.private.config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/myBought/myBought.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myBought/myBought.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/myBought/myBought.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myBought/myBought.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/myBought/myBought.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myBought/myBought.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/myCollection/myCollection.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myCollection/myCollection.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/myCollection/myCollection.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myCollection/myCollection.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/myCollection/myCollection.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myCollection/myCollection.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/myPublished/myPublished.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myPublished/myPublished.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/myPublished/myPublished.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myPublished/myPublished.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/myPublished/myPublished.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myPublished/myPublished.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/mySold/mySold.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/mySold/mySold.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/mySold/mySold.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/mySold/mySold.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/mySold/mySold.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/mySold/mySold.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/payment/payment.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/payment/payment.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/payment/payment.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/payment/payment.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/profile/profile.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/profile/profile.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/profile/profile.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/profile/profile.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/profile/profile.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/profile/profile.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/setting/setting.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/setting/setting.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/setting/setting.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/setting/setting.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/wantIdle/wantIdle.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/wantIdle/wantIdle.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/wantIdle/wantIdle.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/wantIdle/wantIdle.wxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,15 +60,24 @@
   &quot;associatedIndex&quot;: 3
 }</component>
   <component name="ProjectId" id="34Pl1nKUpi5DRVkWWBY7CmWLBqZ" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "正在合并 main",
-    "kotlin-language-version-configured": "true"
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RunManager">
@@ -76,7 +101,11 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1761122875522</updated>
+      <workItem from="1762237730505" duration="28010000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
 </project>

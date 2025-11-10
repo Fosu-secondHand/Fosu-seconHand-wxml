@@ -151,3 +151,31 @@
   color: #999;
   margin-bottom: 30rpx;
 }
+/* 移除原有的默认地址样式 */
+.address-item.default {
+  border: 2rpx solid #e5e5e5;
+}
+
+/* 添加新的默认地址标识样式 */
+.default-ribbon {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: bold;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx 0 0 8rpx;
+  box-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.address-item {
+  position: relative;
+}
+
+/* 点击效果 */
+.address-item:active {
+  background-color: #f5f5f5;
+}

@@ -1,3 +1,6 @@
+// pages/setting/setting.js
+const authMixin = require('../../utils/authMixin.js');
+
 Page({
   data: {
     avatarUrl: '',
@@ -6,31 +9,62 @@ Page({
     intro: '',
     phone: '',
     notificationEnabled: true,
-    
+
     // 模态框状态
     isAvatarEditModalShow: false,
     isNicknameEditModalShow: false,
     isAccountEditModalShow: false,
     isIntroEditModalShow: false,
     isBindPhoneModalShow: false,
-    
+
     // 临时编辑数据
     tempAvatarUrl: '',
     tempNickname: '',
     tempAccountNumber: '',
     tempIntro: '',
     tempPhone: '',
-    
+
     // 随机昵称配置
     randomNicknameConfig: {
       prefixes: ['校园', '阳光', '快乐', '活力', '智慧'],
       suffixes: ['同学', '伙伴', '达人', '创客', '学者'],
       generated: false
-    }
+    },
+
+    // 登录状态
+    isLogin: false
   },
 
-  // 页面加载时初始化
+  // 引入混入方法
+  ...authMixin.methods,
+
   onLoad() {
+    // 检查用户是否已登录
+    const userInfo = wx.getStorageSync('userInfo');
+    const token = wx.getStorageSync('token');
+
+    // 如果未登录，重定向到登录页面
+    if (!(userInfo && userInfo.isLogin && token)) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none',
+        duration: 1500,
+        success: () => {
+          setTimeout(() => {
+            wx.redirectTo({
+              url: '/pages/login/login'
+            });
+          }, 1500);
+        }
+      });
+      return;
+    }
+
+    // 已登录，设置登录状态并加载用户信息
+    this.setData({
+      isLogin: true
+    });
+
     this.loadUserInfo();
   },
 
@@ -38,7 +72,7 @@ Page({
   loadUserInfo() {
     try {
       const userInfo = wx.getStorageSync('userInfo') || {};
-      
+
       // 如果已经有账号，使用已有账号；如果没有，生成新账号
       let accountNumber = userInfo.accountNumber;
       if (!accountNumber) {
@@ -47,7 +81,7 @@ Page({
         userInfo.accountNumber = accountNumber;
         wx.setStorageSync('userInfo', userInfo);
       }
-      
+
       // 合并缓存数据和默认值
       const defaultData = {
         avatarUrl: '/static/assets/icons/default-avatar.png',
@@ -57,12 +91,12 @@ Page({
         phone: '',
         notificationEnabled: true
       };
-      
+
       this.setData({
         ...defaultData,
         ...userInfo
       });
-      
+
       console.log('Setting: 用户信息加载成功', this.data);
     } catch (error) {
       console.error('Setting: 加载用户信息失败', error);
@@ -84,10 +118,10 @@ Page({
         phone: this.data.phone,
         notificationEnabled: this.data.notificationEnabled
       };
-      
+
       wx.setStorageSync('userInfo', userInfo);
       this.updateProfilePage(userInfo);
-      
+
       console.log('Setting: 用户信息保存成功', userInfo);
       wx.showToast({
         title: '保存成功',
@@ -106,7 +140,7 @@ Page({
   updateProfilePage(data) {
     const pages = getCurrentPages();
     const profilePage = pages.find(page => page.route.includes('profile'));
-    
+
     if (profilePage) {
       profilePage.setData(data);
       console.log('Setting: 已同步数据到Profile页面', data);
@@ -119,14 +153,14 @@ Page({
     const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
     const randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)];
     const randomNumber = Math.floor(Math.random() * 1000);
-    
+
     const randomNickname = `${randomPrefix}${randomSuffix}${randomNumber}`;
-    
+
     this.setData({
       nickname: randomNickname,
       'randomNicknameConfig.generated': true
     });
-    
+
     this.saveUserInfo();
     console.log('Setting: 生成随机昵称', randomNickname);
   },
@@ -168,16 +202,16 @@ Page({
 
   uploadAvatar() {
     if (!this.data.tempAvatarUrl) return;
-    
+
     wx.showLoading({ title: '上传中...' });
-    
+
     // 模拟上传到服务器
     setTimeout(() => {
       this.setData({
         avatarUrl: this.data.tempAvatarUrl,
         isAvatarEditModalShow: false
       });
-      
+
       this.saveUserInfo();
       wx.hideLoading();
     }, 1000);
@@ -203,12 +237,12 @@ Page({
 
   saveNickname() {
     const newNickname = this.data.tempNickname || '';
-    
+
     this.setData({
       nickname: newNickname || '未设置昵称',
       isNicknameEditModalShow: false
     });
-    
+
     this.saveUserInfo();
   },
 
@@ -232,7 +266,7 @@ Page({
 
   saveAccountNumber() {
     const newAccountNumber = this.data.tempAccountNumber.trim();
-    
+
     if (!newAccountNumber) {
       wx.showToast({
         title: '账号不能为空',
@@ -240,12 +274,12 @@ Page({
       });
       return;
     }
-    
+
     this.setData({
       accountNumber: newAccountNumber,
       isAccountEditModalShow: false
     });
-    
+
     this.saveUserInfo();
   },
 
@@ -269,12 +303,12 @@ Page({
 
   saveIntro() {
     const newIntro = this.data.tempIntro || '';
-    
+
     this.setData({
       intro: newIntro,
       isIntroEditModalShow: false
     });
-    
+
     this.saveUserInfo();
   },
 
@@ -298,7 +332,7 @@ Page({
 
   bindPhone() {
     const newPhone = this.data.tempPhone.trim();
-    
+
     if (newPhone && !/^1[3-9]\d{9}$/.test(newPhone)) {
       wx.showToast({
         title: '手机号格式不正确',
@@ -306,15 +340,15 @@ Page({
       });
       return;
     }
-    
+
     wx.showLoading({ title: '处理中...' });
-    
+
     setTimeout(() => {
       this.setData({
         phone: newPhone,
         isBindPhoneModalShow: false
       });
-      
+
       this.saveUserInfo();
       wx.hideLoading();
     }, 1000);
@@ -324,7 +358,7 @@ Page({
   toggleNotification(e) {
     const enabled = e.detail.value;
     this.setData({ notificationEnabled: enabled });
-    
+
     wx.setStorageSync('notificationEnabled', enabled);
   },
 
@@ -339,20 +373,20 @@ Page({
           try {
             // 获取App实例
             const app = getApp();
-            
+
             // 调用全局logout方法进行全面清理
             if (app && app.logout) {
               app.logout();
             }
-            
+
             // 额外清除，确保万无一失
             wx.clearStorageSync();
-            
+
             // 强制设置用户未登录状态
             wx.setStorageSync('userInfo', { isLogin: false });
-            
+
             console.log('登录状态已完全清除');
-            
+
             // 短暂延迟后再跳转，确保清除操作完全执行
             setTimeout(() => {
               wx.reLaunch({

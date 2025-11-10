@@ -24,7 +24,8 @@
     "pages/editIdle/editIdle",
     "pages/userHome/userHome",
     "pages/chat/chat",
-    "pages/payment/payment"
+    "pages/payment/payment",
+    "pages/login/login"
   ],
   "window": {
     "navigationBarTextStyle": "black",

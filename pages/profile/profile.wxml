@@ -9,10 +9,9 @@
         <text class="nickname">{{nickname}}</text>
         <text class="account">{{accountNumber}}</text>
       </view>
-      <!-- 设置按钮使用 navigator 组件，路径需正确 -->
-      <navigator url="/pages/setting/setting" class="setting-btn">
+      <view class="setting-btn" bindtap="navigateToSetting">
         <image src="/static/assets/icons/setting.png" mode="aspectFill"></image>
-      </navigator>
+      </view>
     </view>
 
     <!-- 数据统计 -->
@@ -81,7 +80,24 @@
       </view>
     </view>
 
-    <!-- 退出登录 - 绑定 logout 事件 -->
-    <button class="logout-btn" bindtap="logout">退出登录</button>
+    <!-- 根据登录状态显示不同按钮 -->
+    <!-- 未登录时显示绿色"去登录"按钮 -->
+    <button
+      wx:if="{{!isLogin}}"
+      class="login-btn"
+      style="border-color: #07c160; color: #07c160;"
+      bindtap="goToLogin"
+    >
+      去登录
+    </button>
+
+    <!-- 已登录时显示红色"退出登录"按钮 -->
+    <button
+      wx:else
+      class="logout-btn"
+      bindtap="logout"
+    >
+      退出登录
+    </button>
   </view>
 </view>

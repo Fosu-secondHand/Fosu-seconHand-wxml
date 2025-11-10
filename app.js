@@ -1,37 +1,46 @@
 App({
-    onLaunch() {
-      // 展示本地存储能力
-      const logs = wx.getStorageSync('logs') || []
-      logs.unshift(Date.now())
-      wx.setStorageSync('logs', logs)
-  
-      // 检查登录状态
+  onLaunch() {
+    // 展示本地存储能力
+    const logs = wx.getStorageSync('logs') || []
+    logs.unshift(Date.now())
+    wx.setStorageSync('logs', logs)
+
+    // 检查登录状态
+    const userInfo = wx.getStorageSync('userInfo');
+    if (!userInfo || !userInfo.isLogin) {
+      // 未登录状态，确保跳转到登录页
+      setTimeout(() => {
+        wx.redirectTo({ url: '/pages/login/login' });
+      }, 500);
+    } else {
       this.checkLoginStatus();
-    },
+    }
+  },
   
     // 检查登录状态
-    checkLoginStatus() {
-      try {
-        const userInfo = wx.getStorageSync('userInfo');
-        if (userInfo && userInfo.isLogin) {
-          this.globalData.userInfo = userInfo;
-          console.log('用户已登录:', userInfo.username);
-        } else {
-          this.globalData.userInfo = null;
-          // 如果用户未登录且不是在登录页面，可以跳转到登录页
-          const pages = getCurrentPages();
-          if (pages.length === 0 || !pages[0].route.includes('login')) {
-            // 延迟跳转，避免在app启动时立即跳转导致体验问题
-            setTimeout(() => {
-              wx.redirectTo({ url: '/pages/login/login' });
-            }, 500);
-          }
-        }
-      } catch (error) {
-        console.error('检查登录状态失败:', error);
+  checkLoginStatus() {
+    try {
+      const userInfo = wx.getStorageSync('userInfo');
+      if (userInfo && userInfo.isLogin) {
+        this.globalData.userInfo = userInfo;
+        console.log('用户已登录:', userInfo.username);
+      } else {
         this.globalData.userInfo = null;
+        // 简化跳转逻辑，直接跳转到登录页
+        setTimeout(() => {
+          // 检查当前页面是否已经是登录页
+          const currentPages = getCurrentPages();
+          const currentPage = currentPages.length > 0 ? currentPages[currentPages.length - 1] : null;
+          if (!currentPage || !currentPage.route.includes('login')) {
+            wx.redirectTo({ url: '/pages/login/login' });
+          }
+        }, 500);
       }
-    },
+    } catch (error) {
+      console.error('检查登录状态失败:', error);
+      this.globalData.userInfo = null;
+    }
+  },
   
     // 获取用户信息
     getUserInfo() {

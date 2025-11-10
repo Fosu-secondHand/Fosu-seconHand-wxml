@@ -19,14 +19,9 @@ Page({
         answer: "在订单详情页点击'申请退款'，按提示填写退款原因并提交，我们会尽快处理。",
         expanded: false
       },
+
       {
         id: 4,
-        question: "商品多久可以送达？",
-        answer: "一般情况下，同城订单1-3天送达，异地订单3-5天送达，具体以物流信息为准。",
-        expanded: false
-      },
-      {
-        id: 5,
         question: "如何联系人工客服？",
         answer: "您可以通过在线客服、电话400-123-4567或邮件support@example.com联系我们。",
         expanded: false

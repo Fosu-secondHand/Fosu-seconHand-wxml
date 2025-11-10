@@ -1,29 +1,55 @@
-<view class="container">
+<view class="collection-container">
   <custom-nav-bar title="我的发布" showBack="true" />
-  
+
   <view style="padding-top: 88rpx;">
-    <view class="title">我的发布</view>
-    <view class="goods-list">
-      <block wx:for="{{goodsList}}" wx:key="id">
-        <view class="goods-item">
-          <view class="goods-img">
-            <image src="{{item.imageUrl}}" mode="aspectFill"></image>
-          </view>
+    <!-- 页面标题 -->
+    <view class="page-header">
+      <text class="page-title">我的发布</text>
+    </view>
+
+    <!-- 加载状态 -->
+    <view wx:if="{{loading}}" class="loading-container">
+      <loading />
+      <text>加载中...</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:elif="{{goodsList.length === 0 && !loading}}" class="empty-container">
+      <image class="empty-icon" src="/static/assets/icons/empty-collection.png" mode="aspectFit"></image>
+      <text class="empty-text">暂无发布商品</text>
+    </view>
+
+    <!-- 商品列表 -->
+    <view wx:else class="goods-list">
+      <block wx:for="{{goodsList}}" wx:key="productId">
+        <!-- 添加点击事件 bindtap="onGoodsTap" 和 data-id 属性 -->
+        <view class="goods-item" bindtap="onGoodsTap" data-id="{{item.productId}}">
+          <!-- 商品图片 -->
+          <image class="goods-image"
+                 src="{{item.image || '/static/assets/default-image.png'}}"
+                 mode="aspectFill"></image>
+
+          <!-- 商品信息 -->
           <view class="goods-info">
-            <view class="goods-title">{{item.title}}</view>
-            <view class="goods-price">价格：{{item.price}} 元</view>
-            <view class="goods-status">状态：{{item.status}}</view>
+            <text class="goods-title">{{item.title}}</text>
+            <text class="goods-price">¥{{item.price}}</text>
+            <view class="goods-meta">
+              <text class="goods-condition">{{item.condition}}</text>
+              <text class="goods-favorite-count">{{item.favoriteCount || 0}}人收藏</text>
+            </view>
+            <!-- 商品状态显示 -->
+            <view class="goods-status">
+              <text class="{{item.isSold ? 'status-sold' : 'status-onsale'}}">{{item.status}}</text>
+            </view>
           </view>
-          <view class="goods-ops">
-            <view class="edit-btn" bindtap="editGoods" data-id="{{item.id}}">编辑</view>
-            <view class="delete-btn" bindtap="deleteGoods" data-id="{{item.id}}">删除</view>
+
+          <!-- 操作按钮 (仅对未售出商品显示) -->
+          <view class="goods-ops" wx:if="{{!item.isSold}}">
+            <view class="edit-btn" bindtap="editGoods" data-id="{{item.productId}}">编辑</view>
+            <view class="delete-btn" bindtap="deleteGoods" data-id="{{item.productId}}">删除</view>
           </view>
         </view>
       </block>
-    </view>
-    <view class="no-goods" wx:if="{{!goodsList.length}}">
-      <image src="/images/no_goods.png" mode="aspectFit"></image>
-      <text>您还没有发布任何商品</text>
     </view>
   </view>
 </view>

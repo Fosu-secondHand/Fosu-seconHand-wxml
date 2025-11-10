@@ -8,7 +8,10 @@
     </view>
     <view class="address-list">
     <block wx:for="{{addressList}}" wx:key="id">
-      <view class="address-item {{item.isDefault? 'default' : ''}}">
+      <view class="address-item {{item.isDefault? 'default' : ''}}" bindtap="setDefaultAddress" data-id="{{item.id}}">
+        <!-- 默认地址标识 -->
+        <view class="default-ribbon" wx:if="{{item.isDefault}}">默认</view>
+
         <view class="address-info">
           <view class="top-info">
             <text class="name">{{item.contactName}} {{item.gender}}</text>
@@ -16,14 +19,13 @@
           </view>
           <view class="middle-info">
             <text class="location">
-              {{item.dormitory}} {{item.roomNumber}}
+              {{item.campus}}-{{item.dormitory}} {{item.roomNumber}}
             </text>
           </view>
         </view>
         <view class="operations">
           <button class="edit-btn" bindtap="navigateToEditAddress" data-id="{{item.id}}">编辑</button>
           <button class="delete-btn" bindtap="deleteAddress" data-id="{{item.id}}">删除</button>
-          <button class="default-btn" bindtap="setDefaultAddress" data-id="{{item.id}}" wx:if="{{!item.isDefault}}">设为默认</button>
         </view>
       </view>
     </block>

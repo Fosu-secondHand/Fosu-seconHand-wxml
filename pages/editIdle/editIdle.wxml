@@ -1,88 +1,146 @@
 <!-- pages/editIdle/editIdle.wxml -->
 <view class="container">
-  <custom-nav-bar title="编辑闲置" showBack="true" />
-  
-  <view style="padding-top: 88rpx;">
-    <!-- 商品描述 -->
-    <view class="section">
-      <textarea 
-        placeholder="描述宝贝的品牌、型号、成色等信息..."
-        value="{{description}}"
-        bindinput="onDescriptionChange"
-        maxlength="500"
-        auto-height
-      ></textarea>
-    </view>
+  <custom-nav-bar title="编辑商品" showBack="true" />
 
-    <!-- 图片上传 -->
-    <view class="section">
-      <view class="section-title">+添加图片</view>
-      <view class="image-grid">
-        <!-- 已选图片 -->
-        <view class="image-item" wx:for="{{images}}" wx:key="index">
-          <image src="{{item}}" mode="aspectFill"></image>
-          <view class="delete-btn" bindtap="deleteImage" data-index="{{index}}">
-            <image src="/static/assets/icons/close.png" mode="aspectFill"></image>
+  <view style="padding-top: 88rpx;">
+    <!-- 出售商品编辑界面 -->
+    <view wx:if="{{productType !== 'WANT'}}">
+      <!-- 商品描述 -->
+      <view class="section">
+        <textarea
+          placeholder="描述宝贝的品牌、型号、成色等信息..."
+          value="{{description}}"
+          bindinput="onDescriptionChange"
+          maxlength="500"
+          auto-height
+        ></textarea>
+      </view>
+
+      <!-- 图片上传 -->
+      <view class="section">
+        <view class="section-title">+添加图片</view>
+        <view class="image-grid">
+          <!-- 已选图片 -->
+          <view class="image-item" wx:for="{{images}}" wx:key="index">
+            <image src="{{item}}" mode="aspectFill"></image>
+            <view class="delete-btn" bindtap="deleteImage" data-index="{{index}}">
+              <image src="/static/assets/icons/close.png" mode="aspectFill"></image>
+            </view>
+          </view>
+
+          <!-- 添加图片按钮 -->
+          <view class="add-image-btn" wx:if="{{images.length < 9}}" bindtap="chooseImage">
+            <image src="/static/assets/icons/add.png" mode="aspectFill"></image>
           </view>
         </view>
-        
-        <!-- 添加图片按钮 -->
-        <view class="add-image-btn" wx:if="{{images.length < 9}}" bindtap="chooseImage">
-          <image src="/static/assets/icons/add.png" mode="aspectFill"></image>
+      </view>
+
+      <!-- 价格设置 -->
+      <view class="section price-section">
+        <view class="section-title">价格</view>
+        <input class="price-input" type="digit" value="{{price}}" bindinput="onPriceInput" placeholder="请输入价格" focus="{{showPriceDetail}}" bindfocus="onShowPriceDetail" />
+      </view>
+
+      <!-- 定价弹窗组件 -->
+      <price-modal
+        visible="{{showPriceDetail}}"
+        price="{{price}}"
+        bind:input="onModalPriceInput"
+        bind:confirm="onModalPriceConfirm"
+        bind:close="onModalPriceClose"
+      />
+
+      <!-- 分类栏 -->
+      <view class="section category-section">
+        <view class="category-title">分类</view>
+        <view class="category-list">
+          <view class="category-item {{category === item ? 'active' : ''}}" wx:for="{{categoryOptions}}" wx:key="item" bindtap="onCategorySelect" data-value="{{item}}">{{item}}</view>
         </view>
       </view>
+
+      <!-- 成色栏 -->
+      <view class="section condition-section">
+        <view class="category-title">成色</view>
+        <view class="category-list">
+          <view class="category-item {{condition === item ? 'active' : ''}}" wx:for="{{conditionOptions}}" wx:key="item" bindtap="onConditionSelect" data-value="{{item}}">{{item}}</view>
+        </view>
+      </view>
+
+      <!-- 交易方式 -->
+      <view class="section shipping-section">
+        <view class="section-title">交易方式</view>
+        <radio-group bindchange="onShippingChange">
+          <label class="radio-item">
+            <radio value="seller" checked="{{shippingMethod === 'seller'}}"/>送货上门
+          </label>
+          <label class="radio-item">
+            <radio value="buyer" checked="{{shippingMethod === 'buyer'}}"/>自取
+          </label>
+        </radio-group>
+      </view>
+
+      <!-- 提交按钮 -->
+      <button
+        class="submit-btn {{loading ? 'loading' : ''}}"
+        bindtap="submitEdit"
+        disabled="{{loading}}"
+      >
+        {{loading ? '保存中...' : '保存修改'}}
+      </button>
     </view>
 
-    <!-- 价格设置 -->
-    <view class="section price-section">
-      <view class="section-title">价格</view>
-      <input class="price-input" type="digit" value="{{price}}" bindinput="onPriceInput" placeholder="请输入价格" focus="{{showPriceDetail}}" bindfocus="onShowPriceDetail" />
+    <!-- 求购商品编辑界面 -->
+    <view wx:else>
+      <!-- 商品描述 -->
+      <view class="section">
+        <textarea
+          placeholder="描述你想要的宝贝品牌、型号、成色等信息..."
+          value="{{description}}"
+          bindinput="onDescriptionChange"
+          maxlength="500"
+          auto-height
+        ></textarea>
+      </view>
+
+      <!-- 图片上传 -->
+      <view class="section">
+        <view class="section-title">+添加图片</view>
+        <view class="image-grid">
+          <!-- 已选图片 -->
+          <view class="image-item" wx:for="{{images}}" wx:key="index">
+            <image src="{{item}}" mode="aspectFill"></image>
+            <view class="delete-btn" bindtap="deleteImage" data-index="{{index}}">
+              <image src="/static/assets/icons/delete.png" mode="aspectFill"></image>
+            </view>
+          </view>
+          <!-- 添加图片按钮 -->
+          <view class="add-image-btn" wx:if="{{images.length < 9}}" bindtap="chooseImage">
+            <image src="/static/assets/icons/add.png" mode="aspectFill"></image>
+          </view>
+        </view>
+      </view>
+
+      <!-- 交易方式 -->
+      <view class="section shipping-section">
+        <view class="section-title">交易方式</view>
+        <radio-group bindchange="onShippingChange">
+          <label class="radio-item">
+            <radio value="seller" checked="{{shippingMethod === 'seller'}}"/>送货上门
+          </label>
+          <label class="radio-item">
+            <radio value="buyer" checked="{{shippingMethod === 'buyer'}}"/>自取
+          </label>
+        </radio-group>
+      </view>
+
+      <!-- 发布按钮 -->
+      <button
+        class="publish-btn {{loading ? 'loading' : ''}}"
+        bindtap="submitEdit"
+        disabled="{{loading}}"
+      >
+        {{loading ? '保存中...' : '保存修改'}}
+      </button>
     </view>
-
-    <!-- 定价弹窗组件 -->
-    <price-modal
-      visible="{{showPriceDetail}}"
-      price="{{price}}"
-      bind:input="onModalPriceInput"
-      bind:confirm="onModalPriceConfirm"
-      bind:close="onModalPriceClose"
-    />
-
-  <!-- 分类栏 -->
-  <view class="section category-section">
-    <view class="category-title">分类</view>
-    <view class="category-list">
-      <view class="category-item {{category === item ? 'active' : ''}}" wx:for="{{categoryOptions}}" wx:key="item" bindtap="onCategorySelect" data-value="{{item}}">{{item}}</view>
-    </view>
-  </view>
-  <!-- 成色栏 -->
-  <view class="section condition-section">
-    <view class="category-title">成色</view>
-    <view class="category-list">
-      <view class="category-item {{condition === item ? 'active' : ''}}" wx:for="{{conditionOptions}}" wx:key="item" bindtap="onConditionSelect" data-value="{{item}}">{{item}}</view>
-    </view>
-  </view>
-
-  <!-- 交易方式 -->
-  <view class="section shipping-section">
-    <view class="section-title">交易方式</view>
-    <radio-group bindchange="onShippingChange">
-      <label class="radio-item">
-        <radio value="seller" checked="{{shippingMethod === 'seller'}}"/>送货上门
-      </label>
-      <label class="radio-item">
-        <radio value="buyer" checked="{{shippingMethod === 'buyer'}}"/>自取
-      </label>
-    </radio-group>
-  </view>
-
-  <!-- 提交按钮 -->
-  <button 
-    class="submit-btn {{loading ? 'loading' : ''}}" 
-    bindtap="submitEdit" 
-    disabled="{{loading}}"
-  >
-    {{loading ? '保存中...' : '保存修改'}}
-  </button>
   </view>
 </view>

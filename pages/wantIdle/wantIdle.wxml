@@ -1,4 +1,3 @@
-
 <view class="container">
   <custom-nav-bar title="我想要" showBack="true" />
   

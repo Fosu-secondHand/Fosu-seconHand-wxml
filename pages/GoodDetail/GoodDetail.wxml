@@ -15,9 +15,9 @@
 <view wx:else class="container">
   <!-- 商品主图 -->
   <view class="main-image">
-    <image 
-      src="{{goodsDetail.image}}" 
-      mode="aspectFill" 
+    <image
+      src="{{goodsDetail.image}}"
+      mode="aspectFill"
       lazy-load
       class="main-image-item"
     />
@@ -71,18 +71,47 @@
     </view>
   </view>
 
-  <!-- 推荐商品瀑布流 -->
-<view class="recommend-section">
-  <view class="section-title-container">
-    <text class="section-title">为你推荐</text>
-  </view>
-  <waterfall-layout 
-    goods-list="{{recommendGoods}}"
-    loading="{{recommendLoading}}"
-    noMore="{{recommendNoMore}}"
-    bind:loadmore="onRecommendLoadMore"
-  />
-</view>
+ <!-- 推荐商品瀑布流 -->
+ <view class="recommend-section">
+   <view class="section-title-container">
+     <text class="section-title">为你推荐</text>
+   </view>
+
+   <!-- 加载状态 -->
+   <view wx:if="{{recommendLoading}}" class="loading-container">
+     <loading />
+     <text>加载推荐商品中...</text>
+   </view>
+
+   <!-- 空状态 -->
+   <view wx:elif="{{recommendGoods.length === 0 && !recommendLoading}}" class="empty-container">
+     <text class="empty-text">暂无推荐商品</text>
+   </view>
+
+   <!-- 商品列表 -->
+   <view wx:else class="goods-list">
+     <block wx:for="{{recommendGoods}}" wx:key="productId">
+       <view class="goods-item" bindtap="onGoodsTap" data-id="{{item.productId}}">
+         <!-- 商品图片 -->
+         <image class="goods-image"
+                src="{{item.image[0] || item.image || '/static/assets/default-image.png'}}"
+                mode="aspectFill"
+                lazy-load></image>
+
+         <!-- 商品信息 -->
+         <view class="goods-info">
+           <text class="goods-title">{{item.title}}</text>
+           <text class="goods-price">¥{{item.price}}</text>
+           <view class="goods-meta">
+             <text class="goods-condition">{{item.condition}}</text>
+             <text class="goods-favorite-count">{{item.favoriteCount || 0}}人收藏</text>
+           </view>
+         </view>
+       </view>
+     </block>
+   </view>
+ </view>
+
 </view>
 
 <!-- 收藏星号左下角 -->

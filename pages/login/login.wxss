@@ -84,38 +84,6 @@ page {
     background: linear-gradient(90deg, #54CC70, #3DAD5B);
   }
   
-  /* 输入框组 */
-  .input-group {
-    display: flex;
-    align-items: center;
-    border-bottom: 2rpx solid #f0f0f0;
-    padding: 30rpx 0;
-    margin-bottom: 10rpx;
-    transition: all 0.3s ease;
-  }
-  
-  .input-group:focus-within {
-    border-bottom-color: #54CC70;
-  }
-  
-  .input-icon {
-    width: 40rpx;
-    height: 40rpx;
-    margin-right: 20rpx;
-    opacity: 0.6;
-  }
-  
-  .input {
-    flex: 1;
-    font-size: 32rpx;
-    color: #333;
-    padding: 0;
-  }
-  
-  .placeholder {
-    color: #999;
-  }
-  
   /* 协议勾选区域 */
   .agreement-section {
     margin: 20rpx 0;

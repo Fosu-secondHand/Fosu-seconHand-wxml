@@ -112,16 +112,44 @@ Page({
 
     this.setData({ loading: true, netError: false });
 
+    // 根据标签页类型确定请求参数
+    let params = '';
+    switch (activeTab) {
+      case 0: // 猜你喜欢
+        params = 'type=recommend';
+        break;
+      case 1: // 最新发布
+        params = 'type=latest';
+        break;
+      case 2: // 免费赠送
+        params = 'type=free';
+        break;
+      case 3: // 求购专区
+        params = 'type=wanted';
+        break;
+      case 4: // 租赁服务
+        params = 'categories=租赁服务';
+        break;
+      case 5: // 毕业甩卖
+        params = 'categories=毕业甩卖';
+        break;
+      default:
+        params = 'type=recommend';
+    }
+
+    // 添加分页参数
+    const page = reset ? 1 : this.data.currentPage;
+    params += `&page=${page}&size=${this.data.pageSize}`;
+
     // 调用后端API获取商品列表
     wx.request({
-      url: app.globalData.baseUrl + '/products/list', // 使用您定义的基础URL
+      url: `${app.globalData.baseUrl}/products/filter?${params}`,
       method: 'GET',
       success: (res) => {
         console.log('API返回数据:', res);
         if (res.statusCode === 200 && res.data.code === 200) {
           // 根据您的response格式，数据在res.data.data中
           const productsData = res.data.data || [];
-
 
           console.log('商品列表数据:', productsData);
           // 检查每个商品的ID字段
@@ -134,31 +162,27 @@ Page({
             });
           });
 
-
-          // 处理分页逻辑
-          const start = (this.data.currentPage - 1) * this.data.pageSize;
-          const end = start + this.data.pageSize;
           // 对商品数据进行字段映射处理
           const mappedData = productsData.map(item => this.mapGoodsFields(item));
-          const newData = mappedData.slice(start, end);
-          const hasMore = end < mappedData.length;
+
+          // 处理分页逻辑
+          const hasMore = productsData.length === this.data.pageSize; // 如果返回数据少于请求数量，说明没有更多了
 
           this.setData({
-            goodsList: reset ? newData : this.data.goodsList.concat(newData),
-            currentPage: this.data.currentPage + 1,
+            goodsList: reset ? mappedData : this.data.goodsList.concat(mappedData),
+            currentPage: page + 1,
             hasMore: hasMore,
             loading: false
           });
 
           // 更新tabData
-          if (!reset) {
-            this.data.tabData[activeTab] = {
-              goodsList: this.data.goodsList,
-              currentPage: this.data.currentPage,
-              hasMore: hasMore
-            };
-            this.setData({ tabData: this.data.tabData });
-          }
+          const tabData = { ...this.data.tabData };
+          tabData[activeTab] = {
+            goodsList: this.data.goodsList,
+            currentPage: this.data.currentPage,
+            hasMore: hasMore
+          };
+          this.setData({ tabData: tabData });
         } else {
           console.error('API返回错误:', res);
           this.setData({ netError: true, loading: false });
@@ -170,6 +194,7 @@ Page({
       }
     });
   },
+
 
   onTabChange(event) {
     const activeTab = event.detail.index; // 获取当前激活的标签页索引
@@ -188,9 +213,10 @@ Page({
       });
     } else {
       this.setData({ goodsList: [], currentPage: 1, hasMore: true });
-      this.loadGoodsList();
+      this.loadGoodsList(true); // 传入true表示重置数据
     }
   },
+
 
   onSearch(e) {
     console.log("搜索");
@@ -427,11 +453,37 @@ Page({
       params += `campus=${encodeURIComponent(this.data.selectedCampus)}`;
     }
 
-    // 构造完整的URL
-    let url = app.globalData.baseUrl + '/products/filter';
-    if (params) {
-      url += '?' + params;
+    // 如果没有筛选条件，则使用当前标签页的类型
+    if (!params) {
+      switch (this.data.active) {
+        case 0: // 猜你喜欢
+          params = 'type=recommend';
+          break;
+        case 1: // 最新发布
+          params = 'type=latest';
+          break;
+        case 2: // 免费赠送
+          params = 'type=free';
+          break;
+        case 3: // 求购专区
+          params = 'type=wanted';
+          break;
+        case 4: // 租赁服务
+          params = 'categories=租赁服务';
+          break;
+        case 5: // 毕业甩卖
+          params = 'categories=毕业甩卖';
+          break;
+        default:
+          params = 'type=recommend';
+      }
     }
+
+    // 添加分页参数
+    params += `&page=1&size=${this.data.pageSize}`;
+
+    // 构造完整的URL
+    const url = `${app.globalData.baseUrl}/products/filter?${params}`;
 
     console.log('筛选请求URL:', url);
 
@@ -447,7 +499,9 @@ Page({
 
           this.setData({
             goodsList: mappedData,
-            loading: false
+            loading: false,
+            currentPage: 2,
+            hasMore: productsData.length === this.data.pageSize
           });
         } else {
           console.error('筛选API返回错误:', res);
@@ -468,6 +522,7 @@ Page({
       }
     });
   },
+
 // 重置筛选条件
   resetFilter() {
     this.setData({
