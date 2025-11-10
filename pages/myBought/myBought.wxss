@@ -44,43 +44,52 @@
   font-size: 28rpx;
 }
 
+/* 修改商品列表为纵向排列 */
 .goods-list {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
   gap: 20rpx;
 }
 
-.goods-item {
-  width: 345rpx;
+/* 横向商品项样式 */
+.goods-item-horizontal {
+  display: flex;
   background: white;
   border-radius: 10rpx;
-  margin-bottom: 20rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.goods-image {
-  width: 100%;
-  height: 345rpx;
-  border-top-left-radius: 10rpx;
-  border-top-right-radius: 10rpx;
-}
-
-.goods-info {
   padding: 20rpx;
 }
 
-.goods-title {
-  display: block;
-  font-size: 28rpx;
-  color: #333;
-  margin-bottom: 10rpx;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* 横向商品图片样式 */
+.goods-image-horizontal {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 10rpx;
+  margin-right: 20rpx;
 }
 
-.goods-price {
+/* 横向商品信息容器 */
+.goods-info-horizontal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* 商品主要信息 */
+.goods-main-info {
+  flex: 1;
+}
+
+.goods-title-horizontal {
+  display: block;
+  font-size: 30rpx;
+  color: #333;
+  margin-bottom: 10rpx;
+  font-weight: bold;
+}
+
+.goods-price-horizontal {
   display: block;
   font-size: 32rpx;
   color: #ff4444;
@@ -88,18 +97,45 @@
   margin-bottom: 10rpx;
 }
 
-.goods-meta {
+.goods-meta-horizontal {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20rpx;
 }
 
-.goods-condition {
+.goods-condition-horizontal {
   font-size: 24rpx;
   color: #999;
 }
 
-.goods-favorite-count {
+.goods-favorite-count-horizontal {
   font-size: 24rpx;
+  color: #999;
+}
+
+/* 卖家信息样式 */
+.seller-info {
+  background-color: #f9f9f9;
+  border-radius: 8rpx;
+  padding: 15rpx;
+  font-size: 24rpx;
+}
+
+.seller-label {
+  display: block;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.seller-name, .seller-phone, .seller-address {
+  display: block;
+  color: #666;
+  margin-bottom: 5rpx;
+}
+
+.seller-name:before, .seller-phone:before, .seller-address:before {
+  content: "• ";
   color: #999;
 }

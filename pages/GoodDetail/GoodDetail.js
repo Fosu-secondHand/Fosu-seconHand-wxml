@@ -598,7 +598,7 @@ Page({
   },
 
 
-  // 加载推荐商品
+// 加载推荐商品
   async loadRecommendGoods(category, reset = false) {
     if (!app.globalData.baseUrl) {
       console.warn('baseUrl未设置，跳过推荐商品加载');
@@ -616,20 +616,38 @@ Page({
     this.setData({ recommendLoading: true });
 
     try {
-      // 使用新的推荐接口，根据当前商品ID推荐相似商品
+      // 使用商品ID获取推荐商品，而不是分类
       const productId = this.data.goodsDetail.productId || this.data.goodsDetail.product_ld || this.data.goodsDetail.id;
+
+      // 获取认证token
+      const token = wx.getStorageSync('token');
+
+      // 修正请求URL，确保参数正确传递，并添加认证头
       const requestUrl = `${app.globalData.baseUrl}/products/recommend?productId=${productId}&limit=6`;
       console.log('推荐商品请求URL:', requestUrl);
 
-      const res = await wx.request({
-        url: requestUrl,
-        method: 'GET',
-        timeout: 10000
+      const res = await new Promise((resolve, reject) => {
+        wx.request({
+          url: requestUrl,
+          method: 'GET',
+          header: {
+            'Authorization': token ? `Bearer ${token}` : ''  // 添加认证头
+          },
+          timeout: 10000,
+          success: (result) => {
+            console.log('推荐商品请求成功:', result);
+            resolve(result);
+          },
+          fail: (error) => {
+            console.error('推荐商品请求失败:', error);
+            reject(error);
+          }
+        });
       });
 
-      console.log('推荐商品响应:', res.data);
+      console.log('推荐商品响应:', res);
 
-      if (res.statusCode === 200 && res.data.code === 200) {
+      if (res.statusCode === 200 && res.data && res.data.code === 200) {
         const newData = res.data.data || [];
         console.log('获取到推荐商品数量:', newData.length);
 
@@ -663,13 +681,20 @@ Page({
         });
       } else {
         console.warn('推荐商品请求失败:', res.data);
-        this.setData({ recommendLoading: false });
+        this.setData({
+          recommendLoading: false,
+          recommendGoods: [] // 确保在失败时清空推荐商品列表
+        });
       }
     } catch (error) {
       console.error('加载推荐商品失败:', error);
-      this.setData({ recommendLoading: false });
+      this.setData({
+        recommendLoading: false,
+        recommendGoods: [] // 确保在异常时清空推荐商品列表
+      });
     }
   },
+
 // 推荐商品点击事件
   onGoodsTap(e) {
     const productId = e.currentTarget.dataset.id;
@@ -692,12 +717,18 @@ Page({
     }
   },
 
-// 聊一聊按钮点击事件 - 修改为包含想要功能
+// 聊一聊按钮点击事件
   async handleChat() {
     if (!this.checkAuth()) return;
 
     const { goodsDetail } = this.data;
     if (!goodsDetail) return;
+
+    // 检查商品状态
+    if (goodsDetail.status === 'SOLD') {
+      wx.showToast({ title: '该商品已售出', icon: 'none' });
+      return;
+    }
 
     // 使用映射后的卖家ID字段
     const sellerId = goodsDetail.seller_id || goodsDetail['seller Id'];
@@ -706,70 +737,73 @@ Page({
       return;
     }
 
-    // 先执行想要的操作
-    const token = wx.getStorageSync('token');
-    if (!token) {
-      wx.showToast({ title: '请先登录', icon: 'none' });
-      return;
-    }
+    // 对于求购商品，不需要执行想要操作，直接跳转到聊天
+    if (goodsDetail.productType !== 'WANT') {
+      // 先执行想要的操作
+      const token = wx.getStorageSync('token');
+      if (!token) {
+        wx.showToast({ title: '请先登录', icon: 'none' });
+        return;
+      }
 
-    const { wantCount } = this.data;
-    const productId = goodsDetail.product_ld || goodsDetail.id;
+      const { wantCount } = this.data;
+      const productId = goodsDetail.product_ld || goodsDetail.id;
 
-    try {
-      // 修改参数名以匹配后端期望的参数
-      const requestUrl = `${app.globalData.baseUrl}/products/detail/toggleWant?userId=${this.data.userInfo.id}&productId=${productId}&reduceOrAdd=add`;
-      console.log('想要操作请求URL:', requestUrl);
+      try {
+        // 修改参数名以匹配后端期望的参数
+        const requestUrl = `${app.globalData.baseUrl}/products/detail/toggleWant?userId=${this.data.userInfo.id}&productId=${productId}&reduceOrAdd=add`;
+        console.log('想要操作请求URL:', requestUrl);
 
-      const res = await new Promise((resolve, reject) => {
-        wx.request({
-          url: requestUrl,
-          method: 'GET',
-          header: {
-            'Authorization': `Bearer ${token}`  // 添加认证头
-          },
-          timeout: 10000,
-          success: (result) => {
-            console.log('想要操作请求成功回调:', result);
-            resolve(result);
-          },
-          fail: (error) => {
-            console.error('想要操作请求失败回调:', error);
-            reject(error);
-          }
+        const res = await new Promise((resolve, reject) => {
+          wx.request({
+            url: requestUrl,
+            method: 'GET',
+            header: {
+              'Authorization': `Bearer ${token}`  // 添加认证头
+            },
+            timeout: 10000,
+            success: (result) => {
+              console.log('想要操作请求成功回调:', result);
+              resolve(result);
+            },
+            fail: (error) => {
+              console.error('想要操作请求失败回调:', error);
+              reject(error);
+            }
+          });
         });
-      });
 
-      // 添加更多调试信息
-      console.log('想要操作响应:', res);
+        // 添加更多调试信息
+        console.log('想要操作响应:', res);
 
-      // 增强响应检查
-      if (!res) {
-        console.warn('网络请求无响应');
-      } else if (res.statusCode === undefined || res.data === undefined) {
-        console.warn('响应格式不正确:', res);
-      } else if (res.statusCode === 200) {
-        if (res.data && res.data.success) {
-          // 操作成功，更新想要数
-          this.setData({ wantCount: wantCount + 1 });
-          wx.showToast({ title: '已通知卖家', icon: 'success' });
-        } else if (res.data && res.data.code === 500) {
-          // 静默处理：已经添加过的情况，不显示错误提示
-          if (res.data.message && res.data.message.includes("already in the user's want list")) {
-            console.log('用户已添加过想要，无需重复添加');
-            // 不显示错误提示，继续执行跳转
-          } else {
-            // 其他500错误仍需处理
-            console.error('服务器内部错误:', res.data.message);
+        // 增强响应检查
+        if (!res) {
+          console.warn('网络请求无响应');
+        } else if (res.statusCode === undefined || res.data === undefined) {
+          console.warn('响应格式不正确:', res);
+        } else if (res.statusCode === 200) {
+          if (res.data && res.data.success) {
+            // 操作成功，更新想要数
+            this.setData({ wantCount: wantCount + 1 });
+            wx.showToast({ title: '已通知卖家', icon: 'success' });
+          } else if (res.data && res.data.code === 500) {
+            // 静默处理：已经添加过的情况，不显示错误提示
+            if (res.data.message && res.data.message.includes("already in the user's want list")) {
+              console.log('用户已添加过想要，无需重复添加');
+              // 不显示错误提示，继续执行跳转
+            } else {
+              // 其他500错误仍需处理
+              console.error('服务器内部错误:', res.data.message);
+            }
           }
         }
+      } catch (error) {
+        console.error('想要操作失败:', error);
+        // 静默处理错误，不向用户显示
       }
-    } catch (error) {
-      console.error('想要操作失败:', error);
-      // 静默处理错误，不向用户显示
     }
 
-    // 然后跳转到聊天页面（无论想要操作是否成功）
+    // 然后跳转到聊天页面
     wx.switchTab({
       url: '/pages/message/message'
     });
@@ -782,6 +816,18 @@ Page({
     const { goodsDetail } = this.data;
     if (!goodsDetail) {
       wx.showToast({ title: '商品信息加载中', icon: 'none' });
+      return;
+    }
+
+    // 检查商品状态
+    if (goodsDetail.status === 'SOLD') {
+      wx.showToast({ title: '该商品已售出', icon: 'none' });
+      return;
+    }
+
+    // 检查商品类型
+    if (goodsDetail.productType === 'WANT') {
+      wx.showToast({ title: '这是求购商品，无法购买', icon: 'none' });
       return;
     }
 

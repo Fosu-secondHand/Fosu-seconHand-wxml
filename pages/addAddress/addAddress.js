@@ -236,13 +236,11 @@ Page({
 
     wx.setStorageSync('addressList', addressList);
 
-    // 如果这是默认地址，或者这是第一个地址（自动设为默认），则更新用户信息
+    // 移除自动更新用户信息的调用
+    // 只有当这是默认地址时才更新用户信息（保持原有的逻辑）
     if (addressData.isDefault) {
       this.updateUserDefaultAddress(addressData);
     }
-
-    // 同时更新后端用户信息
-    this.updateUserInfoOnServer(addressData);
 
     // 隐藏加载状态，显示成功提示
     wx.hideLoading();

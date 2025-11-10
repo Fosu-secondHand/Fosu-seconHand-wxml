@@ -4,49 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2e22c8ad-9cb2-476e-a336-9cec52ed2c06" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/utils/authMixin.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/config.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/messageService.js" afterDir="false" />
+    <list default="true" id="2e22c8ad-9cb2-476e-a336-9cec52ed2c06" name="更改" comment="feat(address): 实现地址编辑与用户信息同步功能- 新增自动填充用户信息功能，编辑地址时自动获取用户默认信息- 实现表单数据变更检测，仅更新发生变化的字段&#10;- 添加默认地址更新机制，删除或设置默认地址时同步更新用户信息&#10;- 优化地址提交逻辑，确保地址信息与用户信息保持一致&#10;- 增强表单验证，支持校区、宿舍楼、门牌号等字段校验- 实现用户信息更新接口调用，避免传递敏感字段如openid等- 添加地址变更时的用户提示与错误处理机制">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/addAddress/addAddress.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/addAddress/addAddress.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/address/address.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/address/address.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/address/address.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/address/address.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/address/address.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/address/address.wxss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/customerService/customerService.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/customerService/customerService.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/editIdle/editIdle.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/editIdle/editIdle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/editIdle/editIdle.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/editIdle/editIdle.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/idle/idle.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/idle/idle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/index/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/index/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/login/login.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/login/login.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/login/login.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/login/login.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/login/login.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/login/login.wxss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/myBought/myBought.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myBought/myBought.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/myBought/myBought.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myBought/myBought.wxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/myBought/myBought.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myBought/myBought.wxss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/myCollection/myCollection.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myCollection/myCollection.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/myCollection/myCollection.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myCollection/myCollection.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/myCollection/myCollection.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myCollection/myCollection.wxss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/myPublished/myPublished.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myPublished/myPublished.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/myPublished/myPublished.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myPublished/myPublished.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/myPublished/myPublished.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myPublished/myPublished.wxss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/mySold/mySold.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/mySold/mySold.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/mySold/mySold.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/mySold/mySold.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/mySold/mySold.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/mySold/mySold.wxss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/payment/payment.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/payment/payment.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/payment/payment.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/payment/payment.wxss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/profile/profile.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/profile/profile.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/profile/profile.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/profile/profile.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/profile/profile.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/profile/profile.wxss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/setting/setting.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/setting/setting.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/setting/setting.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/setting/setting.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/wantIdle/wantIdle.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/wantIdle/wantIdle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/wantIdle/wantIdle.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/wantIdle/wantIdle.wxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -101,11 +68,35 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1761122875522</updated>
-      <workItem from="1762237730505" duration="28010000" />
+      <workItem from="1762237730505" duration="33433000" />
     </task>
+    <task id="LOCAL-00001" summary="feat(address): 实现地址编辑与用户信息同步功能- 新增自动填充用户信息功能，编辑地址时自动获取用户默认信息- 实现表单数据变更检测，仅更新发生变化的字段&#10;- 添加默认地址更新机制，删除或设置默认地址时同步更新用户信息&#10;- 优化地址提交逻辑，确保地址信息与用户信息保持一致&#10;- 增强表单验证，支持校区、宿舍楼、门牌号等字段校验- 实现用户信息更新接口调用，避免传递敏感字段如openid等- 添加地址变更时的用户提示与错误处理机制">
+      <option name="closed" value="true" />
+      <created>1762777237956</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1762777237956</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat(address): 实现地址编辑与用户信息同步功能- 新增自动填充用户信息功能，编辑地址时自动获取用户默认信息- 实现表单数据变更检测，仅更新发生变化的字段&#10;- 添加默认地址更新机制，删除或设置默认地址时同步更新用户信息&#10;- 优化地址提交逻辑，确保地址信息与用户信息保持一致&#10;- 增强表单验证，支持校区、宿舍楼、门牌号等字段校验- 实现用户信息更新接口调用，避免传递敏感字段如openid等- 添加地址变更时的用户提示与错误处理机制" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat(address): 实现地址编辑与用户信息同步功能- 新增自动填充用户信息功能，编辑地址时自动获取用户默认信息- 实现表单数据变更检测，仅更新发生变化的字段&#10;- 添加默认地址更新机制，删除或设置默认地址时同步更新用户信息&#10;- 优化地址提交逻辑，确保地址信息与用户信息保持一致&#10;- 增强表单验证，支持校区、宿舍楼、门牌号等字段校验- 实现用户信息更新接口调用，避免传递敏感字段如openid等- 添加地址变更时的用户提示与错误处理机制" />
   </component>
 </project>

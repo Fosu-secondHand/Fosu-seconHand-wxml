@@ -117,7 +117,7 @@ Page({
             return {
               ...item,
               condition: conditionText,
-              image: imageUrl // 使用处理后的图片URL
+              image: imageUrl
             };
           });
 
@@ -125,6 +125,9 @@ Page({
             purchasedProducts: processedData,
             loading: false
           });
+
+          // 获取卖家信息
+          this.getSellerInfoForProducts(processedData, token);
         } else if (res.data.code === 401) {
           wx.showToast({
             title: '未授权访问，请重新登录',
@@ -153,6 +156,71 @@ Page({
         });
         this.setData({ loading: false });
       }
+    });
+  },
+
+  /**
+   * 为商品列表获取卖家信息
+   */
+  getSellerInfoForProducts(products, token) {
+    const app = getApp();
+    // 获取唯一的卖家ID列表
+    const sellerIds = [...new Set(products.map(item => item.sellerId).filter(id => id))];
+
+    // 为每个卖家ID获取详细信息
+    const sellerInfoMap = {};
+    let completedRequests = 0;
+
+    if (sellerIds.length === 0) return;
+
+    sellerIds.forEach(sellerId => {
+      wx.request({
+        url: `${app.globalData.baseUrl}/users/${sellerId}`,
+        method: 'GET',
+        header: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        },
+        success: (res) => {
+          if (res.data.code === 200 && res.data.data) {
+            sellerInfoMap[sellerId] = res.data.data;
+          }
+          completedRequests++;
+          // 当所有请求完成时更新商品数据
+          if (completedRequests === sellerIds.length) {
+            this.updateProductsWithSellerInfo(sellerInfoMap);
+          }
+        },
+        fail: (err) => {
+          console.error(`获取卖家${sellerId}信息失败:`, err);
+          completedRequests++;
+          if (completedRequests === sellerIds.length) {
+            this.updateProductsWithSellerInfo(sellerInfoMap);
+          }
+        }
+      });
+    });
+  },
+
+  /**
+   * 使用卖家信息更新商品数据
+   */
+  updateProductsWithSellerInfo(sellerInfoMap) {
+    const updatedProducts = this.data.purchasedProducts.map(item => {
+      const sellerInfo = sellerInfoMap[item.sellerId];
+      if (sellerInfo) {
+        return {
+          ...item,
+          sellerName: sellerInfo.nickname || '未知',
+          sellerPhone: sellerInfo.phone || '未知',
+          sellerAddress: sellerInfo.address || '未知'
+        };
+      }
+      return item;
+    });
+
+    this.setData({
+      purchasedProducts: updatedProducts
     });
   },
 

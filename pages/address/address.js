@@ -95,7 +95,9 @@ Page({
     if (userInfo && userInfo.id && token) {
       const userData = {
         userId: userInfo.id,
-        address: `${addressData.campus}-${addressData.dormitory}-${addressData.roomNumber}`
+        address: `${addressData.campus}-${addressData.dormitory}-${addressData.roomNumber}`,
+        phone: addressData.phoneNumber,  // 添加手机号更新
+        nickname: addressData.contactName  // 添加昵称更新
       };
 
       wx.request({

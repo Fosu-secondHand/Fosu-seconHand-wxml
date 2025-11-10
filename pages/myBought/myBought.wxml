@@ -23,20 +23,30 @@
     <!-- 商品列表 -->
     <view wx:else class="goods-list">
       <block wx:for="{{purchasedProducts}}" wx:key="productId">
-        <!-- 添加点击事件 bindtap="onGoodsTap" 和 data-id 属性 -->
-        <view class="goods-item" bindtap="onGoodsTap" data-id="{{item.productId}}">
+        <!-- 修改为横向展示的卡片 -->
+        <view class="goods-item-horizontal" bindtap="onGoodsTap" data-id="{{item.productId}}">
           <!-- 商品图片 -->
-          <image class="goods-image"
+          <image class="goods-image-horizontal"
                  src="{{item.image || '/static/assets/default-image.png'}}"
                  mode="aspectFill"></image>
 
-          <!-- 商品信息 -->
-          <view class="goods-info">
-            <text class="goods-title">{{item.title}}</text>
-            <text class="goods-price">¥{{item.price}}</text>
-            <view class="goods-meta">
-              <text class="goods-condition">{{item.condition}}</text>
-              <text class="goods-favorite-count">{{item.favoriteCount || 0}}人收藏</text>
+          <!-- 商品信息和卖家信息 -->
+          <view class="goods-info-horizontal">
+            <view class="goods-main-info">
+              <text class="goods-title-horizontal">{{item.title}}</text>
+              <text class="goods-price-horizontal">¥{{item.price}}</text>
+              <view class="goods-meta-horizontal">
+                <text class="goods-condition-horizontal">{{item.condition}}</text>
+                <text class="goods-favorite-count-horizontal">{{item.favoriteCount || 0}}人收藏</text>
+              </view>
+            </view>
+
+            <!-- 卖家信息 -->
+            <view class="seller-info">
+              <text class="seller-label">卖家信息:</text>
+              <text class="seller-name">姓名: {{item.sellerName || '未知'}}</text>
+              <text class="seller-phone">电话: {{item.sellerPhone || '未知'}}</text>
+              <text class="seller-address">地址: {{item.sellerAddress || '未知'}}</text>
             </view>
           </view>
         </view>

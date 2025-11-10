@@ -12,7 +12,7 @@
 </view>
 
 <!-- 主要内容 -->
-<view wx:else class="container">
+<scroll-view wx:else class="container" scroll-y="true" style="height: 100vh;">
   <!-- 商品主图 -->
   <view class="main-image">
     <image
@@ -112,7 +112,7 @@
    </view>
  </view>
 
-</view>
+</scroll-view>
 
 <!-- 收藏星号左下角 -->
 <view class="star-float-btn" bindtap="handleStar">
@@ -120,12 +120,18 @@
 </view>
 
 <!-- 底部操作栏 -->
-<view class="bottom-actions">
+<view class="bottom-actions" wx:if="{{goodsDetail && goodsDetail.status !== 'SOLD'}}">
   <button class="message-btn" bindtap="handleChat">
     <icon type="message" size="18" color="#333"></icon>
     <text>聊一聊</text>
   </button>
-  <button class="want-btn" bindtap="handleBuy">
+  <!-- 只有在商品类型不是WANT且商品未售出时才显示立即购买按钮 -->
+  <button class="want-btn" bindtap="handleBuy" wx:if="{{goodsDetail.productType !== 'WANT' && goodsDetail.status !== 'SOLD'}}">
     <text>立即购买</text>
   </button>
+</view>
+
+<!-- 当商品已售出时显示提示信息 -->
+<view class="sold-out-tip" wx:if="{{goodsDetail && goodsDetail.status === 'SOLD'}}">
+  <text class="sold-out-text">该商品已售出</text>
 </view>
