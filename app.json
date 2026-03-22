@@ -25,24 +25,40 @@
     "pages/userHome/userHome",
     "pages/chat/chat",
     "pages/payment/payment",
-    "pages/login/login"
+    "pages/login/login",
+    "pages/userAgreement/userAgreement",
+    "pages/privacyPolicy/privacyPolicy"
   ],
   "window": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "佛大二手交易小程序",
     "navigationBarBackgroundColor": "#54CC70",
     "backgroundColor": "#F8F8F8",
-    "enablePullDownRefresh": true,  
-    "backgroundTextStyle": "dark" 
+    "enablePullDownRefresh": true,
+    "backgroundTextStyle": "dark"
   },
   "tabBar": {
     "custom": true,
     "list": [
-      { "pagePath": "pages/index/index", "text": "首页" },
-      { "pagePath": "pages/chooseIdle/chooseIdle", "text": "闲置" },
-      { "pagePath": "pages/message/message", "text": "消息" },
-      { "pagePath": "pages/profile/profile", "text": "我的" }
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/chooseIdle/chooseIdle",
+        "text": "闲置"
+      },
+      {
+        "pagePath": "pages/message/message",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
     ]
   },
-  "usingComponents": {}
+  "usingComponents": {
+    "custom-tab-bar": "./custom-tab-bar/index"
+  }
 }

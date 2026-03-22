@@ -1,3 +1,11 @@
+<wxs module="util">
+  var formatPrice = function(value) {
+    if (!value) return '0.00';
+    return (+value).toFixed(2);
+  }
+  module.exports.formatPrice = formatPrice;
+</wxs>
+
 <view wx:if="{{visible}}" class="price-detail-modal">
   <view class="modal-mask" bindtap="onClose"></view>
   <view class="modal-content">
@@ -7,8 +15,7 @@
       <input class="modal-price-input" type="digit" value="{{price}}" bindinput="onInput" placeholder="输入定价" focus="true" />
     </view>
     <view class="modal-tip">卖闲置以新品价6折更容易售出</view>
-    <view class="modal-row">服务费（0.6%）：<text class="modal-fee">-￥{{serviceFee}}</text></view>
-    <view class="modal-row">到手价：<text class="modal-final">￥{{finalAmount}}</text></view>
+    <view class="modal-row">到手价：<text class="modal-final">￥{{util.formatPrice(price)}}</text></view>
     <button class="modal-confirm-btn" bindtap="onConfirm">确定</button>
   </view>
-</view> 
+</view>

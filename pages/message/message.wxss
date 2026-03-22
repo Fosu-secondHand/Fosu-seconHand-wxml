@@ -5,7 +5,6 @@
 }
 
 .message-item {
-  
   display: flex;
   align-items: center;
   background-color: #fff;
@@ -13,10 +12,10 @@
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 .message-avatar {
-  
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -64,4 +63,242 @@
   text-align: center;
   padding: 20px;
   color: #999;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 12px 15px;
+  border-radius: 6px;
+  margin: 10px 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 标题容器样式，用于容纳标题和红点 */
+.title-container {
+  display: flex;
+  align-items: center;
+}
+
+/* 消息红点样式 */
+.badge-dot {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  background-color: #ff4757;
+  color: white;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  padding: 0 4px;
+  margin-left: 8px;
+}
+
+.trade-request-item {
+  background-color: #fff;
+  margin-bottom: 10px;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.trade-request-item.sent {
+  background-color: #f0f8ff;
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.request-title {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.request-status {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background-color: #ccc;
+  color: #fff;
+}
+
+.request-status.pending {
+  background-color: #ffc107;
+}
+
+.request-status.accepted {
+  background-color: #28a745;
+}
+
+.request-status.rejected {
+  background-color: #dc3545;
+}
+
+.request-content {
+  display: flex;
+  margin-bottom: 3px;
+}
+
+.product-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-title {
+  font-size: 14px;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.product-price {
+  font-size: 16px;
+  color: #e4393c;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.request-time {
+  font-size: 12px;
+  color: #999;
+}
+
+.request-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.accept-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.reject-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.pending-message, .accepted-message, .rejected-message {
+  font-size: 14px;
+  text-align: center;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.pending-message {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.accepted-message {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.rejected-message {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* 展开/收起按钮容器 */
+.toggle-container {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* 图标占位符样式 */
+.toggle-icon-placeholder {
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  background-color: #ddd;
+  border-radius: 2px;
+}
+
+/* 展开/收起文字样式 */
+.toggle-text {
+  font-size: 14px;
+  color: #666;
+  margin-right: 5px;
+}
+
+/* 状态图标占位符 */
+.toggle-state-icon {
+  width: 12px;
+  height: 12px;
+  background-color: #999;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+}
+
+.toggle-icon {
+  width: 15px;
+  height: 15px;
+  margin-left: 5px;
+  object-fit: contain;
+}
+
+/* 添加商品数量样式 */
+.request-quantity {
+  font-size: 13px;
+  color: #666;
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* 消息列表项的未读状态圆点 */
+.message-unread-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #ff4757;
+  border-radius: 50%;
+  margin-left: 10px;
+}
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* 添加间距 */
+}
+/* 添加请求未读指示器样式 */
+.request-unread-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 8px;
+  height: 8px;
+  background-color: #ff4757;
+  border-radius: 50%;
+  z-index: 10;
 }

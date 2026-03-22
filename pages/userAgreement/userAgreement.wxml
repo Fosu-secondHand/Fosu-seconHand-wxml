@@ -1,0 +1,12 @@
+<!--pages/userAgreement/userAgreement.wxml-->
+<view class="container">
+  <custom-nav-bar title="用户协议" showBack="true" />
+
+  <view style="padding-top: 88rpx;">
+    <view class="content-container">
+      <scroll-view scroll-y class="content-scroll">
+        <view class="content-text">{{agreementContent}}</view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

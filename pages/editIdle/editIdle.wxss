@@ -160,3 +160,39 @@ textarea {
   border: 1px solid #ffd500;
   font-weight: bold;
 }
+/* 商品数量控制 */
+.quantity-section {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.quantity-btn {
+  width: 36px;
+  height: 36px;
+  background-color: #FFD500;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 5px;
+}
+
+.quantity-input {
+  width: 60px;
+  height: 36px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}

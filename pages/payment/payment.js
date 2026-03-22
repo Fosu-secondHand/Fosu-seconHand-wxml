@@ -11,6 +11,8 @@ Page({
     address: null,
     // 购买数量
     quantity: 1,
+    // 商品库存
+    productQuantity: 0,
     // 支付方式
     paymentMethod: 'wechatpay',
     // 加载状态
@@ -94,7 +96,9 @@ Page({
               price: goodsDetail.price || 0,
               image: imageUrl,
               sellerId: goodsDetail.sellerId || goodsDetail.seller_id // 尝试两种可能的字段名
-            }
+            },
+            // 设置商品库存
+            productQuantity: goodsDetail.quantity || 0
           });
 
           // 调试：打印设置后的 goodsInfo 数据
@@ -139,7 +143,17 @@ Page({
   },
 
   // 增加数量
+  // 增加数量
   increaseQuantity() {
+    // 检查是否超过库存
+    if (this.data.quantity >= this.data.productQuantity) {
+      wx.showToast({
+        title: `最多只能购买${this.data.productQuantity}件`,
+        icon: 'none'
+      });
+      return;
+    }
+
     const newQuantity = this.data.quantity + 1;
     this.setData({
       quantity: newQuantity,
@@ -187,7 +201,7 @@ Page({
     });
   },
 
-// 确认购买
+// 修改 confirmPurchase 方法
   confirmPurchase() {
     // 检查是否有地址
     if (!this.data.address) {
@@ -200,12 +214,11 @@ Page({
 
     this.setData({ loading: true });
 
-    // 调用后端接口创建订单
-    this.createOrder();
+    // 调用后端接口发起交易请求
+    this.sendTradeRequest();
   },
-
-// 修改 createOrder 方法
-  createOrder() {
+// 新增 sendTradeRequest 方法，用于发送交易请求
+  sendTradeRequest() {
     const app = getApp();
     const token = wx.getStorageSync('token');
     const userInfo = wx.getStorageSync('userInfo');
@@ -216,60 +229,53 @@ Page({
       return;
     }
 
-    // 调试：打印创建订单前的相关数据
-    console.log('准备创建订单的数据:');
-    console.log('goodsId:', this.data.goodsId);
-    console.log('userInfo.id:', userInfo.id);
-    console.log('goodsInfo:', this.data.goodsInfo);
-    console.log('goodsInfo.sellerId:', this.data.goodsInfo.sellerId);
-
-    // 修改 createOrder 方法中的 orderData 构建部分
-    const orderData = {
+    // 构建交易请求数据
+    const requestData = {
       productId: this.data.goodsId,
       buyerId: userInfo.id,
-      // 需要从商品详情中获取 sellerId
-      sellerId: this.data.goodsInfo.sellerId, // 添加 sellerId 字段
       deliveryMethod: this.data.goodsInfo.transactionMethod === 'Delivery' ? 'express' : 'meet',
-      buyerRemark: '请尽快发货'
+      buyerRemark: '请尽快发货',
+      quantity: this.data.quantity
     };
 
-    // 调试：打印最终发送的 orderData
-    console.log('发送的订单数据 orderData:', orderData);
+    // 调试：打印发送的交易请求数据
+    console.log('发送的交易请求数据:', requestData);
 
-    // 调用创建订单接口
+    // 调用交易请求接口
     wx.request({
-      url: `${app.globalData.baseUrl}/orders/create`,
+      url: `${app.globalData.baseUrl}/trade-requests/create`,
       method: 'POST',
       header: {
         'Authorization': token,
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      data: orderData, // 直接传递对象，微信小程序会自动处理为表单格式
+      data: requestData,
       success: (res) => {
-        console.log('创建订单接口响应:', res);
+        console.log('发起交易请求接口响应:', res);
         if (res.data.code === 200) {
-          // 订单创建成功，更新本地数据
-          this.handleOrderSuccess(res.data.data);
+          // 交易请求发送成功
+          this.handleTradeRequestSuccess();
         } else {
-          console.error('创建订单失败:', res.data);
-          wx.showToast({ title: res.data.message || '创建订单失败', icon: 'none' });
+          console.error('发起交易请求失败:', res.data);
+          wx.showToast({ title: res.data.message || '发起交易请求失败', icon: 'none' });
           this.setData({ loading: false });
         }
       },
       fail: (err) => {
-        console.error('请求创建订单失败:', err);
+        console.error('请求发起交易失败:', err);
         wx.showToast({ title: '网络请求失败', icon: 'none' });
         this.setData({ loading: false });
       }
     });
   },
 
-// 处理订单创建成功后的逻辑
-  handleOrderSuccess(orderInfo) {
+
+
+  handleTradeRequestSuccess() {
     try {
-      // 创建本地订单数据
-      const localOrderData = {
-        id: orderInfo.id || Date.now(),
+      // 创建本地交易请求数据（用于在消息页面显示）
+      const tradeRequestData = {
+        id: Date.now(), // 临时ID
         goods: {
           id: this.data.goodsId,
           title: this.data.goodsInfo.title,
@@ -279,40 +285,32 @@ Page({
         quantity: this.data.quantity,
         totalPrice: this.calculateTotalPrice(),
         address: this.data.address,
-        paymentMethod: this.data.paymentMethod,
         tradeTime: new Date().toISOString(),
-        sellerName: '卖家'
+        status: 'pending', // 待确认状态
+        buyerRemark: '请尽快发货'
       };
 
-      // 保存到已买到的订单列表
-      const myBoughtOrdersList = wx.getStorageSync('myBoughtOrdersList') || [];
-      myBoughtOrdersList.push(localOrderData);
-      wx.setStorageSync('myBoughtOrdersList', myBoughtOrdersList);
-
-      // 保存到卖家已卖出的订单列表
-      const mySoldOrdersList = wx.getStorageSync('mySoldOrdersList') || [];
-      mySoldOrdersList.push({
-        ...localOrderData,
-        buyerName: this.data.address.contactName
-      });
-      wx.setStorageSync('mySoldOrdersList', mySoldOrdersList);
+      // 保存交易请求到本地存储（模拟消息系统）
+      const pendingTradeRequests = wx.getStorageSync('pendingTradeRequests') || [];
+      pendingTradeRequests.push(tradeRequestData);
+      wx.setStorageSync('pendingTradeRequests', pendingTradeRequests);
 
       wx.showToast({
-        title: '支付成功',
+        title: '交易请求已发送',
         icon: 'success',
         duration: 2000
       });
 
-      // 修改这里的跳转路径到首页
+      // 跳转到消息页面，让用户等待卖家回复
       setTimeout(() => {
         wx.switchTab({
-          url: '/pages/index/index'
+          url: '/pages/message/message'
         });
       }, 2000);
 
     } catch (error) {
-      console.error('处理订单成功逻辑失败:', error);
-      wx.showToast({ title: '处理订单信息失败', icon: 'none' });
+      console.error('处理交易请求逻辑失败:', error);
+      wx.showToast({ title: '处理交易信息失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });
     }

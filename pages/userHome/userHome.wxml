@@ -3,6 +3,7 @@
   
   <view style="padding-top: 88rpx;">
     <image class="bg-img" src="{{bgImgUrl}}" bindtap="onBgImgTap"></image>
+    <!-- ✅ 修改：编辑按钮添加正确的点击事件 -->
     <button class="edit-btn-global" bindtap="onEditProfile">编辑</button>
     <view class="header-content">
       <view class="avatar-box">
@@ -24,7 +25,7 @@
       </view>
     </view>
   </view>
-  
+
   <view class="user-tabs-custom">
     <view class="tab-item" wx:for="{{tabList}}" wx:key="name" wx:if="{{item.name!=='评价'}}" bindtap="onTabChange" data-index="{{index}}">
       <view class="tab-title-box">
@@ -34,21 +35,26 @@
       </view>
     </view>
   </view>
-  
-  <view class="goods-list">
-    <block wx:for="{{goodsList}}" wx:key="id">
-      <view class="good-item" bindtap="goToGoodDetail" data-id="{{item.id}}">
-        <image class="good-img" src="{{item.image}}" />
-        <view class="good-info">
-          <text class="good-title">{{item.title}}</text>
-          <text class="good-price">￥{{item.price}}</text>
-        </view>
-      </view>
-    </block>
-  </view>
-  
+
+  <!-- ✅ 修复：商品列表项添加正确的点击事件和数据 ID -->
+   <view class="goods-list">
+     <block wx:for="{{goodsList}}" wx:key="id">
+       <view class="good-item" bindtap="goToGoodDetail" data-id="{{item.productId || item.id}}">
+         <image class="good-img" src="{{item.images[0] || item.image}}" mode="aspectFill" />
+         <view class="good-info">
+           <text class="good-title">{{item.title}}</text>
+           <text class="good-price">￥{{item.price}}</text>
+         </view>
+       </view>
+     </block>
+   </view>
+
+
   <view class="end-tip">已经到底啦</view>
 </view>
+
+<!-- ... existing code ... -->
+
 
 <!-- 模态框部分 -->
 <view wx:if="{{showEditDesc}}" class="custom-modal-mask">

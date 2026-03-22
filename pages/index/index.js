@@ -26,13 +26,21 @@ Page({
     selectedCampus: '',
     showCampusDropdown: false,
     showCategoryDropdown: false,
-    netError: false
+    netError: false,
+    // 添加页面加载状态标志
+    isLoaded: false
   },
 
   onLoad() {
+    // 设置页面已加载完成
+    this.setData({
+      isLoaded: true
+    });
+
     // 不要覆盖data中已经设置好的默认值
     this.loadGoodsList(true); // 页面加载时调用真实API
     console.log('页面加载');
+
     // 加载搜索历史
     this.loadSearchHistory();
   },
@@ -44,7 +52,25 @@ Page({
         tabbar.setData({ selected: 0 });
       }
     }
+
+    // ✅ 新增：强制更新 TabBar 红点
+    this.updateTabBarBadge();
   },
+  // ✅ 新增：更新 TabBar 红点
+  updateTabBarBadge() {
+    const app = getApp();
+
+    // 确保全局数据存在
+    if (app.globalData.unreadMessageCount === undefined) {
+      app.globalData.unreadMessageCount = wx.getStorageSync('unreadMessageCount') || 0;
+    }
+
+    // 通知 TabBar 更新
+    if (typeof app.updateUnreadMessageCount === 'function') {
+      app.updateUnreadMessageCount(app.globalData.unreadMessageCount);
+    }
+  },
+
 
   // 字段映射方法，确保后端数据与前端模板字段一致
   mapGoodsFields(originalData) {

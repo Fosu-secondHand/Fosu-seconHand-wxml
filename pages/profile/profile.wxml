@@ -7,7 +7,7 @@
       <image class="avatar" src="{{avatarUrl}}" mode="aspectFill" bindtap="onChooseAvatar"></image>
       <view class="user-info">
         <text class="nickname">{{nickname}}</text>
-        <text class="account">{{accountNumber}}</text>
+        <!-- 移除了 accountNumber 的显示 -->
       </view>
       <view class="setting-btn" bindtap="navigateToSetting">
         <image src="/static/assets/icons/setting.png" mode="aspectFill"></image>

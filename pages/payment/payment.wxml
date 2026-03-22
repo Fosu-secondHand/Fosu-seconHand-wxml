@@ -8,8 +8,10 @@
     <view class="goods-detail">
       <text class="goods-title">{{goodsInfo.title || '加载中...'}}</text>
       <text class="goods-price">¥{{goodsInfo.price || '0.00'}}</text>
+      <text class="goods-stock">库存：{{productQuantity}}件</text>
     </view>
   </view>
+
 
   <!-- 收货地址 -->
   <view class="address-section" bindtap="chooseAddress">
@@ -51,7 +53,7 @@
   <view class="bottom-bar">
     <view class="confirm-btn-container">
       <view class="confirm-btn" bindtap="confirmPurchase">
-        确认购买
+        确认发起交易
         <text class="total-amount">¥{{totalPrice || '0.00'}}</text>
       </view>
     </view>

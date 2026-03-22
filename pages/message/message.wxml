@@ -1,7 +1,156 @@
+<wxs module="utils">
+  var formatPrice = function(price, quantity) {
+    var total = (price || 0) * (quantity || 1);
+    return '¥' + total.toFixed(2);
+  }
+
+  var formatQuantity = function(quantity) {
+    return '数量: ' + (quantity || 1);
+  }
+
+  module.exports.formatPrice = formatPrice;
+  module.exports.formatQuantity = formatQuantity;
+</wxs>
+
 <view class="message-container">
   <custom-nav-bar title="消息" />
-  
+
   <view style="padding-top: 88rpx;">
+    <!-- 修改收到的交易请求部分 -->
+    <view wx:if="{{receivedRequests.length > 0}}">
+      <view class="section-title" bindtap="toggleReceivedRequests">
+        <view class="title-container">
+          <text>收到的交易请求</text>
+        </view>
+        <view class="section-actions">
+          <view wx:if="{{unreadReceivedRequests > 0}}" class="badge-dot">{{unreadReceivedRequests}}</view>
+          <view class="toggle-container">
+            <text class="toggle-text">{{showAllReceived ? '收起' : '展开'}}</text>
+            <image
+              wx:if="{{showAllReceived}}"
+              class="toggle-icon"
+              src="/static/assets/icons/收起.png"
+              mode="aspectFit"
+            ></image>
+            <image
+              wx:else
+              class="toggle-icon"
+              src="/static/assets/icons/展开 (2).png"
+              mode="aspectFit"
+            ></image>
+          </view>
+        </view>
+      </view>
+    <!-- 在收到的交易请求项中，修改未读指示器的显示条件 -->
+    <block wx:for="{{displayReceivedRequests}}" wx:key="id">
+      <view class="trade-request-item" bindtap="navigateToProductDetail" data-product-id="{{item.productId}}">
+        <view class="request-header">
+          <text class="request-title">来自 {{item.buyerName}} 的交易请求</text>
+          <text class="request-status {{item.status.toLowerCase()}}">{{item.statusText}}</text>
+        </view>
+        <view class="request-content">
+          <image class="product-image" src="{{item.productImage}}" mode="aspectFill"></image>
+          <view class="product-info">
+            <text class="product-title">{{item.productTitle}}</text>
+            <text class="product-price">{{utils.formatPrice(item.productPrice, item.quantity)}}</text>
+            <text class="request-quantity">{{utils.formatQuantity(item.quantity)}}</text>
+            <text class="request-time">{{item.createTime}}</text>
+          </view>
+          <!-- 为PENDING状态的请求添加未读指示器 -->
+          <view wx:if="{{item.status === 'PENDING' && item.productStatus === 'ON_SALE'}}" class="request-unread-dot"></view>
+        </view>
+        <!-- 交易请求状态处理逻辑 -->
+        <view wx:if="{{item.status === 'ACCEPTED'}}" class="accepted-message">
+          交易已同意，订单已创建
+        </view>
+        <view wx:elif="{{item.status === 'REJECTED'}}" class="rejected-message">
+          交易已被拒绝
+        </view>
+        <view wx:elif="{{item.productStatus === 'SOLD'}}" class="rejected-message">
+          商品已卖出
+        </view>
+        <view wx:elif="{{item.status === 'PENDING' && item.productStatus === 'ON_SALE'}}" class="request-actions">
+          <button class="accept-btn" bindtap="acceptTradeRequest" data-request-id="{{item.id}}">同意</button>
+          <button class="reject-btn" bindtap="rejectTradeRequest" data-request-id="{{item.id}}">拒绝</button>
+        </view>
+        <view wx:elif="{{item.status === 'PENDING'}}" class="pending-message">
+          等待处理
+        </view>
+      </view>
+    </block>
+ </view>
+
+ <!-- 显示发出的交易请求 -->
+ <view wx:if="{{sentRequests.length > 0}}">
+   <view class="section-title" bindtap="toggleSentRequests">
+     <view class="title-container">
+       <text>发出的交易请求</text>
+     </view>
+     <view class="section-actions">
+       <view wx:if="{{unreadSentRequests > 0}}" class="badge-dot">{{unreadSentRequests}}</view>
+       <view class="toggle-container">
+         <text class="toggle-text">{{showAllSent ? '收起' : '展开'}}</text>
+         <image
+           wx:if="{{showAllSent}}"
+           class="toggle-icon"
+           src="/static/assets/icons/收起.png"
+           mode="aspectFit"
+         ></image>
+         <image
+           wx:else
+           class="toggle-icon"
+           src="/static/assets/icons/展开 (2).png"
+           mode="aspectFit"
+         ></image>
+       </view>
+     </view>
+   </view>
+   <block wx:for="{{displaySentRequests}}" wx:key="id">
+     <!-- 添加 bindtap 事件和 data-product-id 属性 -->
+     <view class="trade-request-item sent" bindtap="navigateToProductDetail" data-product-id="{{item.productId}}">
+       <view class="request-header">
+         <text class="request-title">向 {{item.sellerName}} 发送的请求</text>
+         <text class="request-status {{item.status.toLowerCase()}}">{{item.statusText}}</text>
+       </view>
+       <view class="request-content">
+         <image class="product-image" src="{{item.productImage}}" mode="aspectFill"></image>
+         <view class="product-info">
+           <text class="product-title">{{item.productTitle}}</text>
+           <text class="product-price">¥{{item.productPrice}}</text>
+           <text class="request-time">{{item.createTime}}</text>
+         </view>
+       </view>
+       <!-- 先检测交易状态，再检测商品状态 -->
+       <view wx:if="{{item.status === 'ACCEPTED'}}" class="accepted-message">
+         卖家已同意，交易已完成
+       </view>
+       <view wx:elif="{{item.status === 'REJECTED'}}" class="rejected-message">
+         卖家已拒绝交易请求
+       </view>
+       <view wx:elif="{{item.productStatus === 'SOLD'}}" class="rejected-message">
+         商品已卖出
+       </view>
+       <view wx:elif="{{item.status === 'PENDING' && item.productStatus === 'ON_SALE'}}" class="pending-message">
+         等待卖家确认
+       </view>
+       <view wx:elif="{{item.status === 'PENDING'}}" class="pending-message">
+         等待处理
+       </view>
+     </view>
+   </block>
+ </view>
+
+   <!-- 聊天消息小标题 -->
+   <view class="section-title">
+     <view class="title-container">
+       <text>聊天消息</text>
+     </view>
+     <view class="section-actions">
+       <view wx:if="{{unreadChatMessages > 0}}" class="badge-dot">{{unreadChatMessages}}</view>
+     </view>
+   </view>
+
+    <!-- 原始消息列表 -->
     <block wx:for="{{messages}}" wx:key="index">
       <view class="message-item" bindtap="navigateToChat" data-receiver="{{item.receiver}}">
         <view class="message-avatar">
@@ -12,9 +161,11 @@
           <view class="message-text">{{item.text}}</view>
         </view>
         <view class="message-date">{{item.date}}</view>
+        <!-- 显示消息未读状态 -->
+        <view wx:if="{{!item.isRead}}" class="message-unread-dot"></view>
       </view>
     </block>
-    <view wx:if="{{hasMoreData && !loading}}" class="loading-more">加载更多...</view>
+    <view wx:if="{{hasMoreData && !loading}}" class="loading-more">暂无更多消息</view>
     <view wx:if="{{loading}}" class="loading">正在加载...</view>
   </view>
 </view>

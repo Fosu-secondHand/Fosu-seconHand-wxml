@@ -25,7 +25,7 @@ Page({
     this.autoFillUserInfo();
   },
 
-  // 修改 autoFillUserInfo 方法，避免在添加模式下自动填充
+  // 修改 autoFillUserInfo 方法
   autoFillUserInfo() {
     // 如果是编辑模式，则自动填充用户信息
     if (this.data.addressId) {
@@ -95,8 +95,25 @@ Page({
           }
         });
       }
+    } else {
+      // 添加模式下优先使用微信获取的昵称
+      const storedUserInfo = wx.getStorageSync('userInfo') || {};
+
+      // 优先使用微信官方接口获取的昵称
+      let contactName = '';
+      if (storedUserInfo.nickName) {
+        contactName = storedUserInfo.nickName;
+      } else if (storedUserInfo.nickname) {
+        contactName = storedUserInfo.nickname;
+      }
+
+      // 只有当联系人姓名为空时才填充
+      if (!this.data.contactName && contactName) {
+        this.setData({
+          contactName: contactName
+        });
+      }
     }
-    // 添加模式下不自动填充用户信息，保持表单为空
   },
 
 
@@ -188,6 +205,7 @@ Page({
   },
 
   // ===== 提交地址 =====
+  // 修改 submitAddress 方法
   submitAddress() {
     // 防止重复提交
     if (this.data.isSubmitting) return;
@@ -204,7 +222,7 @@ Page({
     const numAddressId = addressId || Date.now();
 
     const addressData = {
-      id: numAddressId,  // 编辑时使用数字类型的ID，新增时生成新ID
+      id: numAddressId,
       dormitory: this.data.dormitory,
       roomNumber: this.data.roomNumber,
       contactName: this.data.contactName,
@@ -213,10 +231,10 @@ Page({
       campus: this.data.campus,
       createTime: addressId
           ? wx.getStorageSync('addressList').find(item => item.id === addressId)?.createTime
-          : new Date().toISOString(),  // 保留原有创建时间
+          : new Date().toISOString(),
       isDefault: addressId
           ? wx.getStorageSync('addressList').find(item => item.id === addressId)?.isDefault
-          : wx.getStorageSync('addressList').length === 0,  // 新增时如果是第一个地址设为默认
+          : wx.getStorageSync('addressList').length === 0,
     };
 
     // 保存到本地缓存
@@ -224,7 +242,6 @@ Page({
 
     if (this.data.addressId) {
       // 编辑模式：替换原有地址
-      // addressId已经是数字类型，可以直接比较
       const index = addressList.findIndex(item => item.id === this.data.addressId);
       if (index !== -1) {
         addressList[index] = addressData;
@@ -236,10 +253,13 @@ Page({
 
     wx.setStorageSync('addressList', addressList);
 
-    // 移除自动更新用户信息的调用
-    // 只有当这是默认地址时才更新用户信息（保持原有的逻辑）
+    // 调用接口更新用户信息
     if (addressData.isDefault) {
+      // 更新默认地址
       this.updateUserDefaultAddress(addressData);
+    } else {
+      // 更新用户信息（即使不是默认地址也应该更新）
+      this.updateUserInfoOnServer(addressData);
     }
 
     // 隐藏加载状态，显示成功提示

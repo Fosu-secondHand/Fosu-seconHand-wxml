@@ -23,16 +23,38 @@
     align-items: center;
   }
   
-  /* 商品主图 */
-  .main-image {
-    margin-top: 44px;
-    padding-top: 25px;
-    height: 300px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #f5f5f5;
-  }
+ /* 商品主图 */
+ .main-image {
+   margin-top: 44px;
+   padding-top: 25px;
+   height: 300px;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   background: #f5f5f5;
+   position: relative; /* 添加相对定位 */
+ }
+
+ /* Sold out 遮罩层 */
+ .sold-out-overlay {
+   position: absolute;
+   top: 0;
+   left: 0;
+   right: 0;
+   bottom: 0;
+   background: rgba(0, 0, 0, 0.5); /* 半透明白色遮罩 */
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   z-index: 5;
+ }
+
+ /* Sold out 水印图片 */
+ .sold-out-watermark {
+   width: 130px;
+   height: 130px;
+   opacity: 0.9;
+ }
   .main-image-item {
     max-width: 100%;
     max-height: 100%;

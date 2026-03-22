@@ -83,14 +83,15 @@ Page({
   /**
    * 微信授权登录
    */
+  // 修改 wxLogin 方法
   wxLogin() {
     // 检查是否同意协议
     if (!this.data.agreedToPolicy) {
-      this.setData({ errorMsg: '请先同意用户协议和隐私政策' });
+      this.setData({errorMsg: '请先同意用户协议和隐私政策'});
       return;
     }
 
-    this.setData({ loading: true });
+    this.setData({loading: true});
 
     // 调用wx.login获取登录凭证
     wx.login({
@@ -98,17 +99,18 @@ Page({
         if (res.code) {
           // 将code发送到后端
           wx.request({
-            url: 'http://localhost:8090/wechat/login', // 替换为你的后端地址
+            url: 'http://localhost:8090/wechat/login',
             method: 'POST',
             data: {
               code: res.code
             },
             success: (response) => {
               if (response.data.code === 200) {
-                // 登录成功，保存用户信息
+                // 登录成功，先保存基础信息
+                const testUserId = 80;
                 const userInfo = {
-                  id: response.data.data.userId,  // 统一使用 id 字段
-                  userId: response.data.data.userId,
+                  id: testUserId,
+                  userId: testUserId,
                   openid: response.data.data.openid,
                   token: response.data.data.token,
                   isLogin: true,
@@ -116,29 +118,12 @@ Page({
                   loginTime: new Date().toISOString()
                 };
 
-                // 添加调试信息
-                console.log('=== 微信登录成功 ===');
-                console.log('后端返回的完整数据:', response.data);
-                console.log('准备存储的用户信息:', userInfo);
-                console.log('用户信息包含的字段:', Object.keys(userInfo));
-
-
-// 保存用户信息到本地存储
+                // 保存用户基础信息到本地存储
                 wx.setStorageSync('userInfo', userInfo);
-// 缺少这一行：
                 wx.setStorageSync('token', response.data.data.token);
 
-                // 显示登录成功提示
-                wx.showToast({
-                  title: '微信登录成功',
-                  icon: 'success',
-                  duration: 1500
-                });
-
-                // 延迟跳转到首页
-                setTimeout(() => {
-                  wx.reLaunch({ url: '/pages/index/index' });
-                }, 1500);
+                // 获取用户详细信息
+                this.getUserProfileAfterLogin();
               } else {
                 // 登录失败
                 this.setData({
@@ -173,6 +158,67 @@ Page({
     });
   },
 
+// 新增方法：登录后获取用户信息
+  getUserProfileAfterLogin() {
+    wx.getUserProfile({
+      desc: '用于完善用户资料',
+      success: (res) => {
+        console.log('获取用户信息成功:', res);
+
+        // 更新本地存储的用户信息
+        const userInfo = wx.getStorageSync('userInfo') || {};
+        Object.assign(userInfo, {
+          nickName: res.userInfo.nickName,
+          avatarUrl: res.userInfo.avatarUrl,
+          gender: res.userInfo.gender,
+          province: res.userInfo.province,
+          city: res.userInfo.city,
+          country: res.userInfo.country
+        });
+        wx.setStorageSync('userInfo', userInfo);
+
+        // 显示登录成功提示
+        wx.showToast({
+          title: '微信登录成功',
+          icon: 'success',
+          duration: 1500
+        });
+
+        // 使用导航栏隐藏和显示来避免白屏
+        wx.showNavigationBarLoading();
+        wx.setNavigationBarTitle({
+          title: '加载中...'
+        });
+
+        // 延迟跳转到首页
+        setTimeout(() => {
+          wx.reLaunch({
+            url: '/pages/index/index',
+            success: () => {
+              wx.hideNavigationBarLoading();
+              wx.setNavigationBarTitle({
+                title: '首页'
+              });
+            }
+          });
+        }, 1500);
+      },
+      fail: (err) => {
+        console.error('获取用户信息失败:', err);
+        // 即使获取用户信息失败，也继续跳转
+        wx.showToast({
+          title: '微信登录成功',
+          icon: 'success',
+          duration: 1500
+        });
+
+        setTimeout(() => {
+          wx.reLaunch({ url: '/pages/index/index' });
+        }, 1500);
+      }
+    });
+  },
+
 
   /**
    * 获取用户详细信息（需要用户授权）
@@ -186,7 +232,7 @@ Page({
         // 保存到本地存储
         const userInfo = wx.getStorageSync('userInfo') || {};
         Object.assign(userInfo, {
-          nickname: res.userInfo.nickName,
+          nickName: res.userInfo.nickName,
           avatarUrl: res.userInfo.avatarUrl,
           gender: res.userInfo.gender,
           province: res.userInfo.province,
@@ -434,7 +480,7 @@ Page({
    */
   viewUserAgreement() {
     wx.navigateTo({
-      url: '/pages/about/about?type=agreement'
+      url: '/pages/userAgreement/userAgreement'
     });
   },
 
@@ -443,7 +489,7 @@ Page({
    */
   viewPrivacyPolicy() {
     wx.navigateTo({
-      url: '/pages/about/about?type=privacy'
+      url: '/pages/privacyPolicy/privacyPolicy'
     });
   }
 });

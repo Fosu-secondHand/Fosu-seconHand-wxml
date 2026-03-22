@@ -268,4 +268,9 @@
    white-space: nowrap;
    line-height: 100rpx; /* 与按钮高度一致 */
  }
+.goods-stock {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
 

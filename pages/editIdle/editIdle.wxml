@@ -38,13 +38,23 @@
       <!-- 价格设置 -->
       <view class="section price-section">
         <view class="section-title">价格</view>
-        <input class="price-input" type="digit" value="{{price}}" bindinput="onPriceInput" placeholder="请输入价格" focus="{{showPriceDetail}}" bindfocus="onShowPriceDetail" />
+        <input class="price-input" type="digit" value="{{price}}" placeholder="请输入价格" focus="false" disabled bindtap="openPriceModal" />
+      </view>
+
+      <!-- 商品数量设置 -->
+      <view class="section quantity-section">
+        <view class="section-title">商品数量</view>
+        <view class="quantity-control">
+          <button class="quantity-btn" bindtap="decreaseQuantity">-</button>
+          <input class="quantity-input" type="number" value="{{quantity}}" bindinput="onQuantityInput" />
+          <button class="quantity-btn" bindtap="increaseQuantity">+</button>
+        </view>
       </view>
 
       <!-- 定价弹窗组件 -->
       <price-modal
-        visible="{{showPriceDetail}}"
-        price="{{price}}"
+        visible="{{showPriceModal}}"
+        price="{{modalPrice}}"
         bind:input="onModalPriceInput"
         bind:confirm="onModalPriceConfirm"
         bind:close="onModalPriceClose"
@@ -54,7 +64,7 @@
       <view class="section category-section">
         <view class="category-title">分类</view>
         <view class="category-list">
-          <view class="category-item {{category === item ? 'active' : ''}}" wx:for="{{categoryOptions}}" wx:key="item" bindtap="onCategorySelect" data-value="{{item}}">{{item}}</view>
+          <view class="category-item {{category && category.id === item.id ? 'active' : ''}}" wx:for="{{categoryOptions}}" wx:key="id" bindtap="onCategorySelect" data-id="{{item.id}}" data-index="{{index}}">{{item.name}}</view>
         </view>
       </view>
 
@@ -62,7 +72,7 @@
       <view class="section condition-section">
         <view class="category-title">成色</view>
         <view class="category-list">
-          <view class="category-item {{condition === item ? 'active' : ''}}" wx:for="{{conditionOptions}}" wx:key="item" bindtap="onConditionSelect" data-value="{{item}}">{{item}}</view>
+          <view class="category-item {{condition && condition.value === item.value ? 'active' : ''}}" wx:for="{{conditionOptions}}" wx:key="value" bindtap="onConditionSelect" data-value="{{item.value}}" data-index="{{index}}">{{item.label}}</view>
         </view>
       </view>
 
@@ -117,6 +127,16 @@
           <view class="add-image-btn" wx:if="{{images.length < 9}}" bindtap="chooseImage">
             <image src="/static/assets/icons/add.png" mode="aspectFill"></image>
           </view>
+        </view>
+      </view>
+
+      <!-- 商品数量设置 -->
+      <view class="section quantity-section">
+        <view class="section-title">商品数量</view>
+        <view class="quantity-control">
+          <button class="quantity-btn" bindtap="decreaseQuantity">-</button>
+          <input class="quantity-input" type="number" value="{{quantity}}" bindinput="onQuantityInput" />
+          <button class="quantity-btn" bindtap="increaseQuantity">+</button>
         </view>
       </view>
 

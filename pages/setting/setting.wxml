@@ -38,15 +38,16 @@
         </view>
       </view>
 
-      <!-- 手机绑定 -->
-      <view class="info-item" bindtap="openBindPhone">
-        <view class="info-label">手机绑定</view>
-        <view class="info-content">
-          <text>{{phone || '未绑定手机'}}</text>
-          <image class="arrow-icon" src="/static/assets/icons/arrowright.png" mode="aspectFit"></image>
-        </view>
-      </view>
-    </view>
+         <!-- 手机绑定 -->
+            <view class="info-item" bindtap="openBindPhone">
+              <view class="info-label">手机绑定</view>
+              <view class="info-content">
+                <text>{{phone || '未绑定手机'}}</text>
+                <image class="arrow-icon" src="/static/assets/icons/arrowright.png" mode="aspectFit"></image>
+              </view>
+            </view>
+          </view>
+
 
     <!-- 通知设置 -->
     <view class="section-title">通知设置</view>
@@ -79,8 +80,41 @@
     <!-- ... 弹窗内容 ... -->
   </view>
 
-  <!-- 手机绑定弹窗 -->
-  <view class="modal" wx:if="{{isBindPhoneModalShow}}">
-    <!-- ... 弹窗内容 ... -->
-  </view>
-</view>
+  <!-- 手机绑定弹窗 - 修改为支持微信手机号获取 -->
+   <view class="modal" wx:if="{{isBindPhoneModalShow}}">
+     <view class="modal-mask" bindtap="closeBindPhoneModal"></view>
+     <view class="modal-content">
+       <view class="modal-header">
+         <text>绑定手机号</text>
+         <image
+           class="close-icon"
+           src="/static/assets/icons/close.png"
+           mode="aspectFit"
+           bindtap="closeBindPhoneModal"
+         ></image>
+       </view>
+       <view class="modal-body">
+         <input
+           class="edit-input"
+           placeholder="请输入手机号"
+           value="{{tempPhone}}"
+           bindinput="onPhoneInput"
+           type="number"
+           maxlength="11"
+         />
+         <!-- ✅ 新增：微信手机号快捷绑定按钮 -->
+         <button
+           class="wechat-phone-btn"
+           open-type="choosePhoneNumber"
+           bindchoosephonenumber="getWechatPhone"
+         >
+           一键获取微信手机号
+         </button>
+       </view>
+       <view class="modal-footer">
+         <button class="cancel-btn" bindtap="closeBindPhoneModal">取消</button>
+         <button class="confirm-btn" bindtap="bindPhone">确定</button>
+       </view>
+     </view>
+   </view>
+ </view>

@@ -4,6 +4,7 @@ Page({
         description: '',      // 商品描述
         images: [],           // 已选图片
         price: '',            // 价格
+        quantity: 1,          // 商品数量，默认为1
         shippingMethod: 'Pickup', // 交易方式：Pickup(自取)/Delivery(送货)
         loading: false,       // 加载状态
         isEditMode: false,    // 是否为编辑模式
@@ -30,10 +31,11 @@ Page({
         condition: null,      // 选中的成色对象
         // 添加新分类相关字段
         showAddCategory: false,
-        newCategoryName: ''
+        newCategoryName: '',
+        needContinuePublish: false
     },
 
-    // 可以先获取有效的分类列表
+
     onLoad(options) {
         // 获取全局app实例
         const app = getApp();
@@ -61,7 +63,30 @@ Page({
                 wx.removeStorageSync('editingGoods');
             }
         }
+    }, // 注意这里的结束括号
+
+
+    onShow() {
+        // 每次页面显示时检查用户地址信息
+        const token = wx.getStorageSync('token');
+        const userInfo = wx.getStorageSync('userInfo');
+
+        if (token && userInfo && userInfo.id) {
+            // 重新获取用户详细信息，更新地址状态
+            this.getUserDetail(userInfo.id, token).then(userDetail => {
+                // 如果之前因为没有地址而中断了发布流程，现在有了地址则可以继续
+                if (this.data.loading && this.data.needContinuePublish) {
+                    this.continuePublish(userInfo, token);
+                    this.setData({
+                        needContinuePublish: false
+                    });
+                }
+            }).catch(err => {
+                console.error('获取用户信息失败:', err);
+            });
+        }
     },
+
 
 // 同步登录状态方法
     syncLoginStatus() {
@@ -226,6 +251,7 @@ Page({
         });
     },
 
+
     // 处理定价弹窗关闭
     onModalPriceClose() {
         this.setData({ showPriceModal: false });
@@ -290,7 +316,8 @@ Page({
         this.checkUserAddress(userInfo, token);
     },
 
-// 新增检查用户地址信息的方法
+
+
     checkUserAddress(userInfo, token) {
         this.setData({ loading: true });
 
@@ -298,7 +325,10 @@ Page({
         this.getUserDetail(userInfo.id, token).then(userDetail => {
             // 检查用户是否有地址信息
             if (!userDetail.address || userDetail.address.trim() === '') {
-                this.setData({ loading: false });
+                this.setData({
+                    loading: false,
+                    needContinuePublish: true  // 添加标记，表示需要继续发布
+                });
                 // 如果没有地址信息，提示用户先填写地址
                 wx.showModal({
                     title: '提示',
@@ -310,6 +340,11 @@ Page({
                             wx.navigateTo({
                                 url: '/pages/address/address'
                             });
+                        } else {
+                            // 用户取消时也需要重置状态
+                            this.setData({
+                                needContinuePublish: false
+                            });
                         }
                     }
                 });
@@ -320,7 +355,10 @@ Page({
             this.continuePublish(userInfo, token);
         }).catch(err => {
             console.error('获取用户信息失败:', err);
-            this.setData({ loading: false });
+            this.setData({
+                loading: false,
+                needContinuePublish: false
+            });
             wx.showToast({
                 title: '获取用户信息失败',
                 icon: 'none'
@@ -363,6 +401,7 @@ Page({
                     transactionMethod: this.data.shippingMethod,
                     categoryId: this.data.category.id,
                     price: parseFloat(this.data.price),
+                    quantity: this.data.quantity, // 添加商品数量
                     condition: this.data.condition.value,
                     image: imageUrls, // 使用上传后的URL数组
                     status: "ON_SALE",
@@ -390,6 +429,7 @@ Page({
                     title: newGoods.title,
                     categoryId: newGoods.categoryId,
                     price: newGoods.price,
+                    quantity: newGoods.quantity, // 添加quantity到检查中
                     condition: newGoods.condition,
                     image: newGoods.image,
                     productType: newGoods.productType
@@ -430,6 +470,7 @@ Page({
                                             description: '',
                                             images: [],
                                             price: '',
+                                            quantity: 1, // 重置商品数量为默认值
                                             shippingMethod: 'Pickup',
                                             loading: false,
                                             isEditMode: false,
@@ -519,6 +560,7 @@ Page({
             });
         });
     },
+
 
 // 获取用户详细信息
     getUserDetail(userId, token) {
@@ -744,5 +786,34 @@ Page({
             newCategoryName: '',
             category: null
         });
+    },
+    // 增加商品数量
+increaseQuantity() {
+    this.setData({
+        quantity: this.data.quantity + 1
+    });
+},
+
+// 减少商品数量
+decreaseQuantity() {
+    if (this.data.quantity > 1) {
+        this.setData({
+            quantity: this.data.quantity - 1
+        });
     }
+},
+
+// 直接输入商品数量
+onQuantityInput(e) {
+    let value = parseInt(e.detail.value);
+    if (isNaN(value) || value < 1) {
+        value = 1;
+    }
+    if (value > 999) {
+        value = 999;
+    }
+    this.setData({
+        quantity: value
+    });
+}
 });

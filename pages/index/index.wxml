@@ -1,3 +1,4 @@
+<view wx:if="{{isLoaded}}">
 <view class="container">
     <custom-nav-bar title="佛大二手交易小程序" />
     <!-- 顶部绿色和标题 -->
@@ -116,3 +117,9 @@
       />
     </scroll-view>
   </view>
+</view>
+<view wx:else>
+  <view class="loading-container">
+    <text>加载中...</text>
+  </view>
+</view>

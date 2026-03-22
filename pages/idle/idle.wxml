@@ -38,6 +38,16 @@
       <view class="section-title">价格</view>
       <input class="price-input" type="digit" value="{{price}}" placeholder="请输入价格" focus="false" disabled bindtap="openPriceModal" />
     </view>
+    <!-- 商品数量设置 -->
+<view class="section quantity-section">
+  <view class="section-title">商品数量</view>
+  <view class="quantity-control">
+    <button class="quantity-btn" bindtap="decreaseQuantity">-</button>
+    <input class="quantity-input" type="number" value="{{quantity}}" bindinput="onQuantityInput" />
+    <button class="quantity-btn" bindtap="increaseQuantity">+</button>
+  </view>
+</view>
+
 
     <!-- 分类栏 -->
     <view class="section category-section">

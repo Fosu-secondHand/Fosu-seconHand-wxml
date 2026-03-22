@@ -1,0 +1,27 @@
+/* pages/privacyPolicy/privacyPolicy.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #f8f8f8;
+}
+
+.content-container {
+  background-color: #fff;
+  margin: 30rpx;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.content-scroll {
+  height: calc(100vh - 300rpx);
+  width: 100%;
+}
+
+.content-text {
+  font-size: 28rpx;
+  line-height: 2;
+  color: #333;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding-bottom: 40rpx;
+}

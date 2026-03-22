@@ -519,7 +519,8 @@ Page({
       seller: originalData.seller,
       wantCount: originalData.wantToBuy,
       want_count: originalData.wantToBuy,
-      soldCount: originalData.soldCount || 0
+      soldCount: originalData.soldCount || 0,
+      soldQuantity: originalData.soldQuantity || 0
     };
 
     // 复制所有原始数据字段
@@ -719,21 +720,46 @@ Page({
 
 // 聊一聊按钮点击事件
   async handleChat() {
-    if (!this.checkAuth()) return;
+    console.log('=== 点击聊一聊按钮 ===');
+
+    if (!this.checkAuth()) {
+      console.log('❌ 用户未登录，已返回');
+      return;
+    }
 
     const { goodsDetail } = this.data;
-    if (!goodsDetail) return;
+    console.log('📦 商品详情:', goodsDetail);
+
+    if (!goodsDetail) {
+      console.log('❌ 商品详情为空');
+      wx.showToast({ title: '商品信息加载中', icon: 'none' });
+      return;
+    }
 
     // 检查商品状态
     if (goodsDetail.status === 'SOLD') {
+      console.log('❌ 商品已售出');
       wx.showToast({ title: '该商品已售出', icon: 'none' });
       return;
     }
 
-    // 使用映射后的卖家ID字段
+    // 使用映射后的卖家 ID 字段
     const sellerId = goodsDetail.seller_id || goodsDetail['seller Id'];
+    console.log('👤 卖家 ID:', sellerId, '类型:', typeof sellerId);
+
     if (!sellerId) {
+      console.log('❌ 无法获取卖家信息');
       wx.showToast({ title: '无法获取卖家信息', icon: 'none' });
+      return;
+    }
+
+    // 获取当前用户信息
+    const currentUserId = this.data.userInfo?.id;
+    console.log('👤 当前用户 ID:', currentUserId);
+
+    if (!currentUserId) {
+      console.log('❌ 用户信息异常');
+      wx.showToast({ title: '用户信息异常', icon: 'none' });
       return;
     }
 
@@ -742,24 +768,26 @@ Page({
       // 先执行想要的操作
       const token = wx.getStorageSync('token');
       if (!token) {
+        console.log('❌ 请先登录');
         wx.showToast({ title: '请先登录', icon: 'none' });
         return;
       }
 
       const { wantCount } = this.data;
       const productId = goodsDetail.product_ld || goodsDetail.id;
+      console.log('📝 想要操作，商品 ID:', productId);
 
       try {
         // 修改参数名以匹配后端期望的参数
         const requestUrl = `${app.globalData.baseUrl}/products/detail/toggleWant?userId=${this.data.userInfo.id}&productId=${productId}&reduceOrAdd=add`;
-        console.log('想要操作请求URL:', requestUrl);
+        console.log('想要操作请求 URL:', requestUrl);
 
         const res = await new Promise((resolve, reject) => {
           wx.request({
             url: requestUrl,
             method: 'GET',
             header: {
-              'Authorization': `Bearer ${token}`  // 添加认证头
+              'Authorization': `Bearer ${token}`
             },
             timeout: 10000,
             success: (result) => {
@@ -792,7 +820,7 @@ Page({
               console.log('用户已添加过想要，无需重复添加');
               // 不显示错误提示，继续执行跳转
             } else {
-              // 其他500错误仍需处理
+              // 其他 500 错误仍需处理
               console.error('服务器内部错误:', res.data.message);
             }
           }
@@ -803,9 +831,28 @@ Page({
       }
     }
 
-    // 然后跳转到聊天页面
-    wx.switchTab({
-      url: '/pages/message/message'
+    // ✅ 修复：直接跳转到 chat 页面，而不是 message 页面
+    const targetUserName = goodsDetail.seller?.name || '卖家';
+
+    console.log('✅ 准备跳转到 chat 页面，参数:', {
+      receiver: sellerId,
+      name: targetUserName,
+      currentUserId: currentUserId
+    });
+
+    // ✅ 使用 wx.navigateTo 跳转到 chat 页面（非 TabBar 页面）
+    wx.navigateTo({
+      url: `/pages/chat/chat?receiver=${sellerId}&name=${encodeURIComponent(targetUserName)}&currentUserId=${currentUserId}`,
+      success: () => {
+        console.log('✅ 跳转到 chat 页面成功');
+      },
+      fail: (err) => {
+        console.error('❌ 跳转到 chat 页面失败:', err);
+        wx.showToast({
+          title: '跳转失败，请重试',
+          icon: 'none'
+        });
+      }
     });
   },
 

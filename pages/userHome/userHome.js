@@ -149,11 +149,12 @@ Page({
 
   // 处理用户数据
   processUserData(userData) {
-    // 处理头像
-    const avatarUrl = userData.avatar || this.data.avatarUrl;
+    // 处理头像 - 优先使用微信头像，其次使用用户数据中的头像
+    const storedUserInfo = wx.getStorageSync('userInfo') || {};
+    const avatarUrl = storedUserInfo.avatarUrl || userData.avatar || this.data.avatarUrl;
 
-    // 处理昵称
-    const nickname = userData.nickname || this.data.nickname;
+    // 处理昵称 - 优先使用微信昵称，其次使用用户数据中的昵称
+    const nickname = storedUserInfo.nickname || userData.nickname || this.data.nickname;
 
     // 处理信用分
     const creditScore = userData.creditScore !== undefined ? userData.creditScore : this.data.creditScore;
@@ -190,22 +191,22 @@ Page({
     }
   },
 
-// 获取用户正在出售的商品
+  // 获取用户正在出售的商品
   fetchSellingProducts(userId) {
     const app = getApp();
     const baseURL = app.globalData.baseUrl;
 
-    // 获取认证token
+    // 获取认证 token
     const token = wx.getStorageSync('token');
-    console.log('获取商品列表时的token:', token); // 添加调试日志
+    console.log('获取商品列表时的 token:', token);
 
     if (!baseURL) {
-      console.error('API地址未配置');
+      console.error('API 地址未配置');
       return;
     }
 
     if (!token) {
-      console.warn('获取商品列表时未找到有效的认证token');
+      console.warn('获取商品列表时未找到有效的认证 token');
       return;
     }
 
@@ -214,15 +215,26 @@ Page({
       method: 'GET',
       header: {
         'content-type': 'application/json',
-        'Authorization': `Bearer ${token}` // 确保始终使用Bearer格式
+        'Authorization': `Bearer ${token}`
       },
       success: (res) => {
-        console.log('商品列表接口响应:', res); // 添加调试日志
+        console.log('商品列表接口响应:', res);
         if (res.statusCode === 200 && res.data) {
           const products = Array.isArray(res.data.data) ? res.data.data : [];
-          const goodsCount = products.length;
+
+          // ✅ 新增：确保每个商品都有 image 字段
+          const processedProducts = products.map(product => {
+            // 如果产品有 images 数组，取第一张作为封面图
+            if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+              return { ...product, image: product.images[0] };
+            }
+            // 如果已经有 image 字段，保持不变
+            return product;
+          });
+
+          const goodsCount = processedProducts.length;
           this.setData({
-            goodsList: products,
+            goodsList: processedProducts,
             goodsCount,
             tabList: [
               { name: '宝贝', count: goodsCount },
@@ -232,7 +244,7 @@ Page({
           });
 
           try {
-            wx.setStorageSync('myPublishGoodsList', products);
+            wx.setStorageSync('myPublishGoodsList', processedProducts);
           } catch (e) {
             console.warn('保存商品列表失败:', e);
           }
@@ -255,11 +267,40 @@ Page({
   },
 
 
-
   goToGoodDetail(e) {
     const id = e.currentTarget.dataset.id;
+
+    // ✅ 新增：详细调试信息
+    console.log('\n=== 点击商品，准备跳转 ===');
+    console.log('原始 dataset:', e.currentTarget.dataset);
+    console.log('获取到的 id:', id);
+    console.log('id 类型:', typeof id);
+    console.log('id 是否为空:', !id);
+
+    // ✅ 新增：验证 id 是否有效
+    if (!id || id === 'undefined' || id === 'null') {
+      console.error('❌ 商品ID 无效:', id);
+      wx.showToast({
+        title: '商品信息异常',
+        icon: 'none'
+      });
+      return;
+    }
+
+    console.log('✅ 商品ID 验证通过，准备跳转:', id);
+
     wx.navigateTo({
-      url: `/pages/GoodDetail/GoodDetail?id=${id}`
+      url: `/pages/GoodDetail/GoodDetail?id=${id}`,
+      success: () => {
+        console.log('✅ 跳转成功');
+      },
+      fail: (err) => {
+        console.error('❌ 跳转失败:', err);
+        wx.showToast({
+          title: '跳转失败，请重试',
+          icon: 'none'
+        });
+      }
     });
   },
 
@@ -288,8 +329,77 @@ Page({
   },
 
   onEditProfile() {
-    wx.navigateTo({ url: '/pages/setting/setting' });
+    console.log('\n=== 点击编辑按钮 ===');
+    console.log('当前页面路径:', this.route);
+    console.log('当前 userId:', this.data.userId);
+
+    // ✅ 修复 1: 检查页面栈数量，避免页面栈溢出
+    const pages = getCurrentPages();
+    console.log('当前页面栈数量:', pages.length);
+
+    if (pages.length >= 9) {
+      console.warn('⚠️ 页面栈接近上限，使用 reLaunch');
+      wx.reLaunch({
+        url: '/pages/setting/setting',
+        fail: (err) => {
+          console.error('reLaunch 失败:', err);
+          wx.showToast({
+            title: '请稍后再试',
+            icon: 'none'
+          });
+        }
+      });
+      return;
+    }
+
+    // ✅ 修复 2: 验证登录状态
+    const token = wx.getStorageSync('token');
+    const userInfo = wx.getStorageSync('userInfo');
+
+    if (!token || !userInfo || !userInfo.id) {
+      console.warn('⚠️ 用户未登录，无法编辑');
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+
+    // ✅ 修复 3: 优化防抖处理，缩短锁定时间
+    if (this.isNavigating) {
+      console.warn('⚠️ 页面正在跳转中，忽略本次点击');
+      return;
+    }
+
+    this.isNavigating = true;
+
+    wx.navigateTo({
+      url: '/pages/setting/setting',
+      success: () => {
+        console.log('✅ 跳转到setting页面成功');
+        // ✅ 修复 4: 立即重置防抖标志，不需要等待
+        this.isNavigating = false;
+      },
+      fail: (err) => {
+        console.error('❌ 跳转到setting页面失败:', err);
+        this.isNavigating = false;
+
+        // ✅ 修复 5: 如果是重复跳转导致的失败，给出提示
+        if (err.errMsg && err.errMsg.includes('fail')) {
+          wx.showToast({
+            title: '请稍后再试',
+            icon: 'none'
+          });
+        } else {
+          wx.showToast({
+            title: '跳转失败，请重试',
+            icon: 'none'
+          });
+        }
+      }
+    });
   },
+// ... existing code ...
 
   onAddTag() {
     this.setData({ showAddTagModal: true, addTagValue: '' });

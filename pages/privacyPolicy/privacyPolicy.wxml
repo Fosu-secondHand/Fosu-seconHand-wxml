@@ -1,0 +1,12 @@
+<!--pages/privacyPolicy/privacyPolicy.wxml-->
+<view class="container">
+  <custom-nav-bar title="隐私政策" showBack="true" />
+
+  <view style="padding-top: 88rpx;">
+    <view class="content-container">
+      <scroll-view scroll-y class="content-scroll">
+        <view class="content-text">{{privacyContent}}</view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

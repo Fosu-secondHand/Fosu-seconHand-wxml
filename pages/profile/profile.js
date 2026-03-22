@@ -192,11 +192,23 @@ Page({
     try {
       const userInfo = wx.getStorageSync('userInfo') || {};
 
+      // 优先使用微信用户信息，其次使用存储的用户信息，最后使用默认值
       const defaultData = {
         avatarUrl: '/static/assets/icons/default-avatar.png',
-        nickname: '未设置昵称',
-        accountNumber: '账号: fosu' + Math.floor(Math.random() * 10000)
+        nickname: '未设置昵称'
       };
+
+      // 如果有微信用户信息，优先使用
+      if (userInfo.avatarUrl) {
+        defaultData.avatarUrl = userInfo.avatarUrl;
+      }
+
+      // 优先使用微信获取的昵称
+      if (userInfo.nickName) {
+        defaultData.nickname = userInfo.nickName;
+      } else if (userInfo.nickname) {
+        defaultData.nickname = userInfo.nickname;
+      }
 
       this.setData({
         ...defaultData,
@@ -328,8 +340,7 @@ Page({
           this.setData({
             isLogin: false,
             avatarUrl: '/static/assets/icons/default-avatar.png',
-            nickname: '未设置昵称',
-            accountNumber: '账号: fosu' + Math.floor(Math.random() * 10000)
+            nickname: '未设置昵称'
           });
 
           // 显示退出成功提示
@@ -342,14 +353,13 @@ Page({
     });
   },
 
-  // 修复头像点击事件冲突，添加e.stopPropagation()阻止事件冒泡
   onChooseAvatar(e) {
     // 使用混入的登录检查方法
     if (!this.requireLogin('更换头像')) {
       return;
     }
 
-    // 阻止事件冒泡到父元素，避免同时触发goToUserHome
+    // 阻止事件冒泡到父元素，避免同时触发 goToUserHome
     if (e && e.stopPropagation) {
       e.stopPropagation();
     }
@@ -361,7 +371,7 @@ Page({
       success: (res) => {
         const tempFilePath = res.tempFiles[0].tempFilePath;
         this.setData({ avatarUrl: tempFilePath });
-        // 同步到本地userInfo
+        // 同步到本地 userInfo
         let userInfo = wx.getStorageSync('userInfo') || {};
         userInfo.avatarUrl = tempFilePath;
         wx.setStorageSync('userInfo', userInfo);
@@ -372,6 +382,19 @@ Page({
       }
     });
   },
+
+  // ✅ 新增：导航到设置页面
+  navigateToSetting() {
+    // 使用混入的登录检查方法
+    if (!this.requireLogin('访问设置')) {
+      return;
+    }
+
+    wx.navigateTo({
+      url: '/pages/setting/setting'
+    });
+  }
+
 //   // 导航到设置页面
 // navigateToSetting() {
 //   // 使用混入的登录检查方法
