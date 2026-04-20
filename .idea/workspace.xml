@@ -4,14 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2e22c8ad-9cb2-476e-a336-9cec52ed2c06" name="更改" comment="refactor(auth): 重构用户认证模块并优化地址管理功能&#10;&#10;- 重构 authMixin.js 中的登录验证逻辑，增强用户信息字段校验和自动修复机制&#10;- 新增全局登录状态同步功能，确保 userInfo 的 isLogin 和 id 字段完整性&#10;- 优化 addAddress 页面的用户信息获取策略，采用后端优先、本地缓存降级的混合方案&#10;- 修复地址管理中用户信息更新的数据同步问题，确保昵称和头像字段正确传递&#10;- 更新 app.js 中的后端服务地址配置，调整 API 接口基础路径&#10;- 移除反馈页面入口，精简应用页面结构&#10;- 添加相机和相册权限配置，完善小程序权限声明&#10;- 重构 about 页面内容展示，新增产品介绍模块并更新联系方式">
+    <list default="true" id="2e22c8ad-9cb2-476e-a336-9cec52ed2c06" name="更改" comment="refactor(auth): 重构用户认证模块并移除手机号相关功能&#10;&#10;- 移除地址管理中的手机号输入字段和相关验证逻辑&#10;- 删除设置页面中的手机绑定功能及相关UI组件&#10;- 从用户信息数据结构中移除手机号字段&#10;- 更新项目配置文件中的编译设置&#10;- 优化用户信息同步机制，确保数据一致性">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/addAddress/addAddress.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/addAddress/addAddress.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/addAddress/addAddress.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/addAddress/addAddress.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/setting/setting.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/setting/setting.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/setting/setting.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/setting/setting.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project.config.json" beforeDir="false" afterPath="$PROJECT_DIR$/project.config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project.private.config.json" beforeDir="false" afterPath="$PROJECT_DIR$/project.private.config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/chat/chat.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/chat/chat.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/chat/chat.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/chat/chat.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/chat/chat.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/chat/chat.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/message/message.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/message/message.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/payment/payment.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/payment/payment.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,20 +31,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Project/Fosu-seconHand-wxml/static&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/Project/Fosu-seconHand-wxml/static",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "D:\\idea\\IntelliJ IDEA 2023.3.4\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\Project\Fosu-seconHand-wxml\static" />
@@ -88,7 +88,7 @@
       <workItem from="1775318085120" duration="599000" />
       <workItem from="1776174771226" duration="48452000" />
       <workItem from="1776581858353" duration="307000" />
-      <workItem from="1776582215373" duration="24906000" />
+      <workItem from="1776582215373" duration="28585000" />
     </task>
     <task id="LOCAL-00001" summary="feat(address): 实现地址编辑与用户信息同步功能- 新增自动填充用户信息功能，编辑地址时自动获取用户默认信息- 实现表单数据变更检测，仅更新发生变化的字段&#10;- 添加默认地址更新机制，删除或设置默认地址时同步更新用户信息&#10;- 优化地址提交逻辑，确保地址信息与用户信息保持一致&#10;- 增强表单验证，支持校区、宿舍楼、门牌号等字段校验- 实现用户信息更新接口调用，避免传递敏感字段如openid等- 添加地址变更时的用户提示与错误处理机制">
       <option name="closed" value="true" />
@@ -114,7 +114,15 @@
       <option name="project" value="LOCAL" />
       <updated>1776671538004</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="refactor(auth): 重构用户认证模块并移除手机号相关功能&#10;&#10;- 移除地址管理中的手机号输入字段和相关验证逻辑&#10;- 删除设置页面中的手机绑定功能及相关UI组件&#10;- 从用户信息数据结构中移除手机号字段&#10;- 更新项目配置文件中的编译设置&#10;- 优化用户信息同步机制，确保数据一致性">
+      <option name="closed" value="true" />
+      <created>1776689003924</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1776689003924</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -135,6 +143,7 @@
     <MESSAGE value="feat(address): 实现地址编辑与用户信息同步功能- 新增自动填充用户信息功能，编辑地址时自动获取用户默认信息- 实现表单数据变更检测，仅更新发生变化的字段&#10;- 添加默认地址更新机制，删除或设置默认地址时同步更新用户信息&#10;- 优化地址提交逻辑，确保地址信息与用户信息保持一致&#10;- 增强表单验证，支持校区、宿舍楼、门牌号等字段校验- 实现用户信息更新接口调用，避免传递敏感字段如openid等- 添加地址变更时的用户提示与错误处理机制" />
     <MESSAGE value="feat(goods):优化商品详情页交互与推荐逻辑&#10;&#10;- 修改推荐商品接口调用方式，添加认证头并优化错误处理&#10;- 完善商品已售出状态的前端校验与提示&#10;-优化求购商品的聊天按钮逻辑，区分不同类型商品处理&#10;- 更新商品详情页布局，使用滚动视图提升用户体验&#10;- 调整底部操作栏显示逻辑，根据商品状态动态渲染按钮- 增加商品已售出状态下的底部提示样式- 优化我的购买页面商品列表展示，增加卖家信息显示&#10;- 改进地址管理相关接口调用逻辑，精简用户信息更新条件" />
     <MESSAGE value="refactor(auth): 重构用户认证模块并优化地址管理功能&#10;&#10;- 重构 authMixin.js 中的登录验证逻辑，增强用户信息字段校验和自动修复机制&#10;- 新增全局登录状态同步功能，确保 userInfo 的 isLogin 和 id 字段完整性&#10;- 优化 addAddress 页面的用户信息获取策略，采用后端优先、本地缓存降级的混合方案&#10;- 修复地址管理中用户信息更新的数据同步问题，确保昵称和头像字段正确传递&#10;- 更新 app.js 中的后端服务地址配置，调整 API 接口基础路径&#10;- 移除反馈页面入口，精简应用页面结构&#10;- 添加相机和相册权限配置，完善小程序权限声明&#10;- 重构 about 页面内容展示，新增产品介绍模块并更新联系方式" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor(auth): 重构用户认证模块并优化地址管理功能&#10;&#10;- 重构 authMixin.js 中的登录验证逻辑，增强用户信息字段校验和自动修复机制&#10;- 新增全局登录状态同步功能，确保 userInfo 的 isLogin 和 id 字段完整性&#10;- 优化 addAddress 页面的用户信息获取策略，采用后端优先、本地缓存降级的混合方案&#10;- 修复地址管理中用户信息更新的数据同步问题，确保昵称和头像字段正确传递&#10;- 更新 app.js 中的后端服务地址配置，调整 API 接口基础路径&#10;- 移除反馈页面入口，精简应用页面结构&#10;- 添加相机和相册权限配置，完善小程序权限声明&#10;- 重构 about 页面内容展示，新增产品介绍模块并更新联系方式" />
+    <MESSAGE value="refactor(auth): 重构用户认证模块并移除手机号相关功能&#10;&#10;- 移除地址管理中的手机号输入字段和相关验证逻辑&#10;- 删除设置页面中的手机绑定功能及相关UI组件&#10;- 从用户信息数据结构中移除手机号字段&#10;- 更新项目配置文件中的编译设置&#10;- 优化用户信息同步机制，确保数据一致性" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor(auth): 重构用户认证模块并移除手机号相关功能&#10;&#10;- 移除地址管理中的手机号输入字段和相关验证逻辑&#10;- 删除设置页面中的手机绑定功能及相关UI组件&#10;- 从用户信息数据结构中移除手机号字段&#10;- 更新项目配置文件中的编译设置&#10;- 优化用户信息同步机制，确保数据一致性" />
   </component>
 </project>

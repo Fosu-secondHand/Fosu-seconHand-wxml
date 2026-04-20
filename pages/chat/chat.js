@@ -22,26 +22,28 @@ Page({
     heartbeatTimer: null,
     currentUserAvatar: '/static/assets/icons/default-avatar.png',
     receiverAvatar: '/static/assets/icons/default-avatar.png',
-    currentUserName: '', // ✅ 新增：当前用户昵称
-    receiverName: '' // ✅ 新增：接收者昵称
+    currentUserName: '',
+    receiverName: '',
+    // ✅ 新增：商品卡片相关数据
+    relatedGoods: null, // 存储商品信息对象
+    goodsIdFromUrl: ''  // 记录从 URL 传来的商品 ID
   },
 
 
   onLoad: function (options) {
     console.log('🚀 聊天页面初始化收到的参数:', options);
 
-    // ✅ 关键修改：增加有效性检查，防止 NaN
     let receiver = parseInt(options.receiver);
     const currentUserId = parseInt(options.currentUserId);
+    const goodsId = options.goodsId; // ✅ 获取商品 ID
 
     if (isNaN(receiver)) {
       receiver = parseInt(options.targetId || options.otherUserId);
     }
 
-    // 优先使用从 message 页面传递过来的 name 参数作为聊天标题
     const chatName = options.name ? decodeURIComponent(options.name) : (isNaN(receiver) ? '未知用户' : String(receiver));
 
-    console.log('🚀 聊天页面初始化:', { receiver, currentUserId, chatName });
+    console.log('🚀 聊天页面初始化:', { receiver, currentUserId, chatName, goodsId });
 
     if (isNaN(receiver) || !receiver) {
       wx.showToast({ title: '聊天对象信息缺失', icon: 'none' });
@@ -49,25 +51,15 @@ Page({
       return;
     }
 
-    // ✅ 获取当前用户信息
     const userInfo = wx.getStorageSync('userInfo');
     let currentUserAvatar = '/static/assets/icons/default-avatar.png';
     let currentUserName = '我';
 
     if (userInfo) {
-      console.log('👤 [onLoad] 当前用户信息:', userInfo);
-
       if (userInfo.avatar) {
-        console.log('🖼️ [onLoad] 当前用户原始头像路径:', userInfo.avatar);
         currentUserAvatar = this.processImageUrl(userInfo.avatar);
-        console.log('🖼️ [onLoad] 当前用户处理后头像 URL:', currentUserAvatar);
-      } else {
-        console.warn('⚠️ [onLoad] 用户信息中没有 avatar 字段');
       }
-
       currentUserName = userInfo.nickname || userInfo.username || '我';
-    } else {
-      console.warn('⚠️ [onLoad] 本地存储中没有 userInfo');
     }
 
     this.setData({
@@ -76,16 +68,64 @@ Page({
       currentUserId: currentUserId || 252,
       currentUserAvatar: currentUserAvatar,
       currentUserName: currentUserName,
-      receiverName: chatName // 接收者昵称默认为聊天名称
+      receiverName: chatName,
+      goodsIdFromUrl: goodsId // ✅ 保存商品 ID
     });
 
     wx.setNavigationBarTitle({ title: chatName });
 
-    // ✅ 新增：加载对方用户的头像信息
     this.loadReceiverInfo(receiver);
+
+    // ✅ 如果传入了商品 ID，则加载商品信息
+    if (goodsId) {
+      this.loadRelatedGoods(goodsId);
+    }
 
     this.loadChatHistory();
     this.connectWebSocket();
+  },
+
+  // ✅ 新增：加载关联商品信息
+  loadRelatedGoods: function(goodsId) {
+    const app = getApp();
+    const token = wx.getStorageSync('token');
+
+    wx.request({
+      url: `${app.globalData.baseUrl}/products/detail?productId=${goodsId}`,
+      method: 'GET',
+      header: { 'Authorization': token },
+      success: (res) => {
+        if (res.data.code === 200 && res.data.data) {
+          const product = res.data.data;
+          // 处理图片路径
+          let imageUrl = product.image || (product.images && product.images[0]) || '';
+          if (imageUrl && !imageUrl.startsWith('http')) {
+            imageUrl = this.processImageUrl(imageUrl);
+          }
+
+          this.setData({
+            relatedGoods: {
+              id: product.id || product.productId,
+              title: product.title,
+              price: product.price,
+              image: imageUrl
+            }
+          });
+        }
+      },
+      fail: (err) => {
+        console.error('加载关联商品失败:', err);
+      }
+    });
+  },
+
+  // ✅ 新增：点击商品卡片跳转回详情页
+  onGoodsCardTap: function() {
+    if (this.data.relatedGoods && this.data.relatedGoods.id) {
+      wx.navigateTo({
+        url: `/pages/GoodDetail/GoodDetail?id=${this.data.relatedGoods.id}`
+      });
+    }
   },
 
   // ✅ 新增：加载接收者信息（头像等）

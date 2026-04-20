@@ -217,6 +217,7 @@ Page({
             return new Date(b.lastDate).getTime() - new Date(a.lastDate).getTime();
           });
 
+
           // 3. 处理每一条会话的显示数据
           const processedSessions = sessions.map(session => {
             // ✅ 处理头像 URL
@@ -227,15 +228,28 @@ Page({
               avatarUrl = '/static/assets/icons/default-avatar.png';
             }
 
+            // ✅ 新增：处理交易请求类型的最后一条消息
+            let lastMessageText = session.lastMessage || '暂无消息';
+            let isTradeRequestMsg = false;
+
+            // 如果后端返回了 msgType 为 3，或者 type 字段明确标识为 trade_request
+            if (session.msgType === 3 || session.type === 'trade_request') {
+              isTradeRequestMsg = true;
+              // 格式化显示文本
+              const method = session.deliveryMethod ? `[${session.deliveryMethod}]` : '[交易请求]';
+              lastMessageText = `${method} 发起了交易请求`;
+            }
+
             return {
               ...session,
               receiver: session.targetId || session.receiverId || session.otherUserId,
               title: session.nickname || session.name || `用户${session.targetId}`,
-              avatar: avatarUrl, // ✅ 使用处理后的头像 URL
-              text: session.lastMessage || '暂无消息',
+              avatar: avatarUrl,
+              text: lastMessageText, // ✅ 使用处理后的文本
               date: session.lastDate ? this.formatSessionTime(session.lastDate) : '',
               isRead: session.unreadCount === 0,
-              unreadCount: session.unreadCount || 0
+              unreadCount: session.unreadCount || 0,
+              isTradeRequest: isTradeRequestMsg // ✅ 标记是否为交易请求会话
             };
           });
 
@@ -475,12 +489,20 @@ Page({
 
     this._wsListenerAdded = true;
   },
-  // ✅ 新增：在消息列表中处理新消息
+
+  // ✅ 新增：在消息列表中处理新消息（WebSocket 推送时调用）
   handleNewMessageInList(data) {
     const { chatSessions } = this.data;
     const senderId = data.senderId;
 
     console.log('=== 收到新消息，senderId:', senderId);
+
+    // ✅ 新增：识别交易请求消息
+    let messageText = data.content;
+    if (data.msgType === 3 || data.type === 'trade_request') {
+      const method = data.tradeRequest ? data.tradeRequest.deliveryMethod : '';
+      messageText = `[交易请求] ${method ? '[' + method + ']' : ''}发起了交易请求`;
+    }
 
     // 查找对应的会话
     const sessionIndex = chatSessions.findIndex(session =>
@@ -494,8 +516,9 @@ Page({
 
       // 未读数 +1
       session.unreadCount = (session.unreadCount || 0) + 1;
-      session.lastMessage = data.content;
+      session.lastMessage = messageText; // ✅ 使用处理后的文本
       session.lastMessageTime = data.sendTime || new Date().toISOString();
+      session.isTradeRequest = (data.msgType === 3); // ✅ 更新标记
 
       // 将该会话移到列表顶部
       updatedSessions.splice(sessionIndex, 1);
@@ -506,8 +529,6 @@ Page({
         messages: updatedSessions
       }, () => {
         console.log('✅ 更新会话列表，未读数 +1');
-
-        // 重新计算总未读数
         this.calculateTotalUnreadMessages();
       });
     } else {

@@ -5,15 +5,29 @@
   <!-- 自定义导航栏 -->
   <custom-nav-bar title="{{chatName}}" showBack="true" />
   
-  <view style="padding-top: 88rpx;">
-    <scroll-view 
-      scroll-y="true"
-      class="chat-scroll-view"
-      id="chatScrollView"
-      scroll-into-view="{{scrollIntoView}}"
-      scroll-top="{{scrollTop}}"
-      scroll-with-animation="false"
-    >
+   <!-- ✅ 新增：关联商品卡片 (只有当 relatedGoods 存在时才显示) -->
+    <view wx:if="{{relatedGoods}}" class="goods-card" bindtap="onGoodsCardTap">
+      <image class="goods-thumb" src="{{relatedGoods.image}}" mode="aspectFill"></image>
+      <view class="goods-info">
+        <text class="goods-title">{{relatedGoods.title}}</text>
+        <view class="goods-price-row">
+          <text class="goods-symbol">¥</text>
+          <text class="goods-price">{{relatedGoods.price}}</text>
+        </view>
+      </view>
+      <view class="goods-status-tag">交易中</view>
+    </view>
+
+    <!-- 聊天内容滚动区 -->
+    <view style="padding-top: {{relatedGoods ? '260rpx' : '88rpx'}};">
+      <scroll-view
+        scroll-y="true"
+        class="chat-scroll-view"
+        id="chatScrollView"
+        scroll-into-view="{{scrollIntoView}}"
+        scroll-top="{{scrollTop}}"
+        scroll-with-animation="false"
+      >
        <block wx:for="{{chatRecords}}" wx:key="index">
               <!-- 时间 -->
               <view wx:if="{{item.showTime}}" class="msg-time">

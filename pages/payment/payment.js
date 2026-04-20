@@ -242,31 +242,28 @@ Page({
       return;
     }
 
-    // ✅ 修复：确保 quantity 是数字
     const quantity = parseInt(this.data.quantity) || 1;
-
-    // ✅ 关键修改：根据后端 @RequestParam 要求调整参数名
-    // 1. 删除 sellerId (后端会自动从商品获取)
-    // 2. 将 transactionMethod 改为 deliveryMethod
     const formData = `productId=${this.data.goodsId}&buyerId=${userInfo.id}&deliveryMethod=${this.data.goodsInfo.transactionMethod}&quantity=${quantity}&buyerRemark=请尽快发货`;
 
     console.log('发送的交易请求数据 (Form):', formData);
 
-    // 调用交易请求接口
     wx.request({
       url: `${app.globalData.baseUrl}/trade-requests/create`,
       method: 'POST',
       header: {
         'Authorization': token,
-        // ✅ 必须设置为这个类型，以匹配后端的 @RequestParam
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      data: formData, // ✅ 直接发送字符串
+      data: formData,
       success: (res) => {
         console.log('发起交易请求接口响应:', res);
-        if (res.data.code === 200) {
-          // 交易请求发送成功
-          this.handleTradeRequestSuccess();
+        // ✅ 修复：根据后端格式 res.data.data 才是业务数据
+        if (res.statusCode === 200 && res.data.success && res.data.data) {
+          const tradeData = res.data.data;
+          console.log('交易请求创建成功，ID:', tradeData.requestId);
+
+          // 交易请求发送成功，执行后续处理
+          this.handleTradeRequestSuccess(tradeData);
         } else {
           console.error('发起交易请求失败:', res.data);
           wx.showToast({ title: res.data.message || '发起交易请求失败', icon: 'none' });
@@ -281,28 +278,34 @@ Page({
     });
   },
 
-  handleTradeRequestSuccess() {
+
+  handleTradeRequestSuccess(tradeData) {
     try {
-      // 创建本地交易请求数据（用于在消息页面显示）
-      const tradeRequestData = {
-        id: Date.now(), // 临时ID
+      const sellerId = this.data.goodsInfo.sellerId;
+
+      // ✅ 关键：通知 message 页面刷新会话列表
+      // 这样买家和卖家（如果在线）都能在 Message 页面看到最新的 "[交易请求]" 提示
+      const pages = getCurrentPages();
+      const messagePage = pages.find(page => page.route === 'pages/message/message');
+
+      if (messagePage && typeof messagePage.loadChatSessions === 'function') {
+        console.log('✅ 触发 Message 页面会话列表刷新');
+        messagePage.loadChatSessions();
+      }
+
+      // 保存一份到本地作为备份（可选，用于离线查看）
+      const pendingTradeRequests = wx.getStorageSync('pendingTradeRequests') || [];
+      pendingTradeRequests.push({
+        id: tradeData.requestId,
         goods: {
           id: this.data.goodsId,
           title: this.data.goodsInfo.title,
           price: this.data.goodsInfo.price,
           imageUrl: this.data.goodsInfo.image
         },
-        quantity: this.data.quantity,
-        totalPrice: this.calculateTotalPrice(),
-        address: this.data.address,
-        tradeTime: new Date().toISOString(),
-        status: 'pending', // 待确认状态
-        buyerRemark: '请尽快发货'
-      };
-
-      // 保存交易请求到本地存储（模拟消息系统）
-      const pendingTradeRequests = wx.getStorageSync('pendingTradeRequests') || [];
-      pendingTradeRequests.push(tradeRequestData);
+        status: tradeData.status,
+        tradeTime: tradeData.requestTime
+      });
       wx.setStorageSync('pendingTradeRequests', pendingTradeRequests);
 
       wx.showToast({
@@ -311,7 +314,7 @@ Page({
         duration: 2000
       });
 
-      // 跳转到消息页面，让用户等待卖家回复
+      // 跳转到消息页面
       setTimeout(() => {
         wx.switchTab({
           url: '/pages/message/message'
@@ -325,7 +328,5 @@ Page({
       this.setData({ loading: false });
     }
   }
-
-
 
 });
