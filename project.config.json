@@ -1,44 +1,45 @@
 {
-    "description": "项目配置文件",
-    "setting": {
-        "urlCheck": false,
-        "es6": true,
-        "postcss": true,
-        "minified": true,
-        "coverView": true,
-        "enhance": true,
-        "showShadowRootInWxmlPanel": true,
-        "packNpmRelationList": [],
-        "babelSetting": {
-            "ignore": [],
-            "disablePlugins": [],
-            "outputPath": ""
-        },
-        "compileWorklet": false,
-        "uglifyFileName": false,
-        "uploadWithSourceMap": true,
-        "packNpmManually": false,
-        "minifyWXSS": true,
-        "minifyWXML": true,
-        "localPlugins": false,
-        "disableUseStrict": false,
-        "useCompilerPlugins": false,
-        "condition": false,
-        "swc": false,
-        "disableSWC": true
+  "description": "项目配置文件",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": false,
+    "minified": false,
+    "coverView": true,
+    "enhance": true,
+    "showShadowRootInWxmlPanel": true,
+    "packNpmRelationList": [],
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
     },
-    "libVersion": "3.8.9",
-    "appid": "wx454f609b500bd5be",
-    "projectname": "miniapp-local",
-    "compileType": "miniprogram",
-    "packOptions": {
-        "ignore": [],
-        "include": []
-    },
-    "condition": {},
-    "editorSetting": {
-        "tabIndent": "auto",
-        "tabSize": 2
-    },
-    "simulatorPluginLibVersion": {}
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "minifyWXSS": false,
+    "minifyWXML": false,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "swc": true,
+    "disableSWC": false,
+    "ignoreUploadUnusedFiles": false
+  },
+  "libVersion": "3.8.12",
+  "appid": "wx454f609b500bd5be",
+  "projectname": "miniapp-local",
+  "compileType": "miniprogram",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "condition": {},
+  "editorSetting": {
+    "tabIndent": "auto",
+    "tabSize": 2
+  },
+  "simulatorPluginLibVersion": {}
 }

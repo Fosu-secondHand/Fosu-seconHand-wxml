@@ -35,15 +35,7 @@
       />
     </view>
     
-    <view class="form-item">
-      <label>手机号码</label>
-      <input 
-        type="number" 
-        placeholder="请输入收货手机号" 
-        value="{{phoneNumber}}" 
-        bindinput="handlePhoneNumberInput" 
-      />
-    </view>
+
     
     <!-- 性别选择 -->
     <view class="form-item">

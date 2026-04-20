@@ -7,7 +7,6 @@ Page({
     nickname: '',
     accountNumber: '',
     intro: '',
-    phone: '',
     notificationEnabled: true,
 
     // 模态框状态
@@ -15,14 +14,12 @@ Page({
     isNicknameEditModalShow: false,
     isAccountEditModalShow: false,
     isIntroEditModalShow: false,
-    isBindPhoneModalShow: false,
 
     // 临时编辑数据
     tempAvatarUrl: '',
     tempNickname: '',
     tempAccountNumber: '',
     tempIntro: '',
-    tempPhone: '',
 
     // 随机昵称配置
     randomNicknameConfig: {
@@ -100,7 +97,6 @@ Page({
         nickname: userInfo.nickname || userInfo.nickName || '未设置昵称',
         accountNumber: accountNumber,
         intro: userInfo.intro || '',
-        phone: userInfo.phone || '',
         notificationEnabled: true
       };
 
@@ -138,7 +134,6 @@ Page({
         nickName: this.data.nickname,        // ✅ 同时更新 nickName（兼容旧代码）
         accountNumber: this.data.accountNumber,
         intro: this.data.intro,
-        phone: this.data.phone,
         notificationEnabled: this.data.notificationEnabled
       };
 
@@ -205,7 +200,6 @@ Page({
       userId: userInfo.id,
       avatar: this.data.avatarUrl,  // ✅ 使用 avatar 字段
       nickname: this.data.nickname,  // ✅ 正确
-      phone: this.data.phone,        // ✅ 正确
       Username: this.data.nickname,  // ✅ 添加 Username 字段（注意大写）
       gender: userInfo.gender || 0   // ✅ 正确
       // ❌ 不传递 intro 字段，因为后端没有这个字段
@@ -232,8 +226,7 @@ Page({
             avatar: this.data.avatarUrl,
             avatarUrl: this.data.avatarUrl,  // ✅ 同时更新 avatarUrl
             nickname: this.data.nickname,
-            nickName: this.data.nickname,    // ✅ 同时更新 nickName（大写N）
-            phone: this.data.phone
+            nickName: this.data.nickname   // ✅ 同时更新 nickName（大写N）
           });
           wx.setStorageSync('userInfo', localUserInfo);
 
@@ -581,77 +574,7 @@ Page({
     this.saveUserInfo(false);
   },
 
-  // ================= 手机绑定 =================
-  openBindPhone() {
-    this.setData({
-      isBindPhoneModalShow: true,
-      tempPhone: this.data.phone
-    });
-  },
 
-  closeBindPhoneModal() {
-    this.setData({
-      isBindPhoneModalShow: false,
-      tempPhone: ''
-    });
-  },
-
-  onPhoneInput(e) {
-    this.setData({ tempPhone: e.detail.value });
-  },
-
-  getWechatPhone() {
-    wx.choosePhoneNumber({
-      success: (res) => {
-        if (res.phoneNumber) {
-          const newPhone = res.phoneNumber;
-
-          this.setData({
-            phone: newPhone,
-            isBindPhoneModalShow: false
-          });
-
-          // 手机号绑定后立即保存到服务器
-          this.saveUserInfo(false);
-
-          wx.showToast({
-            title: '绑定成功',
-            icon: 'success'
-          });
-        } else {
-          this.openManualPhoneInput();
-        }
-      },
-      fail: (err) => {
-        this.openManualPhoneInput();
-      }
-    });
-  },
-
-  bindPhone() {
-    const newPhone = this.data.tempPhone.trim();
-
-    if (newPhone && !/^1[3-9]\d{9}$/.test(newPhone)) {
-      wx.showToast({
-        title: '手机号格式不正确',
-        icon: 'none'
-      });
-      return;
-    }
-
-    wx.showLoading({ title: '处理中...' });
-
-    setTimeout(() => {
-      this.setData({
-        phone: newPhone,
-        isBindPhoneModalShow: false
-      });
-
-      // 手机号修改后立即保存到服务器
-      this.saveUserInfo(false);
-      wx.hideLoading();
-    }, 1000);
-  },
 
   // ================= 通知开关 =================
   toggleNotification(e) {

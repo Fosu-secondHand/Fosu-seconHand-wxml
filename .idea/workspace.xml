@@ -4,49 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2e22c8ad-9cb2-476e-a336-9cec52ed2c06" name="更改" comment="feat(goods):优化商品详情页交互与推荐逻辑&#10;&#10;- 修改推荐商品接口调用方式，添加认证头并优化错误处理&#10;- 完善商品已售出状态的前端校验与提示&#10;-优化求购商品的聊天按钮逻辑，区分不同类型商品处理&#10;- 更新商品详情页布局，使用滚动视图提升用户体验&#10;- 调整底部操作栏显示逻辑，根据商品状态动态渲染按钮- 增加商品已售出状态下的底部提示样式- 优化我的购买页面商品列表展示，增加卖家信息显示&#10;- 改进地址管理相关接口调用逻辑，精简用户信息更新条件">
-      <change afterPath="$PROJECT_DIR$/static/公司图标.png" afterDir="false" />
+    <list default="true" id="2e22c8ad-9cb2-476e-a336-9cec52ed2c06" name="更改" comment="refactor(auth): 重构用户认证模块并优化地址管理功能&#10;&#10;- 重构 authMixin.js 中的登录验证逻辑，增强用户信息字段校验和自动修复机制&#10;- 新增全局登录状态同步功能，确保 userInfo 的 isLogin 和 id 字段完整性&#10;- 优化 addAddress 页面的用户信息获取策略，采用后端优先、本地缓存降级的混合方案&#10;- 修复地址管理中用户信息更新的数据同步问题，确保昵称和头像字段正确传递&#10;- 更新 app.js 中的后端服务地址配置，调整 API 接口基础路径&#10;- 移除反馈页面入口，精简应用页面结构&#10;- 添加相机和相册权限配置，完善小程序权限声明&#10;- 重构 about 页面内容展示，新增产品介绍模块并更新联系方式">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/about/about.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/about/about.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/about/about.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/about/about.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/about/about.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/about/about.wxss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/addAddress/addAddress.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/addAddress/addAddress.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/chat/chat.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/chat/chat.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/chat/chat.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/chat/chat.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/chat/chat.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/chat/chat.wxss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/customerService/customerService.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/customerService/customerService.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/customerService/customerService.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/customerService/customerService.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/customerService/customerService.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/customerService/customerService.wxss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/editIdle/editIdle.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/editIdle/editIdle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/feedback/feedback.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/feedback/feedback.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/feedback/feedback.wxml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/feedback/feedback.wxss" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/idle/idle.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/idle/idle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/index/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/index/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/login/login.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/login/login.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/message/message.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/message/message.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/message/message.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/message/message.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/myBought/myBought.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myBought/myBought.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/myCollection/myCollection.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myCollection/myCollection.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/myPublished/myPublished.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myPublished/myPublished.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/mySold/mySold.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/mySold/mySold.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/payment/payment.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/payment/payment.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/profile/profile.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/profile/profile.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/profile/profile.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/profile/profile.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/addAddress/addAddress.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/addAddress/addAddress.wxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/setting/setting.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/setting/setting.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/setting/setting.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/setting/setting.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/userHome/userHome.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/userHome/userHome.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/userHome/userHome.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/userHome/userHome.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/userHome/userHome.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/userHome/userHome.wxss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/wantIdle/wantIdle.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/wantIdle/wantIdle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/authMixin.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/authMixin.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project.config.json" beforeDir="false" afterPath="$PROJECT_DIR$/project.config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project.private.config.json" beforeDir="false" afterPath="$PROJECT_DIR$/project.private.config.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -123,7 +88,7 @@
       <workItem from="1775318085120" duration="599000" />
       <workItem from="1776174771226" duration="48452000" />
       <workItem from="1776581858353" duration="307000" />
-      <workItem from="1776582215373" duration="19640000" />
+      <workItem from="1776582215373" duration="24906000" />
     </task>
     <task id="LOCAL-00001" summary="feat(address): 实现地址编辑与用户信息同步功能- 新增自动填充用户信息功能，编辑地址时自动获取用户默认信息- 实现表单数据变更检测，仅更新发生变化的字段&#10;- 添加默认地址更新机制，删除或设置默认地址时同步更新用户信息&#10;- 优化地址提交逻辑，确保地址信息与用户信息保持一致&#10;- 增强表单验证，支持校区、宿舍楼、门牌号等字段校验- 实现用户信息更新接口调用，避免传递敏感字段如openid等- 添加地址变更时的用户提示与错误处理机制">
       <option name="closed" value="true" />
@@ -141,7 +106,15 @@
       <option name="project" value="LOCAL" />
       <updated>1762783553147</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="refactor(auth): 重构用户认证模块并优化地址管理功能&#10;&#10;- 重构 authMixin.js 中的登录验证逻辑，增强用户信息字段校验和自动修复机制&#10;- 新增全局登录状态同步功能，确保 userInfo 的 isLogin 和 id 字段完整性&#10;- 优化 addAddress 页面的用户信息获取策略，采用后端优先、本地缓存降级的混合方案&#10;- 修复地址管理中用户信息更新的数据同步问题，确保昵称和头像字段正确传递&#10;- 更新 app.js 中的后端服务地址配置，调整 API 接口基础路径&#10;- 移除反馈页面入口，精简应用页面结构&#10;- 添加相机和相册权限配置，完善小程序权限声明&#10;- 重构 about 页面内容展示，新增产品介绍模块并更新联系方式">
+      <option name="closed" value="true" />
+      <created>1776671538004</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1776671538004</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -161,6 +134,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="feat(address): 实现地址编辑与用户信息同步功能- 新增自动填充用户信息功能，编辑地址时自动获取用户默认信息- 实现表单数据变更检测，仅更新发生变化的字段&#10;- 添加默认地址更新机制，删除或设置默认地址时同步更新用户信息&#10;- 优化地址提交逻辑，确保地址信息与用户信息保持一致&#10;- 增强表单验证，支持校区、宿舍楼、门牌号等字段校验- 实现用户信息更新接口调用，避免传递敏感字段如openid等- 添加地址变更时的用户提示与错误处理机制" />
     <MESSAGE value="feat(goods):优化商品详情页交互与推荐逻辑&#10;&#10;- 修改推荐商品接口调用方式，添加认证头并优化错误处理&#10;- 完善商品已售出状态的前端校验与提示&#10;-优化求购商品的聊天按钮逻辑，区分不同类型商品处理&#10;- 更新商品详情页布局，使用滚动视图提升用户体验&#10;- 调整底部操作栏显示逻辑，根据商品状态动态渲染按钮- 增加商品已售出状态下的底部提示样式- 优化我的购买页面商品列表展示，增加卖家信息显示&#10;- 改进地址管理相关接口调用逻辑，精简用户信息更新条件" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat(goods):优化商品详情页交互与推荐逻辑&#10;&#10;- 修改推荐商品接口调用方式，添加认证头并优化错误处理&#10;- 完善商品已售出状态的前端校验与提示&#10;-优化求购商品的聊天按钮逻辑，区分不同类型商品处理&#10;- 更新商品详情页布局，使用滚动视图提升用户体验&#10;- 调整底部操作栏显示逻辑，根据商品状态动态渲染按钮- 增加商品已售出状态下的底部提示样式- 优化我的购买页面商品列表展示，增加卖家信息显示&#10;- 改进地址管理相关接口调用逻辑，精简用户信息更新条件" />
+    <MESSAGE value="refactor(auth): 重构用户认证模块并优化地址管理功能&#10;&#10;- 重构 authMixin.js 中的登录验证逻辑，增强用户信息字段校验和自动修复机制&#10;- 新增全局登录状态同步功能，确保 userInfo 的 isLogin 和 id 字段完整性&#10;- 优化 addAddress 页面的用户信息获取策略，采用后端优先、本地缓存降级的混合方案&#10;- 修复地址管理中用户信息更新的数据同步问题，确保昵称和头像字段正确传递&#10;- 更新 app.js 中的后端服务地址配置，调整 API 接口基础路径&#10;- 移除反馈页面入口，精简应用页面结构&#10;- 添加相机和相册权限配置，完善小程序权限声明&#10;- 重构 about 页面内容展示，新增产品介绍模块并更新联系方式" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor(auth): 重构用户认证模块并优化地址管理功能&#10;&#10;- 重构 authMixin.js 中的登录验证逻辑，增强用户信息字段校验和自动修复机制&#10;- 新增全局登录状态同步功能，确保 userInfo 的 isLogin 和 id 字段完整性&#10;- 优化 addAddress 页面的用户信息获取策略，采用后端优先、本地缓存降级的混合方案&#10;- 修复地址管理中用户信息更新的数据同步问题，确保昵称和头像字段正确传递&#10;- 更新 app.js 中的后端服务地址配置，调整 API 接口基础路径&#10;- 移除反馈页面入口，精简应用页面结构&#10;- 添加相机和相册权限配置，完善小程序权限声明&#10;- 重构 about 页面内容展示，新增产品介绍模块并更新联系方式" />
   </component>
 </project>

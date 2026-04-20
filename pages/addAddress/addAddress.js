@@ -140,14 +140,12 @@ Page({
     if (!this.data.contactName && nickname) {
       this.setData({
         contactName: nickname,
-        phoneNumber: this.data.phoneNumber || phone,
         campus: this.data.campus || campus,
         dormitory: this.data.dormitory || dormitory,
         roomNumber: this.data.roomNumber || roomNumber
       });
       console.log('✅ 自动填充完成:', {
-        contactName: nickname,
-        phoneNumber: phone
+        contactName: nickname
       });
     } else {
       console.log('⚠️ 联系人姓名已有值，跳过自动填充');
@@ -246,7 +244,6 @@ Page({
 
               const autoFilledData = {
                 contactName: this.data.contactName || nickname,
-                phoneNumber: this.data.phoneNumber || phone,
                 campus: this.data.campus || campus,
                 dormitory: this.data.dormitory || dormitory,
                 roomNumber: this.data.roomNumber || roomNumber
@@ -255,7 +252,6 @@ Page({
               // 编辑模式下设置原始数据
               const originalDataUpdate = {
                 contactName: nickname,
-                phoneNumber: phone,
                 campus: campus,
                 dormitory: dormitory,
                 roomNumber: roomNumber
@@ -352,9 +348,7 @@ Page({
     this.setData({ contactName: e.detail.value });
   },
 
-  handlePhoneNumberInput(e) {
-    this.setData({ phoneNumber: e.detail.value });
-  },
+
 
   // ===== 性别和校区选择 =====
   selectGender(e) {
@@ -384,15 +378,7 @@ Page({
       return false;
     }
 
-    if (!phoneNumber) {
-      wx.showToast({ title: '请填写手机号', icon: 'none' });
-      return false;
-    }
 
-    if (!/^1[3-9]\d{9}$/.test(phoneNumber)) {
-      wx.showToast({ title: '手机号格式不正确', icon: 'none' });
-      return false;
-    }
 
     return true;
   },
@@ -427,7 +413,6 @@ Page({
       dormitory: this.data.dormitory,
       roomNumber: this.data.roomNumber,
       contactName: this.data.contactName,
-      phoneNumber: this.data.phoneNumber,
       gender: this.data.gender === 'male' ? '先生' : '女士',
       campus: this.data.campus,
       createTime: addressId
@@ -515,7 +500,6 @@ Page({
       const userData = {
         userId: userInfo.id,
         address: `${addressData.campus}-${addressData.dormitory}-${addressData.roomNumber}`,
-        phone: addressData.phoneNumber,
         avatar: currentAvatar,        // ✅ 保留当前头像
         nickname: currentNickname,    // ✅ 保留当前昵称
         Username: currentNickname     // ✅ 保留当前用户名
@@ -550,7 +534,6 @@ Page({
             const localUserInfo = wx.getStorageSync('userInfo') || {};
             const updatedUserInfo = {
               ...localUserInfo,
-              phone: addressData.phoneNumber,
               address: userData.address,
               avatar: currentAvatar,      // ✅ 保留头像
               avatarUrl: currentAvatar,   // ✅ 保留头像URL
