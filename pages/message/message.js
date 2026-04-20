@@ -1,10 +1,9 @@
 // message.js
-// Deleted:const { messages } = require('../../mock/message.js'); // 根据实际路径调整
+const authMixin = require('../../utils/authMixin.js');
 
 Page({
   data: {
     messages: [],
-    // Deleted:originalMessages: messages, // 保存原始数据
     page: 1,
     pageSize: 10,
     hasMoreData: true,
@@ -22,83 +21,49 @@ Page({
     unreadSentRequests: 0, // 未读发出的交易请求
     unreadChatMessages: 0, // 未读聊天消息
     hasLoadedTradeRequests: false, // 新增：标记是否已加载过交易请求
-    chatSessions: [] // ✅ 新增：存储真实的聊天会话列表
+    chatSessions: [], // ✅ 新增：存储真实的聊天会话列表
+    isLogin: false  // ✅ 新增：登录状态
   },
 
+  // ✅ 引入混入方法
+  ...authMixin.methods,
 
-  // ✅ 修改：onLoad - 页面加载时获取未读数量
-  onLoad(options) {
-    // Deleted:this.loadMessages();
-    wx.setNavigationBarTitle({
-      title: '消息'
-    });
-
-    // ✅ 修改：页面加载时获取未读数量
-    this.getUnreadMessageCount();
-
-    // ✅ 新增：加载聊天会话列表
-    this.loadChatSessions();
-
-    // ✅ 新增：检查是否有目标用户参数，如果有则自动创建会话
-    if (options.targetUserId && options.targetUserName) {
-      console.log('=== 需要创建与目标用户的会话 ===');
-      console.log('目标用户 ID:', options.targetUserId);
-      console.log('目标用户名称:', decodeURIComponent(options.targetUserName));
-      console.log('商品 ID:', options.goodsId);
-
-      // 延迟执行，确保 chatSessions 已加载
-      setTimeout(() => {
-        this.createOrUpdateChatSession(
-            options.targetUserId,
-            decodeURIComponent(options.targetUserName),
-            options.goodsId
-        );
-      }, 500);
-    }
+  // ✅ 修复：删除了错误的 onLoad (那是 chat 页面的逻辑)，改为标准的 message 页面初始化
+  onLoad: function (options) {
+    console.log('🚀 消息列表页面加载');
+    this.checkLogin(); // 检查登录状态
   },
 
-  // ✅ 修改：onShow - 页面显示时更新未读数
   onShow() {
-    console.log('=== onShow 触发 ===');
-    console.log('hasLoadedTradeRequests:', this.data.hasLoadedTradeRequests);
-    console.log('当前 sentRequests 长度:', this.data.sentRequests.length);
+    if (!this.checkLogin()) {
+      wx.redirectTo({ url: '/pages/login/login' });
+      return;
+    }
 
-    // ✅ 修复：只在非消息页面回来时才同步选中状态
+    console.log('=== onShow 触发 ===');
+
     const pages = getCurrentPages();
     const previousPage = pages.length > 1 ? pages[pages.length - 2] : null;
 
-    // 如果是从聊天页面返回，需要同步选中状态
     if (previousPage && previousPage.route && previousPage.route.includes('chat')) {
       setTimeout(() => {
         this.forceSyncTabBarSelectedState();
       }, 200);
-
-      // ✅ 新增：从聊天页面返回时，重新获取未读数量
-      // 因为用户在聊天页面可能已经阅读了消息
       setTimeout(() => {
         this.getUnreadMessageCount();
         this.loadChatSessions();
       }, 300);
     }
 
-    // 只在第一次进入或非消息页面回来时才加载交易请求
     if (!this.data.hasLoadedTradeRequests) {
-      console.log('执行首次加载...');
       this.loadTradeRequests();
       this.setData({ hasLoadedTradeRequests: true });
     } else {
-      console.log('不是首次加载，只更新计数');
-      console.log('当前未读发出的请求数:', this.calculateUnreadSentRequests());
-
-      // 如果不是第一次加载，只更新未读计数和红点
       this.updateUnreadCount();
       this.updateTabBarBadge();
     }
 
-    // ✅ 修改：获取最新未读数量（从后端接口）
     this.getUnreadMessageCount();
-
-    // ✅ 新增：重新加载聊天会话列表
     this.loadChatSessions();
   },
 
@@ -115,6 +80,12 @@ Page({
 
   // 加载交易请求
   loadTradeRequests() {
+    // ✅ 新增：使用统一的登录检查
+    if (!this.checkLogin()) {
+      console.warn('⚠️ loadTradeRequests: 用户未登录');
+      return;
+    }
+
     const app = getApp();
     const token = wx.getStorageSync('token');
     const userInfo = wx.getStorageSync('userInfo');
@@ -186,6 +157,30 @@ Page({
     });
   },
 
+  // ✅ 新增：统一处理图片 URL 的方法（参考 userHome.js）
+  processImageUrl(imagePath) {
+    if (!imagePath && imagePath !== 0) return '';
+
+    const imageUrl = String(imagePath).trim();
+    if (!imageUrl) return '';
+
+    const app = getApp();
+    const baseURL = app.globalData.baseUrl;
+
+    // 如果已经是完整 URL，直接返回
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+
+    // 如果是相对路径，拼接完整域名
+    if (imageUrl.startsWith('/api')) {
+      const serverRoot = baseURL.replace(/\/api$/, '');
+      return serverRoot + imageUrl;
+    } else {
+      return baseURL + (imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl);
+    }
+  },
+
   // ✅ 修复：加载聊天会话列表（从后端接口）
   loadChatSessions() {
     const app = getApp();
@@ -193,77 +188,72 @@ Page({
     const userInfo = wx.getStorageSync('userInfo');
 
     if (!token || !userInfo) {
-      console.log('用户未登录，跳过加载聊天会话');
+      console.log('用户未登录，跳过加载会话');
       return;
     }
 
-    // ✅ 修复：获取当前用户 ID 并作为参数传递
     const currentUserId = userInfo.id;
-
-    if (!currentUserId) {
-      console.error('未找到 userId，请先登录');
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
-      return;
-    }
+    if (!currentUserId) return;
 
     console.log('=== 加载聊天会话列表，userId:', currentUserId);
 
     wx.request({
-      // ✅ 修改为正确的接口路径
       url: `${app.globalData.baseUrl}/messages/getChatSessionList`,
       method: 'GET',
-      data: {
-        // ✅ 必须传递 userId 参数
-        userId: currentUserId
-      },
-      header: {
-        'Authorization': token
-      },
+      data: { userId: currentUserId },
+      header: { 'Authorization': token },
       success: (res) => {
         if (res.statusCode === 200 && res.data.code === 200) {
-          const sessions = res.data.data || [];
+          let sessions = res.data.data;
 
-          console.log('=== 获取到聊天会话列表 ===', sessions);
+          // 1. 兼容后端返回的对象结构 { sessions: [...] }
+          if (sessions && typeof sessions === 'object' && !Array.isArray(sessions)) {
+            sessions = sessions.sessions || [];
+          }
+          if (!Array.isArray(sessions)) sessions = [];
 
-          // 处理会话数据 - ✅ 保留每个会话的未读数
-          const processedSessions = sessions.map(session => ({
-            ...session,
-            avatar: session.avatar || '/static/assets/icons/default-avatar.png',
-            title: session.name || session.otherUserName || `用户${session.receiverId || session.otherUserId}`,
-            receiver: session.receiverId || session.otherUserId || session.chatPartnerId,
-            text: session.lastMessage || session.latestMessage || '暂无消息',
-            date: session.lastMessageTime || session.latestMessageTime ? this.formatSessionTime(session.lastMessageTime || session.latestMessageTime) : '',
-            isRead: session.isRead || false,
-            unreadCount: session.unreadCount || 0 // ✅ 保留未读数
-          }));
+          // 2. ✅ 关键修复：按最后一条消息的时间倒序排列（最新的在最前）
+          sessions.sort((a, b) => {
+            return new Date(b.lastDate).getTime() - new Date(a.lastDate).getTime();
+          });
+
+          // 3. 处理每一条会话的显示数据
+          const processedSessions = sessions.map(session => {
+            // ✅ 处理头像 URL
+            let avatarUrl = session.avatar;
+            if (avatarUrl && avatarUrl.trim() !== '') {
+              avatarUrl = this.processImageUrl(avatarUrl);
+            } else {
+              avatarUrl = '/static/assets/icons/default-avatar.png';
+            }
+
+            return {
+              ...session,
+              receiver: session.targetId || session.receiverId || session.otherUserId,
+              title: session.nickname || session.name || `用户${session.targetId}`,
+              avatar: avatarUrl, // ✅ 使用处理后的头像 URL
+              text: session.lastMessage || '暂无消息',
+              date: session.lastDate ? this.formatSessionTime(session.lastDate) : '',
+              isRead: session.unreadCount === 0,
+              unreadCount: session.unreadCount || 0
+            };
+          });
 
           this.setData({
             chatSessions: processedSessions,
-            messages: processedSessions // 同时更新 messages 用于显示
+            messages: processedSessions
           }, () => {
-            // ✅ 新增：计算总未读消息数
             this.calculateTotalUnreadMessages();
           });
 
-          // 更新未读聊天消息数
           this.updateGlobalUnreadChatCount();
         } else {
-          console.error('加载聊天会话失败:', res.data);
-          wx.showToast({
-            title: res.data.message || '加载失败',
-            icon: 'none'
-          });
+          this.setData({ chatSessions: [], messages: [] });
         }
       },
       fail: (err) => {
         console.error('加载聊天会话网络错误:', err);
-        wx.showToast({
-          title: '网络错误',
-          icon: 'none'
-        });
+        this.setData({ chatSessions: [], messages: [] });
       }
     });
   },
@@ -298,7 +288,9 @@ Page({
       url: `${app.globalData.baseUrl}/messages/unread-count`,
       method: 'GET',
       data: {
-        userId: currentUserId
+        userId: currentUserId,
+        pageNum: 1,
+        pageSize: 20 // ✅ 强制要求返回 20 条
       },
       header: {
         'Authorization': token
@@ -402,32 +394,38 @@ Page({
       });
     });
   },
-  // ✅ 新增：格式化会话时间
-  formatSessionTime(timestamp) {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now - date;
 
-    // 今天的消息只显示时间
-    if (diff < 24 * 60 * 60 * 1000 && date.toDateString() === now.toDateString()) {
-      return date.toLocaleTimeString('zh-CN', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+  formatSessionTime(timestamp) {
+    if (!timestamp) return '';
+    // ✅ 修复：处理时间字符串中的 'T' 和 'Z'，并补偿时区
+    let date = new Date(timestamp);
+
+    // 如果解析出的年份不对，说明可能是时区问题，尝试手动补偿
+    if (isNaN(date.getTime())) {
+      date = new Date(timestamp.replace(/-/g, '/'));
     }
 
-    // 昨天的消息显示"昨天"
+    // 补偿 8 小时 (8 * 60 * 60 * 1000)
+    const utcTime = date.getTime() + (date.getTimezoneOffset() * 60000);
+    const chinaTime = new Date(utcTime + (8 * 3600000));
+
+    const now = new Date();
+    const diff = now - chinaTime;
+
+    // ✅ 关键修改：增加 hour12: false 参数，强制使用 24 小时制
+    const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
+
+    if (diff < 24 * 60 * 60 * 1000 && chinaTime.toDateString() === now.toDateString()) {
+      return chinaTime.toLocaleTimeString('zh-CN', timeOptions);
+    }
+
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
-    if (date.toDateString() === yesterday.toDateString()) {
-      return '昨天 ' + date.toLocaleTimeString('zh-CN', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+    if (chinaTime.toDateString() === yesterday.toDateString()) {
+      return '昨天 ' + chinaTime.toLocaleTimeString('zh-CN', timeOptions);
     }
 
-    // 其他显示完整日期
-    return date.toLocaleDateString('zh-CN');
+    return chinaTime.toLocaleDateString('zh-CN') + ' ' + chinaTime.toLocaleTimeString('zh-CN', timeOptions);
   },
 
 
@@ -860,14 +858,19 @@ Page({
 
   // 计算未读聊天消息
   calculateUnreadChatMessages() {
-    // ✅ 修复：从全局数据获取聊天消息的未读数
-    const app = getApp();
-    if (app.globalData.unreadChatMessages !== undefined) {
-      return app.globalData.unreadChatMessages;
-    }
+    // ✅ 修复：直接从当前 chatSessions 实时计算未读总数
+    const totalUnread = this.data.chatSessions.reduce((sum, session) => {
+      return sum + (session.unreadCount || 0);
+    }, 0);
 
-    // 如果没有全局数据，从本地存储获取
-    return wx.getStorageSync('unreadChatMessages') || 0;
+    console.log('=== 实时计算聊天消息未读数:', totalUnread);
+
+    // 同时更新全局数据和本地存储，保持同步
+    const app = getApp();
+    app.globalData.unreadChatMessages = totalUnread;
+    wx.setStorageSync('unreadChatMessages', totalUnread);
+
+    return totalUnread;
   },
 
   // 设置底部导航栏红点
@@ -913,25 +916,51 @@ Page({
   },
 
 
-  // ✅ 修改：navigateToChat - 点击聊天会话时标记为已读
-  navigateToChat: function(event) {
-    const receiver = event.currentTarget.dataset.receiver;
-    // ✅ 修改：从 chatSessions 中查找
-    const messageItem = this.data.chatSessions.find(item => item.receiver === receiver);
-    const name = messageItem ? messageItem.title : '未知用户';
 
-    console.log('=== 点击聊天会话，receiver:', receiver);
-    console.log('该会话未读消息数:', messageItem?.unreadCount || 0);
+  // ✅ 修改：navigateToChat - 点击聊天会话时标记为已读并跳转
+  navigateToChat: function(event) {
+    console.log('=== 点击聊天会话，原始 event ===', event);
+
+    // ✅ 修复：从 dataset 中获取所有可能的 ID 字段
+    const dataset = event.currentTarget.dataset;
+    let receiver = dataset.receiver || dataset.targetid || dataset.targetId || dataset.otheruserid || dataset.otherUserId;
+
+    console.log('=== 准备跳转聊天，从 dataset 提取的 receiver:', receiver);
+
+    // 如果 dataset 里没有，尝试从整个 item 数据里找（作为兜底）
+    if (!receiver && dataset.item) {
+      const item = dataset.item;
+      receiver = item.receiver || item.targetId || item.otherUserId || item.chatPartnerId;
+    }
+
+    // 确保 receiver 是有效数字
+    if (!receiver || isNaN(parseInt(receiver))) {
+      console.error('❌ 无法提取有效的接收者 ID', dataset);
+      wx.showToast({ title: '用户信息异常', icon: 'none' });
+      return;
+    }
+
+    receiver = parseInt(receiver);
+
+    // ✅ 修改：从 chatSessions 中查找对应的会话信息，用于获取名称和更新状态
+    const messageItem = this.data.chatSessions.find(item => {
+      const itemReceiver = item.receiver || item.targetId || item.otherUserId;
+      return itemReceiver === receiver;
+    });
+
+    const name = messageItem ? (messageItem.title || messageItem.name || '未知用户') : '未知用户';
+
+    console.log('=== 点击聊天会话，最终 receiver:', receiver, '名称:', name);
 
     // ✅ 新增：调用后端接口标记该会话的所有消息为已读
-    if (messageItem && messageItem.unreadCount > 0) {
-      // 如果有未读消息，调用后端接口标记为已读
+    if (messageItem && (messageItem.unreadCount > 0 || !messageItem.isRead)) {
       this.markChatSessionAsRead(receiver);
     }
 
     // ✅ 修改：本地立即更新 UI，将当前会话的未读数清零
     const updatedSessions = this.data.chatSessions.map(msg => {
-      if (msg.receiver === receiver) {
+      const msgReceiver = msg.receiver || msg.targetId || msg.otherUserId;
+      if (msgReceiver === receiver) {
         return {
           ...msg,
           isRead: true,
@@ -957,6 +986,8 @@ Page({
       url: `/pages/chat/chat?receiver=${receiver}&name=${encodeURIComponent(name)}&currentUserId=${currentUserId}`
     });
   },
+
+
 
   // ✅ 修改：标记整个聊天会话为已读（需要先获取消息 ID 列表）
   markChatSessionAsRead: function(receiverId) {

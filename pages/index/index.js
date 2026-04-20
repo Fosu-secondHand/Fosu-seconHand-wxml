@@ -76,33 +76,48 @@ Page({
   mapGoodsFields(originalData) {
     if (!originalData) return {};
 
-    // 处理图片URL，确保支持HTTPS并正确拼接路径
+    // 处理图片URL，智能判断是否已有 /api 前缀
     let processedImage = originalData.image || originalData.images;
-    const baseURL = app.globalData.baseUrl ? app.globalData.baseUrl.replace('http://', 'https://') : '';
+
+    // ✅ 修复：不要强制转换为 HTTPS，保持原协议
+    const baseURL = app.globalData.baseUrl || '';
 
     if (processedImage) {
       if (Array.isArray(processedImage)) {
         // 处理图片数组
         processedImage = processedImage.map(img => {
           if (typeof img === 'string') {
-            // 如果是完整URL（http或https），直接返回并确保使用HTTPS
+            // 如果已经是完整 URL（http 或 https），直接返回
             if (img.startsWith('http')) {
-              return img.replace('http://', 'https://');
+              return img;
             }
-            // 如果是相对路径，拼接基础URL
-            // 确保路径正确连接（处理baseURL末尾是否有/的情况）
-            return baseURL + (img.startsWith('/') ? img : '/' + img);
+
+            // ✅ 关键修复：智能判断是否已有 /api 前缀
+            if (img.startsWith('/api')) {
+              // 后端返回的是 /api/uploads/xxx.png
+              // 从 baseURL 中提取服务器根地址
+              const serverRoot = baseURL.replace(/\/api$/, '');
+              return serverRoot + img;
+            } else {
+              // 后端返回的是 /uploads/xxx.png
+              return baseURL + (img.startsWith('/') ? img : '/' + img);
+            }
           }
           return img;
         });
       } else if (typeof processedImage === 'string') {
         // 处理单个图片
         if (processedImage.startsWith('http')) {
-          // 确保使用HTTPS
-          processedImage = processedImage.replace('http://', 'https://');
+          // 已经是完整 URL，直接使用
+          processedImage = processedImage;
         } else {
-          // 如果是相对路径，拼接基础URL
-          processedImage = baseURL + (processedImage.startsWith('/') ? processedImage : '/' + processedImage);
+          // ✅ 关键修复：智能判断
+          if (processedImage.startsWith('/api')) {
+            const serverRoot = baseURL.replace(/\/api$/, '');
+            processedImage = serverRoot + processedImage;
+          } else {
+            processedImage = baseURL + (processedImage.startsWith('/') ? processedImage : '/' + processedImage);
+          }
         }
       }
     }
@@ -123,7 +138,6 @@ Page({
       ...originalData // 保留所有原始字段
     };
   },
-
 
   loadGoodsList(reset = false) {
     console.log('loadGoodsList 被调用，reset:', reset);

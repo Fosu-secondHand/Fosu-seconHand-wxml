@@ -1,5 +1,6 @@
 // pages/GoodDetail/GoodDetail.js
 const app = getApp();
+const authMixin = require('../../utils/authMixin.js');
 
 Page({
   data: {
@@ -16,11 +17,22 @@ Page({
     loading: true,             // 页面加载状态
     error: false,              // 加载错误
     userInfo: null,            // 用户信息
-    formattedPostTime: ''      // 格式化后的发布时间
+    formattedPostTime: '',      // 格式化后的发布时间
+    sellerAvatarUrl: '',        // ✅ 新增：卖家头像 URL
+    isLogin: false  // ✅ 新增：登录状态
   },
+
+  // ✅ 引入混入方法
+  ...authMixin.methods,
+
 
   // 修改 onLoad 方法，确保 syncLoginStatus 完成后再执行 checkLoginStatus
   onLoad(options) {
+    // ✅ 新增：使用统一的登录检查
+    if (!this.checkLogin()) {
+      console.warn('⚠️ GoodDetail: 用户未登录');
+    }
+
     // 添加调试代码检查本地存储
     console.log('=== 检查本地存储 ===');
     console.log('token:', wx.getStorageSync('token'));
@@ -30,8 +42,8 @@ Page({
     console.log('📍 页面路径:', this.route);
     console.log('📦 原始options参数:', options);
 
-    // 等待同步登录状态完成
-    this.syncLoginStatus();
+    // ✅ 使用 mixin 提供的同步方法
+    this.syncLoginState();
 
     // 检查是否通过分享卡片进入
     if (options.scene) {
@@ -248,13 +260,43 @@ Page({
         // 关键修改：正确访问嵌套的数据结构
         if (res.statusCode === 200 && res.data && res.data.data && res.data.data.success) {
           console.log('用户登录有效，用户信息:', res.data.data.data);
-          this.setData({ userInfo: res.data.data.data });
+
+          // ✅ 修复：同时更新页面数据和本地存储
+          const userInfo = res.data.data.data;
+
+          // 确保 userInfo 包含必要字段
+          if (userInfo.id || userInfo.userId) {
+            const normalizedUserInfo = {
+              ...userInfo,
+              id: userInfo.id || userInfo.userId,
+              isLogin: true
+            };
+
+            this.setData({ userInfo: normalizedUserInfo });
+            wx.setStorageSync('userInfo', normalizedUserInfo);
+            console.log('✅ 用户信息已同步到本地存储');
+          } else {
+            console.error('❌ 用户信息缺少 ID 字段');
+            return false;
+          }
+
           return true;
         } else {
           console.warn('用户token无效:', res.data);
           console.warn('响应状态码:', res.statusCode);
-          wx.removeStorageSync('token');
-          wx.removeStorageSync('userInfo');
+
+          // ✅ 修复：不要直接清除本地存储，先检查是否有有效的 token
+          const localToken = wx.getStorageSync('token');
+          const localUserInfo = wx.getStorageSync('userInfo');
+
+          if (!localToken || !localUserInfo || !localUserInfo.id) {
+            console.warn('⚠️ 本地也没有有效的登录状态，清除缓存');
+            wx.removeStorageSync('token');
+            wx.removeStorageSync('userInfo');
+          } else {
+            console.warn('⚠️ 接口返回失败，但本地有有效登录状态，保留');
+          }
+
           return false;
         }
       } else {
@@ -265,11 +307,23 @@ Page({
       }
     } catch (error) {
       console.error('获取用户信息失败:', error);
-      wx.removeStorageSync('token');
-      wx.removeStorageSync('userInfo');
+
+      // ✅ 修复：捕获异常时不要直接清除本地存储
+      const localToken = wx.getStorageSync('token');
+      const localUserInfo = wx.getStorageSync('userInfo');
+
+      if (!localToken || !localUserInfo || !localUserInfo.id) {
+        console.warn('⚠️ 本地也没有有效的登录状态，清除缓存');
+        wx.removeStorageSync('token');
+        wx.removeStorageSync('userInfo');
+      } else {
+        console.warn('⚠️ 请求失败，但本地有有效登录状态，保留');
+      }
+
       return false;
     }
   },
+
 
 
   // 加载商品详情
@@ -376,28 +430,80 @@ Page({
       // 在 loadGoodsDetail 方法中处理返回的数据时
       const mappedGoodsDetail = this.mapGoodsDetailFields(goodsDetail);
 
-      // 处理图片URL - 修复图片路径问题
-      const baseURL = app.globalData.baseUrl; // 使用全局baseUrl而不是this.baseURL
+      // ✅ 修复：处理图片 URL - 智能判断是否已有 /api 前缀
+      const baseURL = app.globalData.baseUrl; // http://139.199.87.181:8080/api
+      console.log('=== 图片 URL 处理开始 ===');
+      console.log('baseURL:', baseURL);
+      console.log('原始图片数据:', mappedGoodsDetail.image);
+
       if (mappedGoodsDetail.image) {
         if (Array.isArray(mappedGoodsDetail.image)) {
-          mappedGoodsDetail.image = mappedGoodsDetail.image.map(img => {
-            // 如果已经是完整URL，直接返回
+          mappedGoodsDetail.image = mappedGoodsDetail.image.map((img, index) => {
+            console.log(`\n处理图片[${index}]:`);
+            console.log('  原始值:', img);
+
+            // 如果已经是完整 URL，直接返回
             if (img.startsWith('http')) {
+              console.log('  ✅ 使用完整 URL');
               return img;
             }
-            // 如果是相对路径，拼接基础URL
-            // 确保路径正确连接（处理baseURL末尾是否有/的情况）
-            return baseURL + (img.startsWith('/') ? img : '/' + img);
+
+            // ✅ 关键修复：如果图片路径已经包含 /api，直接使用服务器根地址拼接
+            let finalUrl;
+            if (img.startsWith('/api')) {
+              // 后端返回的是 /api/uploads/xxx.png
+              // 需要从 baseURL 中提取服务器根地址（去掉 /api）
+              const serverRoot = baseURL.replace(/\/api$/, '');
+              finalUrl = serverRoot + img;
+              console.log('  ⚠️ 图片路径已含 /api，使用服务器根地址拼接');
+              console.log('  服务器根地址:', serverRoot);
+              console.log('  ✅ 拼接后的 URL:', finalUrl);
+            } else {
+              // 后端返回的是 /uploads/xxx.png（没有 /api）
+              finalUrl = baseURL + (img.startsWith('/') ? img : '/' + img);
+              console.log('  ✅ 普通拼接:', finalUrl);
+            }
+
+            return finalUrl;
           });
         } else {
           // 单个图片处理
+          console.log('单张图片:', mappedGoodsDetail.image);
           if (!mappedGoodsDetail.image.startsWith('http')) {
-            mappedGoodsDetail.image = baseURL + (mappedGoodsDetail.image.startsWith('/') ? mappedGoodsDetail.image : '/' + mappedGoodsDetail.image);
+            let finalUrl;
+            if (mappedGoodsDetail.image.startsWith('/api')) {
+              const serverRoot = baseURL.replace(/\/api$/, '');
+              finalUrl = serverRoot + mappedGoodsDetail.image;
+              console.log('⚠️ 图片路径已含 /api，使用服务器根地址拼接');
+              console.log('服务器根地址:', serverRoot);
+              console.log('拼接后:', finalUrl);
+            } else {
+              finalUrl = baseURL + (mappedGoodsDetail.image.startsWith('/') ? mappedGoodsDetail.image : '/' + mappedGoodsDetail.image);
+              console.log('普通拼接:', finalUrl);
+            }
+            mappedGoodsDetail.image = finalUrl;
           }
         }
       }
+      console.log('\n最终图片 URL 数组:', mappedGoodsDetail.image);
+      console.log('=== 图片 URL 处理结束 ===');
 
       console.log('映射后的商品详情:', mappedGoodsDetail);
+
+      // ✅ 新增：处理卖家头像 URL
+      let sellerAvatarUrl = '/static/assets/icons/default-avatar.png';
+      if (mappedGoodsDetail.seller && mappedGoodsDetail.seller.avatar) {
+        const avatarPath = mappedGoodsDetail.seller.avatar;
+
+        // 如果是相对路径，拼接完整域名
+        if (!avatarPath.startsWith('http')) {
+          const serverRoot = baseURL.replace(/\/api$/, '');
+          sellerAvatarUrl = serverRoot + (avatarPath.startsWith('/') ? avatarPath : '/' + avatarPath);
+          console.log('✅ 卖家头像 URL 拼接完成:', sellerAvatarUrl);
+        } else {
+          sellerAvatarUrl = avatarPath;
+        }
+      }
 
       // 格式化发布时间
       const formattedPostTime = this.formatPostTime(mappedGoodsDetail.postTime);
@@ -412,7 +518,8 @@ Page({
         viewCount: mappedGoodsDetail.view_count || 0,
         isStarred: isStarred,
         loading: false,
-        formattedPostTime: formattedPostTime
+        formattedPostTime: formattedPostTime,
+        sellerAvatarUrl: sellerAvatarUrl  // ✅ 设置卖家头像
       });
 
       // 加载推荐商品 - 使用映射后的分类字段
@@ -656,19 +763,32 @@ Page({
         const mappedGoods = newData.map(item => {
           const mappedItem = this.mapGoodsDetailFields(item);
 
-          // 处理图片URL
+          // ✅ 修复：处理图片 URL - 智能判断是否已有 /api 前缀
           const baseURL = app.globalData.baseUrl;
           if (mappedItem.image) {
             if (Array.isArray(mappedItem.image)) {
               mappedItem.image = mappedItem.image.map(img => {
+                // 如果已经是完整 URL，直接使用
                 if (img.startsWith('http')) {
                   return img;
                 }
-                return baseURL + (img.startsWith('/') ? img : '/' + img);
+
+                // ✅ 关键修复：智能判断
+                if (img.startsWith('/api')) {
+                  const serverRoot = baseURL.replace(/\/api$/, '');
+                  return serverRoot + img;
+                } else {
+                  return baseURL + (img.startsWith('/') ? img : '/' + img);
+                }
               });
             } else {
               if (!mappedItem.image.startsWith('http')) {
-                mappedItem.image = baseURL + (mappedItem.image.startsWith('/') ? mappedItem.image : '/' + mappedItem.image);
+                if (mappedItem.image.startsWith('/api')) {
+                  const serverRoot = baseURL.replace(/\/api$/, '');
+                  mappedItem.image = serverRoot + mappedItem.image;
+                } else {
+                  mappedItem.image = baseURL + (mappedItem.image.startsWith('/') ? mappedItem.image : '/' + mappedItem.image);
+                }
               }
             }
           }
@@ -722,13 +842,15 @@ Page({
   async handleChat() {
     console.log('=== 点击聊一聊按钮 ===');
 
-    if (!this.checkAuth()) {
+    // ✅ 改用 mixin 提供的登录检查
+    if (!this.requireLogin('发起聊天')) {
       console.log('❌ 用户未登录，已返回');
       return;
     }
 
     const { goodsDetail } = this.data;
     console.log('📦 商品详情:', goodsDetail);
+
 
     if (!goodsDetail) {
       console.log('❌ 商品详情为空');
@@ -858,13 +980,15 @@ Page({
 
   // 立即购买按钮点击事件
   handleBuy() {
-    if (!this.checkAuth()) return;
+    // ✅ 改用 mixin 提供的登录检查
+    if (!this.requireLogin('购买商品')) return;
 
     const { goodsDetail } = this.data;
     if (!goodsDetail) {
       wx.showToast({ title: '商品信息加载中', icon: 'none' });
       return;
     }
+
 
     // 检查商品状态
     if (goodsDetail.status === 'SOLD') {
@@ -896,10 +1020,10 @@ Page({
     }
   },
 
-  // 收藏按钮点击事件
-  // 收藏按钮点击事件
+
   async handleStar() {
-    if (!this.checkAuth()) return;
+    // ✅ 改用 mixin 提供的登录检查
+    if (!this.requireLogin('收藏商品')) return;
 
     // 确保用户信息是最新的
     await this.checkLoginStatus();
@@ -976,52 +1100,52 @@ Page({
     }
   },
 
-  checkAuth() {
-    let userInfo = wx.getStorageSync('userInfo');
-    let token = wx.getStorageSync('token');
-
-    console.log('检查用户登录状态:', {
-      userInfo: userInfo,
-      token: token,
-      isLogin: userInfo?.isLogin
-    });
-
-    // 添加更详细的调试信息
-    console.log('详细检查:', {
-      userInfoExists: !!userInfo,
-      isLoginValid: !!userInfo?.isLogin,
-      tokenExists: !!token,
-      tokenLength: token ? token.length : 0
-    });
-
-    // 如果 token 不存在但 userInfo 中有 token，则使用 userInfo 中的 token
-    if (!token && userInfo && userInfo.token) {
-      token = userInfo.token;
-      // 同步存储 token
-      wx.setStorageSync('token', token);
-    }
-
-    // 检查用户是否登录（增强判断逻辑）
-    if (!userInfo || !userInfo.isLogin || !token) {
-      console.log('用户未登录，准备跳转到登录页面');
-      wx.showModal({
-        title: '提示',
-        content: '请先登录后再操作',
-        confirmText: '去登录',
-        success: (res) => {
-          if (res.confirm) {
-            console.log('用户点击去登录');
-            wx.navigateTo({
-              url: '/pages/login/login'
-            });
-          }
-        }
-      });
-      return false;
-    }
-    console.log('用户已登录');
-    return true;
-  },
+  // checkAuth() {
+  //   let userInfo = wx.getStorageSync('userInfo');
+  //   let token = wx.getStorageSync('token');
+  //
+  //   console.log('检查用户登录状态:', {
+  //     userInfo: userInfo,
+  //     token: token,
+  //     isLogin: userInfo?.isLogin
+  //   });
+  //
+  //   // 添加更详细的调试信息
+  //   console.log('详细检查:', {
+  //     userInfoExists: !!userInfo,
+  //     isLoginValid: !!userInfo?.isLogin,
+  //     tokenExists: !!token,
+  //     tokenLength: token ? token.length : 0
+  //   });
+  //
+  //   // 如果 token 不存在但 userInfo 中有 token，则使用 userInfo 中的 token
+  //   if (!token && userInfo && userInfo.token) {
+  //     token = userInfo.token;
+  //     // 同步存储 token
+  //     wx.setStorageSync('token', token);
+  //   }
+  //
+  //   // 检查用户是否登录（增强判断逻辑）
+  //   if (!userInfo || !userInfo.isLogin || !token) {
+  //     console.log('用户未登录，准备跳转到登录页面');
+  //     wx.showModal({
+  //       title: '提示',
+  //       content: '请先登录后再操作',
+  //       confirmText: '去登录',
+  //       success: (res) => {
+  //         if (res.confirm) {
+  //           console.log('用户点击去登录');
+  //           wx.navigateTo({
+  //             url: '/pages/login/login'
+  //           });
+  //         }
+  //       }
+  //     });
+  //     return false;
+  //   }
+  //   console.log('用户已登录');
+  //   return true;
+  // },
 
 // 添加同步登录状态方法
   syncLoginStatus() {
@@ -1044,9 +1168,36 @@ Page({
         // 确保userInfo结构正确
         const normalizedUserInfo = {
           id: userInfo.id || userInfo.userId,
-          ...userInfo
+          ...userInfo,
+          isLogin: true  // ✅ 确保 isLogin 为 true
         };
+
+        // ✅ 验证 id 是否有效
+        if (!normalizedUserInfo.id || normalizedUserInfo.id === 'undefined') {
+          console.error('❌ syncLoginStatus: 用户 ID 无效');
+          wx.removeStorageSync('userInfo');
+          wx.removeStorageSync('token');
+          return;
+        }
+
+        // ✅ 确保 id 是数字类型
+        if (typeof normalizedUserInfo.id === 'string') {
+          const numericId = parseInt(normalizedUserInfo.id);
+          if (!isNaN(numericId) && numericId > 0) {
+            normalizedUserInfo.id = numericId;
+          } else {
+            console.error('❌ syncLoginStatus: 用户 ID 无法转换为数字');
+            wx.removeStorageSync('userInfo');
+            wx.removeStorageSync('token');
+            return;
+          }
+        }
+
         this.setData({ userInfo: normalizedUserInfo });
+
+        // ✅ 关键修复：同步到本地存储
+        wx.setStorageSync('userInfo', normalizedUserInfo);
+
         console.log('同步登录状态成功:', normalizedUserInfo);
       } else if (token) {
         // 有token但没有userInfo，尝试获取用户信息
@@ -1059,6 +1210,7 @@ Page({
       console.error('同步登录状态失败:', error);
     }
   },
+
   // 重新加载
   onRetry() {
     console.log('重新加载商品详情');
@@ -1077,13 +1229,12 @@ Page({
     if (!goodsDetail) return {};
 
     const goodsId = goodsDetail.product_ld || goodsDetail.id;
-    if (!goodsId) {
-      console.warn('分享时商品ID为空');
-    }
 
     return {
-      title: goodsDetail.title || '商品详情',
-      path: `/pages/GoodDetail/GoodDetail?id=${goodsId || ''}`
+      title: goodsDetail.title || '发现一个超棒的二手好物！',
+      path: `/pages/GoodDetail/GoodDetail?id=${goodsId}`,
+      // ✅ 新增：自定义分享图片，提高点击率
+      imageUrl: goodsDetail.image && goodsDetail.image.length > 0 ? goodsDetail.image[0] : ''
     };
   },
 
@@ -1092,10 +1243,52 @@ Page({
     const goodsDetail = this.data.goodsDetail;
     if (!goodsDetail) return {};
 
+    const goodsId = goodsDetail.product_ld || goodsDetail.id;
+
     return {
-      title: goodsDetail.title || '商品详情',
-      imageUrl: goodsDetail.images?.[0] || ''
+      title: goodsDetail.title || '发现一个超棒的二手好物！',
+      // ✅ 朋友圈分享通常只支持 query 参数
+      query: `id=${goodsId}`,
+      // ✅ 自定义海报图片
+      imageUrl: goodsDetail.image && goodsDetail.image.length > 0 ? goodsDetail.image[0] : ''
     };
+  },
+
+  // ✅ 新增：跳转到卖家主页
+  goToSellerHome() {
+    if (!this.data.goodsDetail || !this.data.goodsDetail.seller) {
+      wx.showToast({
+        title: '卖家信息不存在',
+        icon: 'none'
+      });
+      return;
+    }
+
+    const sellerId = this.data.goodsDetail.seller.id || this.data.goodsDetail.seller.userId;
+
+    if (!sellerId) {
+      wx.showToast({
+        title: '卖家 ID 不存在',
+        icon: 'none'
+      });
+      return;
+    }
+
+    console.log('跳转到卖家主页，卖家 ID:', sellerId);
+
+    wx.navigateTo({
+      url: `/pages/userHome/userHome?userId=${sellerId}`,
+      success: () => {
+        console.log('✅ 跳转到卖家主页成功');
+      },
+      fail: (err) => {
+        console.error('❌ 跳转到卖家主页失败:', err);
+        wx.showToast({
+          title: '跳转失败，请重试',
+          icon: 'none'
+        });
+      }
+    });
   },
 
   // 页面显示时触发（用于调试）
@@ -1103,3 +1296,4 @@ Page({
     console.log('页面显示，当前商品详情:', this.data.goodsDetail);
   }
 });
+

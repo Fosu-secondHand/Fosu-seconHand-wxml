@@ -83,7 +83,6 @@ Page({
   /**
    * 微信授权登录
    */
-  // 修改 wxLogin 方法
   wxLogin() {
     // 检查是否同意协议
     if (!this.data.agreedToPolicy) {
@@ -93,26 +92,37 @@ Page({
 
     this.setData({loading: true});
 
-    // 调用wx.login获取登录凭证
+    // 调用 wx.login 获取登录凭证
     wx.login({
       success: (res) => {
         if (res.code) {
-          // 将code发送到后端
+          // 将 code 发送到后端
           wx.request({
-            url: 'http://localhost:8090/wechat/login',
+            url: 'http://139.199.87.181:8080/api/wechat/login',
             method: 'POST',
             data: {
               code: res.code
             },
             success: (response) => {
               if (response.data.code === 200) {
-                // 登录成功，先保存基础信息
-                const testUserId = 80;
+                // ✅ 登录成功，使用后端返回的真实用户 ID
+                const backendData = response.data.data;
+
+                // 检查后端是否返回了用户 ID
+                if (!backendData.userId && !backendData.id) {
+                  console.error('后端未返回用户 ID');
+                  this.setData({
+                    errorMsg: '登录失败：未获取到用户信息',
+                    loading: false
+                  });
+                  return;
+                }
+
                 const userInfo = {
-                  id: testUserId,
-                  userId: testUserId,
-                  openid: response.data.data.openid,
-                  token: response.data.data.token,
+                  id: backendData.userId || backendData.id,
+                  userId: backendData.userId || backendData.id,
+                  openid: backendData.openid,
+                  token: backendData.token,
                   isLogin: true,
                   loginMethod: 'wechat',
                   loginTime: new Date().toISOString()
@@ -120,10 +130,42 @@ Page({
 
                 // 保存用户基础信息到本地存储
                 wx.setStorageSync('userInfo', userInfo);
-                wx.setStorageSync('token', response.data.data.token);
+                wx.setStorageSync('token', backendData.token);
 
-                // 获取用户详细信息
-                this.getUserProfileAfterLogin();
+                // ✅ 新增：同步更新 app.globalData.userInfo
+                const app = getApp();
+                app.globalData.userInfo = userInfo;
+
+                console.log('登录成功，用户 ID:', userInfo.id);
+                console.log('✅ 已更新 app.globalData.userInfo:', app.globalData.userInfo);
+
+                // ✅ 修改：不自动调用 getUserProfile，而是提示用户手动授权
+                wx.hideLoading();
+
+                wx.showModal({
+                  title: '授权提示',
+                  content: '为了完善您的个人资料，请授权使用微信昵称和头像',
+                  confirmText: '授权',
+                  cancelText: '跳过',
+                  success: (modalRes) => {
+                    if (modalRes.confirm) {
+                      // 用户点击授权，调用获取用户信息方法
+                      this.getUserProfileAfterLogin();
+                    } else if (modalRes.cancel) {
+                      // 用户选择跳过，直接跳转首页
+                      wx.showToast({
+                        title: '登录成功',
+                        icon: 'success'
+                      });
+
+                      setTimeout(() => {
+                        wx.reLaunch({
+                          url: '/pages/index/index'
+                        });
+                      }, 1500);
+                    }
+                  }
+                });
               } else {
                 // 登录失败
                 this.setData({
@@ -158,7 +200,6 @@ Page({
     });
   },
 
-// 新增方法：登录后获取用户信息
   getUserProfileAfterLogin() {
     wx.getUserProfile({
       desc: '用于完善用户资料',
@@ -177,48 +218,28 @@ Page({
         });
         wx.setStorageSync('userInfo', userInfo);
 
+        // ✅ 新增：同步更新 app.globalData.userInfo
+        const app = getApp();
+        app.globalData.userInfo = userInfo;
+
+        console.log('✅ 已更新 app.globalData.userInfo:', app.globalData.userInfo);
+
         // 显示登录成功提示
         wx.showToast({
-          title: '微信登录成功',
+          title: '授权成功',
           icon: 'success',
           duration: 1500
-        });
-
-        // 使用导航栏隐藏和显示来避免白屏
-        wx.showNavigationBarLoading();
-        wx.setNavigationBarTitle({
-          title: '加载中...'
         });
 
         // 延迟跳转到首页
         setTimeout(() => {
           wx.reLaunch({
-            url: '/pages/index/index',
-            success: () => {
-              wx.hideNavigationBarLoading();
-              wx.setNavigationBarTitle({
-                title: '首页'
-              });
-            }
+            url: '/pages/index/index'
           });
-        }, 1500);
-      },
-      fail: (err) => {
-        console.error('获取用户信息失败:', err);
-        // 即使获取用户信息失败，也继续跳转
-        wx.showToast({
-          title: '微信登录成功',
-          icon: 'success',
-          duration: 1500
-        });
-
-        setTimeout(() => {
-          wx.reLaunch({ url: '/pages/index/index' });
         }, 1500);
       }
     });
   },
-
 
   /**
    * 获取用户详细信息（需要用户授权）
@@ -241,11 +262,17 @@ Page({
         });
         wx.setStorageSync('userInfo', userInfo);
 
+        // ✅ 新增：同步更新 app.globalData.userInfo
+        const app = getApp();
+        app.globalData.userInfo = userInfo;
+
+        console.log('✅ 已更新 app.globalData.userInfo:', app.globalData.userInfo);
+
         // 发送到后端更新用户信息
         const storedUserInfo = wx.getStorageSync('userInfo');
         if (storedUserInfo && storedUserInfo.userId) {
           wx.request({
-            url: 'http://localhost:8090/wechat/updateUserInfo',
+            url: 'http://139.199.87.181:8080/api/wechat/updateUserInfo',
             method: 'POST',
             data: {
               userId: storedUserInfo.userId,

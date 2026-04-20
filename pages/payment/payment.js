@@ -95,7 +95,8 @@ Page({
               title: goodsDetail.title || '未知商品',
               price: goodsDetail.price || 0,
               image: imageUrl,
-              sellerId: goodsDetail.sellerId || goodsDetail.seller_id // 尝试两种可能的字段名
+              sellerId: goodsDetail.sellerId || goodsDetail.seller_id,
+              transactionMethod: goodsDetail.transactionMethod || 'Pickup' // ✅ 新增：保存交易方式
             },
             // 设置商品库存
             productQuantity: goodsDetail.quantity || 0
@@ -203,9 +204,21 @@ Page({
 
 // 修改 confirmPurchase 方法
   confirmPurchase() {
-    // 检查是否有地址
+    // ✅ 修改：检查是否有地址，如果没有则弹窗提示
     if (!this.data.address) {
-      wx.showToast({ title: '请先添加收货地址', icon: 'none' });
+      wx.showModal({
+        title: '提示',
+        content: '请先完善您的收货地址信息',
+        confirmText: '去填写',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/address/address'
+            });
+          }
+        }
+      });
       return;
     }
 
@@ -217,7 +230,7 @@ Page({
     // 调用后端接口发起交易请求
     this.sendTradeRequest();
   },
-// 新增 sendTradeRequest 方法，用于发送交易请求
+
   sendTradeRequest() {
     const app = getApp();
     const token = wx.getStorageSync('token');
@@ -229,17 +242,15 @@ Page({
       return;
     }
 
-    // 构建交易请求数据
-    const requestData = {
-      productId: this.data.goodsId,
-      buyerId: userInfo.id,
-      deliveryMethod: this.data.goodsInfo.transactionMethod === 'Delivery' ? 'express' : 'meet',
-      buyerRemark: '请尽快发货',
-      quantity: this.data.quantity
-    };
+    // ✅ 修复：确保 quantity 是数字
+    const quantity = parseInt(this.data.quantity) || 1;
 
-    // 调试：打印发送的交易请求数据
-    console.log('发送的交易请求数据:', requestData);
+    // ✅ 关键修改：根据后端 @RequestParam 要求调整参数名
+    // 1. 删除 sellerId (后端会自动从商品获取)
+    // 2. 将 transactionMethod 改为 deliveryMethod
+    const formData = `productId=${this.data.goodsId}&buyerId=${userInfo.id}&deliveryMethod=${this.data.goodsInfo.transactionMethod}&quantity=${quantity}&buyerRemark=请尽快发货`;
+
+    console.log('发送的交易请求数据 (Form):', formData);
 
     // 调用交易请求接口
     wx.request({
@@ -247,9 +258,10 @@ Page({
       method: 'POST',
       header: {
         'Authorization': token,
+        // ✅ 必须设置为这个类型，以匹配后端的 @RequestParam
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      data: requestData,
+      data: formData, // ✅ 直接发送字符串
       success: (res) => {
         console.log('发起交易请求接口响应:', res);
         if (res.data.code === 200) {
@@ -268,8 +280,6 @@ Page({
       }
     });
   },
-
-
 
   handleTradeRequestSuccess() {
     try {

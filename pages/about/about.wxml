@@ -22,13 +22,6 @@
         </view>
       </view>
       <view class="feature-item">
-        <image src="/static/assets/icons/feature_safe.png" mode="aspectFit"></image>
-        <view class="feature-info">
-          <text class="feature-title">安全可靠</text>
-          <text class="feature-desc">实名认证，保障交易安全</text>
-        </view>
-      </view>
-      <view class="feature-item">
         <image src="/static/assets/icons/feature_community.png" mode="aspectFit"></image>
         <view class="feature-info">
           <text class="feature-title">校园社区</text>
@@ -38,24 +31,39 @@
     </view>
   </view>
 
+  <!-- 产品介绍 -->
+  <view class="section">
+    <view class="section-title">产品介绍</view>
+    <view class="product-intro">
+      <view class="company-logo-wrapper">
+        <image class="company-logo" src="/static/公司图标.png" mode="aspectFit"></image>
+      </view>
+      <text class="intro-text">
+        "佛大二手宝"是由玄枭科技专为佛山大学师生打造的校园二手交易平台。我们致力于构建一个安全、便捷、高效的二手物品交易环境，让闲置物品焕发新生价值。
+      </text>
+      <text class="intro-text">
+        平台支持商品发布、在线沟通、订单管理等功能。无论是教材书籍、生活用品还是电子设备，都能在这里找到合适的买家或卖家。
+      </text>
+      <text class="intro-text">
+        我们相信，通过共享经济的力量，不仅能帮助同学们节省开支，更能培养环保节约的校园风尚。
+      </text>
+    </view>
+  </view>
+
   <!-- 联系我们 -->
   <view class="section">
     <view class="section-title">联系我们</view>
     <view class="contact-list">
-      <view class="contact-item" bindtap="copyWechat">
-        <text class="contact-label">官方微信</text>
-        <text class="contact-value">FOSU_Official</text>
-      </view>
       <view class="contact-item" bindtap="copyEmail">
         <text class="contact-label">官方邮箱</text>
-        <text class="contact-value">support@fosu.edu.cn</text>
+        <text class="contact-value">fosu_secondhand@163.com</text>
       </view>
     </view>
   </view>
 
   <!-- 版权信息 -->
   <view class="footer">
-    <text class="copyright">Copyright © 2024 佛大二手</text>
+    <text class="copyright">Copyright © 2026 佛大二手</text>
     <text class="rights">All Rights Reserved</text>
   </view>
   </view>

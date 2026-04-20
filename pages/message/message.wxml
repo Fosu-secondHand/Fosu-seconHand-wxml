@@ -140,32 +140,40 @@
    </block>
  </view>
 
-   <!-- 聊天消息小标题 -->
-   <view class="section-title">
-     <view class="title-container">
-       <text>聊天消息</text>
-     </view>
-     <view class="section-actions">
-       <view wx:if="{{unreadChatMessages > 0}}" class="badge-dot">{{unreadChatMessages}}</view>
-     </view>
+<!-- 聊天消息小标题 -->
+ <view class="section-title">
+   <view class="title-container">
+     <text>聊天消息</text>
    </view>
+   <view class="section-actions">
+     <view wx:if="{{unreadChatMessages > 0}}" class="badge-dot">{{unreadChatMessages}}</view>
+   </view>
+ </view>
 
-    <!-- 原始消息列表 -->
-    <block wx:for="{{messages}}" wx:key="index">
-      <view class="message-item" bindtap="navigateToChat" data-receiver="{{item.receiver}}">
-        <view class="message-avatar">
-          <image src="{{item.avatar}}" mode="aspectFit" class="avatar-image"></image>
-        </view>
-        <view class="message-content">
-          <view class="message-title">{{item.title}}</view>
-          <view class="message-text">{{item.text}}</view>
-        </view>
-        <view class="message-date">{{item.date}}</view>
-        <!-- 显示消息未读状态 -->
-        <view wx:if="{{!item.isRead}}" class="message-unread-dot"></view>
-      </view>
-    </block>
-    <view wx:if="{{hasMoreData && !loading}}" class="loading-more">暂无更多消息</view>
-    <view wx:if="{{loading}}" class="loading">正在加载...</view>
-  </view>
-</view>
+  <!-- 原始消息列表 -->
+  <block wx:for="{{messages}}" wx:key="receiver">
+     <view
+       class="message-item"
+       bindtap="navigateToChat"
+       data-receiver="{{item.receiver}}"
+       data-nickname="{{item.title}}"
+     >
+       <view class="message-avatar">
+         <!-- ✅ 显示真实头像 -->
+         <image src="{{item.avatar}}" mode="aspectFill" class="avatar-image"></image>
+       </view>
+       <view class="message-content">
+         <!-- ✅ 显示真实昵称 -->
+         <view class="message-title">{{item.title}}</view>
+         <view class="message-text">{{item.text}}</view>
+       </view>
+       <view class="message-date">{{item.date}}</view>
+       <!-- 显示消息未读状态 -->
+       <view wx:if="{{item.unreadCount > 0}}" class="message-unread-dot"></view>
+     </view>
+   </block>
+   <view wx:if="{{hasMoreData && !loading}}" class="loading-more">暂无更多消息</view>
+   <view wx:if="{{loading}}" class="loading">正在加载...</view>
+
+   </view>
+ </view>

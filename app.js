@@ -6,6 +6,9 @@ App({
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
 
+    // ✅ 新增：同步登录状态（修复 isLogin 字段丢失问题）
+    this.syncGlobalLoginState();
+
     // 从本地存储恢复未读消息数并初始化全局数据
     const savedCount = wx.getStorageSync('unreadMessageCount') || 0;
     this.globalData.unreadMessageCount = savedCount;
@@ -19,6 +22,34 @@ App({
       }, 500);
     } else {
       this.checkLoginStatus();
+    }
+  },
+
+  // ✅ 新增：全局登录状态同步（防止 isLogin 字段丢失）
+  syncGlobalLoginState() {
+    try {
+      const userInfo = wx.getStorageSync('userInfo');
+      const token = wx.getStorageSync('token');
+
+      if (userInfo && token) {
+        // 确保 isLogin 字段存在
+        if (userInfo.isLogin !== true) {
+          console.warn('⚠️ 检测到 userInfo.isLogin 缺失，自动修复');
+          userInfo.isLogin = true;
+          wx.setStorageSync('userInfo', userInfo);
+        }
+
+        // 确保 id 字段存在
+        if (!userInfo.id && userInfo.userId) {
+          console.warn('⚠️ 检测到 userInfo.id 缺失，使用 userId 替代');
+          userInfo.id = userInfo.userId;
+          wx.setStorageSync('userInfo', userInfo);
+        }
+
+        console.log('✅ 全局登录状态已同步');
+      }
+    } catch (error) {
+      console.error('❌ 同步全局登录状态失败:', error);
     }
   },
 
@@ -56,9 +87,14 @@ App({
   setUserInfo(userInfo) {
     this.globalData.userInfo = userInfo;
     try {
+      // ✅ 确保 isLogin 字段始终存在
+      if (!userInfo.isLogin) {
+        userInfo.isLogin = true;
+      }
       wx.setStorageSync('userInfo', userInfo);
+      console.log('✅ 用户信息已保存:', userInfo);
     } catch (error) {
-      console.error('保存用户信息失败:', error);
+      console.error('❌ 保存用户信息失败:', error);
     }
   },
 
@@ -101,8 +137,8 @@ App({
   globalData: {
     userInfo: null,
     // 修改baseUrl为后端服务地址
-    baseUrl: 'http://localhost:8090', // 后端服务运行在8090端口
-    socketUrl: 'ws://localhost:8090/ws', // WebSocket地址
+    baseUrl: 'http://139.199.87.181:8080/api', // 后端服务运行在8080端口
+    socketUrl: 'ws://139.199.87.181:8080/api/ws', // WebSocket地址
     isDebug: true,
     unreadMessageCount: 0  // 全局未读消息计数
   },

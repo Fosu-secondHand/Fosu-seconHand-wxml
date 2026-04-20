@@ -365,56 +365,68 @@ Page({
 
     // 获取用户详细信息后提交
     this.getUserDetail(userInfo.id, token).then(userDetail => {
-      // 解析用户地址信息
-      let campus = "佛山大学";
-      let address = "";
+      // ✅ 先上传图片
+      this.uploadImages().then(imageUrls => {
+        // 解析用户地址信息
+        let campus = "佛山大学";
+        let address = "";
 
-      if (userDetail.address) {
-        const addressParts = userDetail.address.split('-');
-        if (addressParts.length >= 3) {
-          campus = addressParts[0];  // 校区
-          address = `${addressParts[1]}-${addressParts[2]}`;  // 宿舍楼栋-宿舍号
-        } else if (addressParts.length === 2) {
-          campus = addressParts[0];
-          address = addressParts[1];
-        } else {
-          address = userDetail.address;
+        if (userDetail.address) {
+          const addressParts = userDetail.address.split('-');
+          if (addressParts.length >= 3) {
+            campus = addressParts[0];  // 校区
+            address = `${addressParts[1]}-${addressParts[2]}`;  // 宿舍楼栋-宿舍号
+          } else if (addressParts.length === 2) {
+            campus = addressParts[0];
+            address = addressParts[1];
+          } else {
+            address = userDetail.address;
+          }
         }
-      }
 
-      // 构建求购商品更新数据，确保包含所有必需字段
-      const updatedGoods = {
-        productId: this.data.editingGoodsId,
-        sellerId: this.data.originalProductData.sellerId || userInfo.id, // 保留原始sellerId
-        title: this.data.description,
-        description: this.data.description,
-        image: this.data.images,
-        price: 0, // 求购商品价格通常为0
-        quantity: this.data.quantity, // 添加商品数量
-        transactionMethod: this.data.shippingMethod === 'buyer' ? 'Pickup' : 'Delivery',
-        categoryId: 7, // 求购商品可以使用默认分类
-        condition: 'NEW', // 求购商品成色
-        productType: 'WANT',
-        status: this.data.originalProductData.status || 'ON_SALE', // 保留原始状态
-        campus: campus,
-        address: address,
-        postTime: this.data.originalProductData.postTime || new Date().toISOString(), // 保留原始发布时间
-        updateTime: new Date().toISOString(), // 更新时间
-        viewCount: this.data.originalProductData.viewCount || 0, // 保留原始浏览数
-        favoriteCount: this.data.originalProductData.favoriteCount || 0, // 保留原始收藏数
-        wantToBuy: this.data.originalProductData.wantToBuy || 0 // 保留原始想要数
-      };
+        // 构建求购商品更新数据，确保包含所有必需字段
+        const updatedGoods = {
+          productId: this.data.editingGoodsId,
+          sellerId: this.data.originalProductData.sellerId || userInfo.id, // 保留原始sellerId
+          title: this.data.description,
+          description: this.data.description,
+          image: imageUrls,  // ✅ 使用上传后的 URL
+          price: 0, // 求购商品价格通常为0
+          quantity: this.data.quantity, // 添加商品数量
+          transactionMethod: this.data.shippingMethod === 'buyer' ? 'Pickup' : 'Delivery',
+          categoryId: 7, // 求购商品可以使用默认分类
+          condition: 'NEW', // 求购商品成色
+          productType: 'WANT',
+          status: this.data.originalProductData.status || 'ON_SALE', // 保留原始状态
+          campus: campus,
+          address: address,
+          postTime: this.data.originalProductData.postTime || new Date().toISOString(), // 保留原始发布时间
+          updateTime: new Date().toISOString(), // 更新时间
+          viewCount: this.data.originalProductData.viewCount || 0, // 保留原始浏览数
+          favoriteCount: this.data.originalProductData.favoriteCount || 0, // 保留原始收藏数
+          wantToBuy: this.data.originalProductData.wantToBuy || 0 // 保留原始想要数
+        };
 
-      // 调用统一的更新接口
-      this.updateProduct(updatedGoods);
+        // 调用统一的更新接口
+        this.updateProduct(updatedGoods);
+      }).catch(err => {
+        console.error('图片上传失败:', err);
+        this.setData({ loading: false });
+        wx.showToast({
+          title: '图片上传失败: ' + (err.message || ''),
+          icon: 'none'
+        });
+      });
     }).catch(err => {
       console.error('获取用户信息失败:', err);
+      this.setData({ loading: false });
       wx.showToast({
         title: '获取用户信息失败',
         icon: 'none'
       });
     });
   },
+
 
   // 提交出售商品修改
   submitSellGoodsEdit() {
@@ -441,50 +453,61 @@ Page({
 
     // 获取用户详细信息后提交
     this.getUserDetail(userInfo.id, token).then(userDetail => {
-      // 解析用户地址信息
-      let campus = "佛山大学";
-      let address = "";
+      // ✅ 先上传图片
+      this.uploadImages().then(imageUrls => {
+        // 解析用户地址信息
+        let campus = "佛山大学";
+        let address = "";
 
-      if (userDetail.address) {
-        const addressParts = userDetail.address.split('-');
-        if (addressParts.length >= 3) {
-          campus = addressParts[0];  // 校区
-          address = `${addressParts[1]}-${addressParts[2]}`;  // 宿舍楼栋-宿舍号
-        } else if (addressParts.length === 2) {
-          campus = addressParts[0];
-          address = addressParts[1];
-        } else {
-          address = userDetail.address;
+        if (userDetail.address) {
+          const addressParts = userDetail.address.split('-');
+          if (addressParts.length >= 3) {
+            campus = addressParts[0];  // 校区
+            address = `${addressParts[1]}-${addressParts[2]}`;  // 宿舍楼栋-宿舍号
+          } else if (addressParts.length === 2) {
+            campus = addressParts[0];
+            address = addressParts[1];
+          } else {
+            address = userDetail.address;
+          }
         }
-      }
 
-      // 构建出售商品更新数据，确保包含所有必需字段
-      const updatedGoods = {
-        productId: this.data.editingGoodsId,
-        sellerId: this.data.originalProductData.sellerId || userInfo.id, // 保留原始sellerId
-        title: this.data.description,
-        description: this.data.description,
-        image: this.data.images,
-        price: parseFloat(this.data.price),
-        quantity: this.data.quantity, // 添加商品数量
-        transactionMethod: this.data.shippingMethod === 'buyer' ? 'Pickup' : 'Delivery',
-        categoryId: this.data.category.id,
-        condition: this.data.condition.value,
-        productType: 'SELL',
-        status: this.data.originalProductData.status || 'ON_SALE', // 保留原始状态
-        campus: campus,
-        address: address,
-        postTime: this.data.originalProductData.postTime || new Date().toISOString(), // 保留原始发布时间
-        updateTime: new Date().toISOString(), // 更新时间
-        viewCount: this.data.originalProductData.viewCount || 0, // 保留原始浏览数
-        favoriteCount: this.data.originalProductData.favoriteCount || 0, // 保留原始收藏数
-        wantToBuy: this.data.originalProductData.wantToBuy || 0 // 保留原始想要数
-      };
+        // 构建出售商品更新数据，确保包含所有必需字段
+        const updatedGoods = {
+          productId: this.data.editingGoodsId,
+          sellerId: this.data.originalProductData.sellerId || userInfo.id, // 保留原始sellerId
+          title: this.data.description,
+          description: this.data.description,
+          image: imageUrls,  // ✅ 使用上传后的 URL
+          price: parseFloat(this.data.price),
+          quantity: this.data.quantity, // 添加商品数量
+          transactionMethod: this.data.shippingMethod === 'buyer' ? 'Pickup' : 'Delivery',
+          categoryId: this.data.category.id,
+          condition: this.data.condition.value,
+          productType: 'SELL',
+          status: this.data.originalProductData.status || 'ON_SALE', // 保留原始状态
+          campus: campus,
+          address: address,
+          postTime: this.data.originalProductData.postTime || new Date().toISOString(), // 保留原始发布时间
+          updateTime: new Date().toISOString(), // 更新时间
+          viewCount: this.data.originalProductData.viewCount || 0, // 保留原始浏览数
+          favoriteCount: this.data.originalProductData.favoriteCount || 0, // 保留原始收藏数
+          wantToBuy: this.data.originalProductData.wantToBuy || 0 // 保留原始想要数
+        };
 
-      // 调用统一的更新接口
-      this.updateProduct(updatedGoods);
+        // 调用统一的更新接口
+        this.updateProduct(updatedGoods);
+      }).catch(err => {
+        console.error('图片上传失败:', err);
+        this.setData({ loading: false });
+        wx.showToast({
+          title: '图片上传失败: ' + (err.message || ''),
+          icon: 'none'
+        });
+      });
     }).catch(err => {
       console.error('获取用户信息失败:', err);
+      this.setData({ loading: false });
       wx.showToast({
         title: '获取用户信息失败',
         icon: 'none'
@@ -576,5 +599,118 @@ Page({
         this.setData({ loading: false });
       }
     });
+  },
+
+  // ✅ 新增：上传图片方法（照搬 idle.js 的完整逻辑）
+  uploadImages() {
+    return new Promise((resolve, reject) => {
+      if (this.data.images.length === 0) {
+        resolve([]);
+        return;
+      }
+
+      const app = getApp();
+      const baseURL = app.globalData.baseUrl;
+
+      // 检查 baseUrl 是否有效
+      if (!baseURL) {
+        reject(new Error('API 地址未配置'));
+        return;
+      }
+
+      // 获取认证 token
+      const token = wx.getStorageSync('token');
+      console.log('获取到的 token:', token);
+      if (!token) {
+        reject(new Error('用户未登录，请先登录'));
+        return;
+      }
+
+      const uploadPromises = this.data.images.map((imagePath, index) => {
+        return new Promise((resolve, reject) => {
+          wx.uploadFile({
+            url: baseURL + '/products/upload/image',
+            filePath: imagePath,
+            name: 'file',
+            header: {
+              'Authorization': `Bearer ${token}`
+            },
+            success: (res) => {
+              console.log(`第${index+1}张图片上传响应:`, res);
+              console.log(`第${index+1}张图片上传响应 data 字段:`, res.data);
+
+              if (res.statusCode === 200) {
+                try {
+                  const data = JSON.parse(res.data);
+                  console.log(`第${index+1}张图片上传解析后的数据:`, data);
+
+                  // 根据接口返回获取图片 URL
+                  let imageUrl = data.data || data.url || data.imageUrl || null;
+
+                  if (imageUrl) {
+                    console.log(`第${index+1}张图片原始 URL:`, imageUrl);
+
+                    // ✅ 判断是否为完整 URL
+                    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+                      // 已经是完整 URL，强制转换为 HTTP（开发环境）
+                      if (imageUrl.startsWith('https://')) {
+                        imageUrl = imageUrl.replace('https://', 'http://');
+                        console.log(`⚠️ 将 HTTPS 转换为 HTTP:`, imageUrl);
+                      }
+                      console.log(`第${index+1}张图片使用完整 URL`);
+                      resolve(imageUrl);
+                    } else if (imageUrl.startsWith('/')) {
+                      // 相对路径，需要拼接域名
+                      // 从 baseURL 提取域名部分（去掉 /api）
+                      const domain = baseURL.replace('/api', '');
+
+                      // ✅ 确保使用 HTTP 协议
+                      const finalUrl = domain.startsWith('http://') ? domain + imageUrl : 'http://' + domain.replace(/^https?:\/\//, '') + imageUrl;
+
+                      console.log(`第${index+1}张图片拼接后的 URL:`, finalUrl);
+                      resolve(finalUrl);
+                    } else {
+                      // 不带斜杠的相对路径
+                      const domain = baseURL.replace('/api', '');
+
+                      // ✅ 确保使用 HTTP 协议
+                      const finalUrl = domain.startsWith('http://') ? domain + '/' + imageUrl : 'http://' + domain.replace(/^https?:\/\//, '') + '/' + imageUrl;
+
+                      console.log(`第${index+1}张图片拼接后的 URL:`, finalUrl);
+                      resolve(finalUrl);
+                    }
+                  } else {
+                    console.error(`第${index+1}张图片上传返回数据格式不正确:`, data);
+                    reject(new Error(`第${index+1}张图片上传返回数据格式不正确`));
+                  }
+                } catch (parseError) {
+                  console.error(`第${index+1}张图片上传数据解析失败:`, parseError);
+                  console.error(`原始响应数据:`, res.data);
+                  reject(new Error(`第${index+1}张图片上传数据解析失败：${parseError.message}`));
+                }
+              } else {
+                console.error(`第${index+1}张图片上传失败，状态码:`, res.statusCode);
+                reject(new Error(`第${index+1}张图片上传失败，状态码：${res.statusCode}`));
+              }
+            },
+            fail: (err) => {
+              console.error(`第${index+1}张图片上传失败:`, err);
+              reject(new Error(`第${index+1}张图片上传失败：${err.errMsg || '网络错误'}`));
+            }
+          });
+        });
+      });
+
+      Promise.all(uploadPromises)
+          .then(urls => {
+            console.log('所有图片上传成功，URL 列表:', urls);
+            resolve(urls);
+          })
+          .catch(err => {
+            console.error('图片上传失败:', err);
+            reject(err);
+          });
+    });
   }
 });
+

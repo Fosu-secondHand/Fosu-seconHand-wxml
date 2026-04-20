@@ -7,52 +7,69 @@
   
   <view style="padding-top: 88rpx;">
     <scroll-view 
-    scroll-y="true" 
-    class="chat-scroll-view" 
-    id="chatScrollView"
-    scroll-into-view="{{scrollIntoView}}"  
-    scroll-top="{{scrollTop}}"
-    scroll-with-animation="false"  
-  >
-    <block wx:for="{{chatRecords}}" wx:key="index">
-      <!-- 时间 -->
-      <view wx:if="{{item.showTime}}" class="msg-time">
-        <text>{{item.formattedTime}}</text>
-      </view>
-      <!-- 消息行 -->
-      <view class="msg-float-row {{item.sender === 'currentUserID' ? 'msg-float-right' : 'msg-float-left'}}" id="{{item.id}}">
-        <image class="msg-float-avatar" src="/static/assets/icons/default-avatar.png" />
-        <block wx:if="{{item.type === 'image'}}">
-          <view class="msg-img-wrap">
-            <image class="msg-img-full" src="{{item.content.startsWith('http://tmp/') ? item.content.replace('http://tmp/', 'wxfile://') : item.content}}" mode="widthFix" />
-          </view>
-        </block>
-        <block wx:elif="{{item.type === 'link'}}">
-          <view class="msg-float-bubble">
-            <view class="msg-link">
-              <navigator url="{{item.content}}" target="miniProgram">{{item.content}}</navigator>
-            </view>
-          </view>
-        </block>
-        <block wx:else>
-          <view class="msg-float-bubble">
-            <text class="msg-text">{{item.content}}</text>
-          </view>
-        </block>
-      </view>
-    </block>
-    <view class="bottom-placeholder"></view>
-  </scroll-view>
+      scroll-y="true"
+      class="chat-scroll-view"
+      id="chatScrollView"
+      scroll-into-view="{{scrollIntoView}}"
+      scroll-top="{{scrollTop}}"
+      scroll-with-animation="false"
+    >
+       <block wx:for="{{chatRecords}}" wx:key="index">
+              <!-- 时间 -->
+              <view wx:if="{{item.showTime}}" class="msg-time">
+                <text>{{item.formattedTime}}</text>
+              </view>
+
+              <!-- ✅ 消息行：根据发送者决定样式 -->
+              <view class="msg-row {{item.sender == currentUserId ? 'msg-right' : 'msg-left'}}" id="{{item.id}}">
+                <!-- ✅ 修复：动态显示头像 -->
+                <image
+                  class="msg-avatar"
+                  src="{{item.sender == currentUserId ? currentUserAvatar : (item.senderAvatar || receiverAvatar || '/static/assets/icons/default-avatar.png')}}"
+                  mode="aspectFill"
+                ></image>
+
+                <!-- 消息内容 -->
+                <block wx:if="{{item.type === 'image'}}">
+                  <view class="msg-bubble msg-image-bubble">
+                    <image class="msg-img-content" src="{{item.content}}" mode="widthFix" bindtap="previewImage" data-src="{{item.content}}"></image>
+                  </view>
+                </block>
+                <block wx:elif="{{item.type === 'link'}}">
+                  <view class="msg-bubble msg-link-bubble">
+                    <navigator url="{{item.content}}" target="miniProgram">{{item.content}}</navigator>
+                  </view>
+                </block>
+                <block wx:else>
+                  <view class="msg-bubble {{item.sender == currentUserId ? 'bubble-right' : 'bubble-left'}}">
+                    <text class="msg-text">{{item.content}}</text>
+                  </view>
+                </block>
+              </view>
+            </block>
+      <view class="bottom-placeholder"></view>
+    </scroll-view>
   </view>
-  <view class="chat-input-container" style="position: relative; z-index: 200;">
-    <view class="chat-input">
-      <input type="text" placeholder="输入消息..." value="{{message}}" bindinput="onInput" />
+
+  <!-- 底部输入框区域 -->
+  <view class="chat-input-container">
+    <view class="input-wrapper">
+      <input
+        class="message-input"
+        type="text"
+        placeholder="输入消息..."
+        value="{{message}}"
+        bindinput="onInput"
+        confirm-type="send"
+        bindconfirm="sendMessage"
+      />
       <button class="plus-btn" bindtap="toggleFunctionPanel">+</button>
-      <button bindtap="sendMessage" class="send-btn">
-        <image src="/static/chatsend.png" class="send-btn-image" mode="aspectFit"></image>
+      <button class="send-btn" bindtap="sendMessage">
+        发送
       </button>
     </view>
-    <!-- 功能面板：紧跟输入框下方 -->
+
+    <!-- 功能面板 -->
     <view wx:if="{{showFunctionPanel}}" class="function-panel-below">
       <button class="icon-btn" bindtap="takePhoto">
         <image src="/static/assets/icons/camera.png" class="icon-img" />
@@ -66,18 +83,6 @@
         <image src="/static/assets/icons/link.png" class="icon-img" />
         链接
       </button>
-    </view>
-    <!-- 链接输入弹窗 -->
-    <view wx:if="{{showLinkModal}}" class="link-modal">
-      <view wx:if="{{linkList.length}}" class="link-list">
-        <block wx:for="{{linkList}}" wx:key="url">
-          <view class="link-item" bindtap="sendMockLink" data-url="{{item.url}}" data-title="{{item.title}}" data-desc="{{item.desc}}">
-            <view class="link-title">{{item.title}}</view>
-            <view class="link-desc">{{item.desc}}</view>
-            <view class="link-url">{{item.url}}</view>
-          </view>
-        </block>
-      </view>
     </view>
   </view>
 </view>

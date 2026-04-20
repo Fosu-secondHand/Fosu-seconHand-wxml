@@ -147,7 +147,73 @@
     color: #666;
     font-size: 14px;
   }
-  
+/* ✅ 新增：卖家信息卡片样式 */
+.seller-card {
+  background: #fff;
+  margin: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+ .seller-card:active {
+    background: #f9f9f9;
+    transform: scale(0.98);
+  }
+
+  .seller-info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .seller-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #FBEC9B;
+    flex-shrink: 0;
+  }
+
+  .seller-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .seller-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .seller-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .seller-campus {
+    font-size: 12px;
+    color: #666;
+    background: #FBEC9B;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .seller-address {
+    font-size: 13px;
+    color: #999;
+  }
+
+  .arrow-right {
+    width: 16px;
+    height: 16px;
+    opacity: 0.5;
+  }
+
   .recommend-section {
     margin-top: 20px;
     padding: 0 16px;

@@ -65,56 +65,130 @@
   <view wx:if="{{isLogin}}" class="logout-btn" bindtap="handleLogout">退出登录</view>
 
   <!-- 弹窗部分保持不变 -->
-  <!-- 头像编辑弹窗 -->
-  <view class="modal" wx:if="{{isAvatarEditModalShow}}">
-    <!-- ... 弹窗内容 ... -->
-  </view>
+    <!-- 头像编辑弹窗 -->
+    <view class="modal" wx:if="{{isAvatarEditModalShow}}">
+      <view class="modal-mask" bindtap="closeAvatarEditModal"></view>
+      <view class="modal-content">
+        <view class="modal-header">
+          <text>更换头像</text>
+          <image
+            class="close-icon"
+            src="/static/assets/icons/close.png"
+            mode="aspectFit"
+            bindtap="closeAvatarEditModal"
+          ></image>
+        </view>
+        <view class="modal-body">
+          <!-- 头像预览 -->
+          <image
+            class="preview-avatar"
+            src="{{tempAvatarUrl || avatarUrl}}"
+            mode="aspectFill"
+          ></image>
 
+          <!-- 选择图片按钮 -->
+          <button class="upload-btn" bindtap="chooseImage">
+            从相册选择
+          </button>
+        </view>
+        <view class="modal-footer">
+          <button class="cancel-btn" bindtap="closeAvatarEditModal">取消</button>
+          <button class="confirm-btn" bindtap="uploadAvatar">确定</button>
+        </view>
+      </view>
+    </view>
   <!-- 昵称编辑弹窗 -->
   <view class="modal" wx:if="{{isNicknameEditModalShow}}">
-    <!-- ... 弹窗内容 ... -->
+    <view class="modal-mask" bindtap="closeNicknameEditModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text>编辑昵称</text>
+        <image
+          class="close-icon"
+          src="/static/assets/icons/close.png"
+          mode="aspectFit"
+          bindtap="closeNicknameEditModal"
+        ></image>
+      </view>
+      <view class="modal-body">
+        <input
+          class="edit-input"
+          placeholder="请输入昵称"
+          value="{{tempNickname}}"
+          bindinput="onNicknameInput"
+          maxlength="20"
+        />
+      </view>
+      <view class="modal-footer">
+        <button class="cancel-btn" bindtap="closeNicknameEditModal">取消</button>
+        <button class="confirm-btn" bindtap="saveNickname">确定</button>
+      </view>
+    </view>
   </view>
-
   <!-- 简介编辑弹窗 -->
   <view class="modal" wx:if="{{isIntroEditModalShow}}">
-    <!-- ... 弹窗内容 ... -->
+    <view class="modal-mask" bindtap="closeIntroEditModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text>编辑简介</text>
+        <image
+          class="close-icon"
+          src="/static/assets/icons/close.png"
+          mode="aspectFit"
+          bindtap="closeIntroEditModal"
+        ></image>
+      </view>
+      <view class="modal-body">
+        <textarea
+          class="edit-textarea"
+          placeholder="请输入个人简介"
+          value="{{tempIntro}}"
+          bindinput="onIntroInput"
+          maxlength="100"
+        />
+      </view>
+      <view class="modal-footer">
+        <button class="cancel-btn" bindtap="closeIntroEditModal">取消</button>
+        <button class="confirm-btn" bindtap="saveIntro">确定</button>
+      </view>
+    </view>
   </view>
 
-  <!-- 手机绑定弹窗 - 修改为支持微信手机号获取 -->
-   <view class="modal" wx:if="{{isBindPhoneModalShow}}">
-     <view class="modal-mask" bindtap="closeBindPhoneModal"></view>
-     <view class="modal-content">
-       <view class="modal-header">
-         <text>绑定手机号</text>
-         <image
-           class="close-icon"
-           src="/static/assets/icons/close.png"
-           mode="aspectFit"
-           bindtap="closeBindPhoneModal"
-         ></image>
-       </view>
-       <view class="modal-body">
-         <input
-           class="edit-input"
-           placeholder="请输入手机号"
-           value="{{tempPhone}}"
-           bindinput="onPhoneInput"
-           type="number"
-           maxlength="11"
-         />
-         <!-- ✅ 新增：微信手机号快捷绑定按钮 -->
-         <button
-           class="wechat-phone-btn"
-           open-type="choosePhoneNumber"
-           bindchoosephonenumber="getWechatPhone"
-         >
-           一键获取微信手机号
-         </button>
-       </view>
-       <view class="modal-footer">
-         <button class="cancel-btn" bindtap="closeBindPhoneModal">取消</button>
-         <button class="confirm-btn" bindtap="bindPhone">确定</button>
-       </view>
-     </view>
-   </view>
- </view>
+  <!-- 手机绑定弹窗 -->
+  <view class="modal" wx:if="{{isBindPhoneModalShow}}">
+    <view class="modal-mask" bindtap="closeBindPhoneModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text>绑定手机号</text>
+        <image
+          class="close-icon"
+          src="/static/assets/icons/close.png"
+          mode="aspectFit"
+          bindtap="closeBindPhoneModal"
+        ></image>
+      </view>
+      <view class="modal-body">
+        <input
+          class="edit-input"
+          placeholder="请输入手机号"
+          value="{{tempPhone}}"
+          bindinput="onPhoneInput"
+          type="number"
+          maxlength="11"
+        />
+        <!-- ✅ 新增：微信手机号快捷绑定按钮 -->
+        <button
+          class="wechat-phone-btn"
+          open-type="choosePhoneNumber"
+          bindchoosephonenumber="getWechatPhone"
+        >
+          一键获取微信手机号
+        </button>
+      </view>
+      <view class="modal-footer">
+        <button class="cancel-btn" bindtap="closeBindPhoneModal">取消</button>
+        <button class="confirm-btn" bindtap="bindPhone">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

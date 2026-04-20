@@ -5,43 +5,48 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2e22c8ad-9cb2-476e-a336-9cec52ed2c06" name="更改" comment="feat(goods):优化商品详情页交互与推荐逻辑&#10;&#10;- 修改推荐商品接口调用方式，添加认证头并优化错误处理&#10;- 完善商品已售出状态的前端校验与提示&#10;-优化求购商品的聊天按钮逻辑，区分不同类型商品处理&#10;- 更新商品详情页布局，使用滚动视图提升用户体验&#10;- 调整底部操作栏显示逻辑，根据商品状态动态渲染按钮- 增加商品已售出状态下的底部提示样式- 优化我的购买页面商品列表展示，增加卖家信息显示&#10;- 改进地址管理相关接口调用逻辑，精简用户信息更新条件">
-      <change afterPath="$PROJECT_DIR$/static/assets/icons/展开 (2).png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/assets/icons/收起.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/static/卖掉了.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/公司图标.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/app.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/PriceModal/PriceModal.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/components/PriceModal/PriceModal.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/custom-tab-bar/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/custom-tab-bar/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/custom-tab-bar/index.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/custom-tab-bar/index.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/custom-tab-bar/index.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/custom-tab-bar/index.wxss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/GoodDetail/GoodDetail.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/about/about.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/about/about.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/about/about.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/about/about.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/about/about.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/about/about.wxss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/addAddress/addAddress.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/addAddress/addAddress.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/chat/chat.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/chat/chat.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/chat/chat.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/chat/chat.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/chat/chat.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/chat/chat.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/customerService/customerService.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/customerService/customerService.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/customerService/customerService.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/customerService/customerService.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/customerService/customerService.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/customerService/customerService.wxss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/editIdle/editIdle.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/editIdle/editIdle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/editIdle/editIdle.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/editIdle/editIdle.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/editIdle/editIdle.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/editIdle/editIdle.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/feedback/feedback.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/feedback/feedback.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/feedback/feedback.wxml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/feedback/feedback.wxss" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/idle/idle.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/idle/idle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/idle/idle.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/idle/idle.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/idle/idle.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/idle/idle.wxss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/index/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/index/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/index/index.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/index/index.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/index/index.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/index/index.wxss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/login/login.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/login/login.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/message/message.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/message/message.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/message/message.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/message/message.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/message/message.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/message/message.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/myBought/myBought.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myBought/myBought.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/myCollection/myCollection.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myCollection/myCollection.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/myPublished/myPublished.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/myPublished/myPublished.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/mySold/mySold.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/mySold/mySold.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/payment/payment.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/payment/payment.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/payment/payment.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/payment/payment.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/payment/payment.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/payment/payment.wxss" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/profile/profile.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/profile/profile.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/profile/profile.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/profile/profile.wxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/setting/setting.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/setting/setting.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/setting/setting.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/setting/setting.wxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/userHome/userHome.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/userHome/userHome.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/userHome/userHome.wxml" beforeDir="false" afterPath="$PROJECT_DIR$/pages/userHome/userHome.wxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project.config.json" beforeDir="false" afterPath="$PROJECT_DIR$/project.config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project.private.config.json" beforeDir="false" afterPath="$PROJECT_DIR$/project.private.config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/userHome/userHome.wxss" beforeDir="false" afterPath="$PROJECT_DIR$/pages/userHome/userHome.wxss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/wantIdle/wantIdle.js" beforeDir="false" afterPath="$PROJECT_DIR$/pages/wantIdle/wantIdle.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/authMixin.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/authMixin.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/config.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,7 +73,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Project/Fosu-seconHand-wxml&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Project/Fosu-seconHand-wxml/static&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
@@ -114,6 +119,11 @@
       <workItem from="1772778203806" duration="4348000" />
       <workItem from="1773640520055" duration="11734000" />
       <workItem from="1773734807645" duration="23848000" />
+      <workItem from="1775051029363" duration="1715000" />
+      <workItem from="1775318085120" duration="599000" />
+      <workItem from="1776174771226" duration="48452000" />
+      <workItem from="1776581858353" duration="307000" />
+      <workItem from="1776582215373" duration="19640000" />
     </task>
     <task id="LOCAL-00001" summary="feat(address): 实现地址编辑与用户信息同步功能- 新增自动填充用户信息功能，编辑地址时自动获取用户默认信息- 实现表单数据变更检测，仅更新发生变化的字段&#10;- 添加默认地址更新机制，删除或设置默认地址时同步更新用户信息&#10;- 优化地址提交逻辑，确保地址信息与用户信息保持一致&#10;- 增强表单验证，支持校区、宿舍楼、门牌号等字段校验- 实现用户信息更新接口调用，避免传递敏感字段如openid等- 添加地址变更时的用户提示与错误处理机制">
       <option name="closed" value="true" />

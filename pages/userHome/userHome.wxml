@@ -2,29 +2,39 @@
   <custom-nav-bar title="个人主页" showBack="true" />
   
   <view style="padding-top: 88rpx;">
-    <image class="bg-img" src="{{bgImgUrl}}" bindtap="onBgImgTap"></image>
-    <!-- ✅ 修改：编辑按钮添加正确的点击事件 -->
-    <button class="edit-btn-global" bindtap="onEditProfile">编辑</button>
-    <view class="header-content">
-      <view class="avatar-box">
-        <image class="avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
-      </view>
-      <view class="user-main">
-        <view class="nickname-row">
-          <text class="nickname">{{nickname}}</text>
+    <!-- ✅ 暂时禁用背景图更换功能 -->
+    <image class="bg-img" src="{{bgImgUrl}}"></image>
+    <!-- ✅ 修复：仅在查看自己主页时显示编辑按钮 -->
+    <button wx:if="{{!isViewingOthers}}" class="edit-btn-global" bindtap="onEditProfile">编辑</button>
+      <view class="header-content">
+        <!-- ✅ 修复：仅在查看自己主页时可点击更换头像 -->
+        <view class="avatar-box" bindtap="{{!isViewingOthers ? 'onChooseAvatar' : ''}}">
+          <image class="avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+          <!-- ✅ 新增：仅在查看自己主页时显示编辑图标提示 -->
+          <view wx:if="{{!isViewingOthers}}" class="avatar-edit-tip">
+            <text class="edit-icon">✏️</text>
+          </view>
         </view>
-        <view class="tags">
-          <block wx:for="{{tags}}" wx:key="index">
-            <text class="tag" wx:if="{{item=='女生'||item=='男生'}}" bindtap="onGenderTagTap">{{item}}</text>
-            <text class="tag" wx:elif="{{item!='女生'&&item!='男生'}}" bindtap="onTagTap" data-index="{{index}}">{{item}}</text>
-          </block>
-          <text class="tag add-tag" bindtap="onAddTag">添加+</text>
+        <view class="user-main">
+          <view class="nickname-row">
+            <text class="nickname">{{nickname}}</text>
+          </view>
+          <view class="tags">
+            <block wx:for="{{tags}}" wx:key="index">
+              <!-- ✅ 修复：性别标签仅在查看自己主页时可点击更改 -->
+              <text class="tag" wx:if="{{item=='女生'||item=='男生'}}" bindtap="{{!isViewingOthers ? 'onGenderTagTap' : ''}}">{{item}}</text>
+              <!-- ✅ 修复：其他标签仅在查看自己主页时可点击编辑 -->
+              <text class="tag" wx:elif="{{item!='女生'&&item!='男生'}}" bindtap="{{!isViewingOthers ? 'onTagTap' : ''}}" data-index="{{index}}">{{item}}</text>
+            </block>
+            <!-- ✅ 修复：添加标签按钮仅在查看自己主页时显示 -->
+            <text wx:if="{{!isViewingOthers}}" class="tag add-tag" bindtap="onAddTag">添加+</text>
+          </view>
+          <view class="credit-score">信用分 {{creditScore}}</view>
+          <!-- ✅ 修复：简介仅在查看自己主页时可点击编辑 -->
+          <view class="desc" bindtap="{{!isViewingOthers ? 'onEditDesc' : ''}}">{{profileDesc}}</view>
         </view>
-        <view class="credit-score">信用分 {{creditScore}}</view>
-        <view class="desc">{{profileDesc}}</view>
       </view>
-    </view>
-  </view>
+
 
   <view class="user-tabs-custom">
     <view class="tab-item" wx:for="{{tabList}}" wx:key="name" wx:if="{{item.name!=='评价'}}" bindtap="onTabChange" data-index="{{index}}">
@@ -51,13 +61,11 @@
 
 
   <view class="end-tip">已经到底啦</view>
-</view>
+  </view>  <!-- ✅ 修复：闭合第 4 行的 view -->
+</view>  <!-- ✅ 闭合第 1 行的 container -->
 
-<!-- ... existing code ... -->
-
-
-<!-- 模态框部分 -->
-<view wx:if="{{showEditDesc}}" class="custom-modal-mask">
+<!-- 模态框部分 - 仅在查看自己主页时显示 -->
+<view wx:if="{{showEditDesc && !isViewingOthers}}" class="custom-modal-mask">
   <view class="custom-modal">
     <view class="modal-title">编辑个人简介</view>
     <input class="modal-input" value="{{editDescValue}}" bindinput="onEditDescInput" placeholder="请输入个人简介" />
@@ -68,7 +76,7 @@
   </view>
 </view>
 
-<view wx:if="{{showAddTagModal}}" class="custom-modal-mask">
+<view wx:if="{{showAddTagModal && !isViewingOthers}}" class="custom-modal-mask">
   <view class="custom-modal">
     <view class="modal-title">添加标签</view>
     <input class="modal-input" value="{{addTagValue}}" bindinput="onAddTagInput" placeholder="请输入标签内容" />
@@ -79,7 +87,7 @@
   </view>
 </view>
 
-<view wx:if="{{showEditTagModal}}" class="custom-modal-mask">
+<view wx:if="{{showEditTagModal && !isViewingOthers}}" class="custom-modal-mask">
   <view class="custom-modal">
     <view class="modal-title">编辑标签</view>
     <input class="modal-input" value="{{editTagValue}}" bindinput="onEditTagInput" placeholder="请输入标签内容" />
@@ -89,3 +97,4 @@
     </view>
   </view>
 </view>
+

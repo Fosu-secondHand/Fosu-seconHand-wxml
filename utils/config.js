@@ -1,8 +1,8 @@
 // utils/config.js
 const config = {
     development: {
-        baseUrl: 'http://localhost:8090',
-        wsUrl: 'ws://localhost:8090'
+        baseUrl: 'http://139.199.87.181:8080/api',
+        wsUrl: 'ws://139.199.87.181:8080/api'
     },
     production: {
         baseUrl: 'https://your-domain.com', // 部署时替换为实际域名

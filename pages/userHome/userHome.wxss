@@ -108,12 +108,40 @@
   margin-right: 0;
   display: flex;
   align-items: flex-start;
+  pointer-events: auto;  /* ✅ 确保可以点击 */
+  cursor: pointer;  /* ✅ 鼠标悬停显示手型 */
 }
 .avatar {
   width: 70px;
   height: 70px;
   border-radius: 50%;
   border: 2px solid #fff;
+  transition: opacity 0.3s;  /* ✅ 添加过渡效果 */
+}
+/* ✅ 新增：头像悬停效果 */
+.avatar-box:active .avatar {
+  opacity: 0.8;
+}
+
+/* ✅ 新增：头像编辑图标 */
+.avatar-edit-icon {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  height: 24px;
+  background: #ffb400;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid #fff;
+  z-index: 10;
+}
+.avatar-edit-icon image {
+  width: 14px;
+  height: 14px;
 }
 .user-main { flex: 1; }
 .nickname-row {

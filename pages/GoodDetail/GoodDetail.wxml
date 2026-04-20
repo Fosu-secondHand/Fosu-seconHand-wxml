@@ -81,6 +81,32 @@
     </view>
   </view>
 
+ <!-- ✅ 新增：卖家信息卡片 -->
+ <view class="seller-card" wx:if="{{goodsDetail.seller}}" bindtap="goToSellerHome">
+   <view class="seller-info-row">
+     <!-- 卖家头像 -->
+     <image
+       class="seller-avatar"
+       src="{{sellerAvatarUrl}}"
+       mode="aspectFill"
+     ></image>
+
+     <!-- 卖家详细信息 -->
+     <view class="seller-details">
+       <view class="seller-name-row">
+         <text class="seller-name">{{goodsDetail.seller.name || goodsDetail.seller.nickname || '卖家'}}</text>
+         <text class="seller-campus" wx:if="{{goodsDetail.campus}}">{{goodsDetail.campus}}</text>
+       </view>
+       <view class="seller-address" wx:if="{{goodsDetail.seller.address}}">
+         <text>{{goodsDetail.seller.address}}</text>
+       </view>
+     </view>
+
+     <!-- 箭头图标 -->
+     <image class="arrow-right" src="/static/assets/icons/arrowright.png" mode="aspectFit"></image>
+   </view>
+ </view>
+
  <!-- 推荐商品瀑布流 -->
  <view class="recommend-section">
    <view class="section-title-container">

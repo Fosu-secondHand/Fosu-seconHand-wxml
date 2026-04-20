@@ -1,10 +1,49 @@
+// pages/wantIdle/wantIdle.js
+const authMixin = require('../../utils/authMixin.js');
+
 Page({
   data: {
     description: '',
     images: [],
     shippingMethod: 'seller',
-    loading: false
+    loading: false,
+    isLogin: false  // ✅ 新增：登录状态
   },
+
+  // ✅ 引入混入方法
+  ...authMixin.methods,
+
+  onLoad() {
+    // ✅ 新增：使用统一的登录检查
+    if (!this.requireLogin('发布求购信息')) {
+      return;
+    }
+
+    console.log('✅ wantIdle: 用户已登录，可以发布求购');
+  },
+
+  onShow() {
+    // ✅ 修改：页面显示时重新检查登录状态，使用弹窗提示
+    if (!this.checkLogin()) {
+      console.warn('⚠️ wantIdle onShow: 用户未登录，显示弹窗提示');
+      wx.showModal({
+        title: '提示',
+        content: '请先登录后再发布求购',
+        confirmText: '去登录',
+        cancelText: '取消',
+        confirmColor: '#07c160',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/login/login'
+            });
+          }
+        }
+      });
+      return;
+    }
+  },
+
 
   // 处理描述输入
   onDescriptionChange(e) {
@@ -13,6 +52,11 @@ Page({
 
   // 选择图片
   chooseImage() {
+    // ✅ 新增：使用统一的登录检查
+    if (!this.requireLogin('上传图片')) {
+      return;
+    }
+
     const maxCount = 9 - this.data.images.length;
     if (maxCount <= 0) {
       wx.showToast({ title: '最多上传9张图片', icon: 'none' });
@@ -43,6 +87,11 @@ Page({
 
   // 修改 submitPublish 方法
   submitPublish() {
+    // ✅ 改用 mixin 提供的统一登录检查
+    if (!this.requireLogin('发布求购')) {
+      return;
+    }
+
     if (!this.data.description.trim()) {
       return wx.showToast({ title: '请填写商品描述', icon: 'none' });
     }
@@ -50,27 +99,32 @@ Page({
       return wx.showToast({ title: '请上传图片', icon: 'none' });
     }
 
-    // 检查用户登录状态
+    // ✅ 删除旧的手动登录检查代码（第 53-73 行）
+    // Deleted:// 检查用户登录状态
+    // Deleted:const token = wx.getStorageSync('token');
+    // Deleted:const userInfo = wx.getStorageSync('userInfo');
+    // Deleted:
+    // Deleted:// 如果未登录，显示登录提示弹窗
+    // Deleted:if (!token || !userInfo || !userInfo.id) {
+    // Deleted:wx.showModal({
+    // Deleted:title: '提示',
+    // Deleted:content: '请先登录后再发布商品',
+    // Deleted:confirmText: '去登录',
+    // Deleted:cancelText: '取消',
+    // Deleted:success: (res) => {
+    // Deleted:if (res.confirm) {
+    // Deleted:wx.navigateTo({
+    // Deleted:url: '/pages/login/login'
+    // Deleted:});
+    // Deleted:}
+    // Deleted:}
+    // Deleted:});
+    // Deleted:return;
+    // Deleted:}
+
+    // 获取用户信息继续执行
     const token = wx.getStorageSync('token');
     const userInfo = wx.getStorageSync('userInfo');
-
-    // 如果未登录，显示登录提示弹窗
-    if (!token || !userInfo || !userInfo.id) {
-      wx.showModal({
-        title: '提示',
-        content: '请先登录后再发布商品',
-        confirmText: '去登录',
-        cancelText: '取消',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/login/login'
-            });
-          }
-        }
-      });
-      return;
-    }
 
     // 检查用户地址信息
     this.checkUserAddress(userInfo, token);
@@ -269,7 +323,9 @@ Page({
       }
 
       const app = getApp();
-      if (!app.globalData.baseUrl) {
+      const baseURL = app.globalData.baseUrl;
+
+      if (!baseURL) {
         reject(new Error('API地址未配置'));
         return;
       }
@@ -277,40 +333,87 @@ Page({
       const uploadPromises = this.data.images.map((imagePath, index) => {
         return new Promise((resolve, reject) => {
           wx.uploadFile({
-            url: app.globalData.baseUrl + '/products/upload/image',
+            url: baseURL + '/products/upload/image',
             filePath: imagePath,
             name: 'file',
             header: {
               'Authorization': `Bearer ${token}`
             },
             success: (res) => {
+              console.log(`第${index+1}张图片上传响应:`, res);
+              console.log(`第${index+1}张图片上传响应 data 字段:`, res.data);
+
               if (res.statusCode === 200) {
                 try {
                   const data = JSON.parse(res.data);
-                  const imageUrl = data.data || data.url || null;
+                  console.log(`第${index+1}张图片上传解析后的数据:`, data);
+
+                  // 根据接口返回获取图片 URL
+                  let imageUrl = data.data || data.url || data.imageUrl || null;
+
                   if (imageUrl) {
-                    resolve(imageUrl);
+                    console.log(`第${index+1}张图片原始 URL:`, imageUrl);
+
+                    // ✅ 判断是否为完整 URL
+                    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+                      // 已经是完整 URL，强制转换为 HTTP（开发环境）
+                      if (imageUrl.startsWith('https://')) {
+                        imageUrl = imageUrl.replace('https://', 'http://');
+                        console.log(`⚠️ 将 HTTPS 转换为 HTTP:`, imageUrl);
+                      }
+                      console.log(`第${index+1}张图片使用完整 URL`);
+                      resolve(imageUrl);
+                    } else if (imageUrl.startsWith('/')) {
+                      // 相对路径，需要拼接域名
+                      // 从 baseURL 提取域名部分（去掉 /api）
+                      const domain = baseURL.replace('/api', '');
+
+                      // ✅ 确保使用 HTTP 协议
+                      const finalUrl = domain.startsWith('http://') ? domain + imageUrl : 'http://' + domain.replace(/^https?:\/\//, '') + imageUrl;
+
+                      console.log(`第${index+1}张图片拼接后的 URL:`, finalUrl);
+                      resolve(finalUrl);
+                    } else {
+                      // 不带斜杠的相对路径
+                      const domain = baseURL.replace('/api', '');
+
+                      // ✅ 确保使用 HTTP 协议
+                      const finalUrl = domain.startsWith('http://') ? domain + '/' + imageUrl : 'http://' + domain.replace(/^https?:\/\//, '') + '/' + imageUrl;
+
+                      console.log(`第${index+1}张图片拼接后的 URL:`, finalUrl);
+                      resolve(finalUrl);
+                    }
                   } else {
+                    console.error(`第${index+1}张图片上传返回数据格式不正确:`, data);
                     reject(new Error(`第${index+1}张图片上传返回数据格式不正确`));
                   }
                 } catch (parseError) {
-                  reject(new Error(`第${index+1}张图片上传数据解析失败`));
+                  console.error(`第${index+1}张图片上传数据解析失败:`, parseError);
+                  console.error(`原始响应数据:`, res.data);
+                  reject(new Error(`第${index+1}张图片上传数据解析失败：${parseError.message}`));
                 }
               } else {
-                reject(new Error(`第${index+1}张图片上传失败，状态码: ${res.statusCode}`));
+                console.error(`第${index+1}张图片上传失败，状态码:`, res.statusCode);
+                reject(new Error(`第${index+1}张图片上传失败，状态码：${res.statusCode}`));
               }
             },
             fail: (err) => {
               console.error(`第${index+1}张图片上传失败:`, err);
-              reject(new Error(`第${index+1}张图片上传失败: ${err.errMsg || '网络错误'}`));
+              reject(new Error(`第${index+1}张图片上传失败：${err.errMsg || '网络错误'}`));
             }
           });
         });
       });
 
       Promise.all(uploadPromises)
-          .then(resolve)
-          .catch(reject);
+          .then(urls => {
+            console.log('所有图片上传成功，URL 列表:', urls);
+            resolve(urls);
+          })
+          .catch(err => {
+            console.error('图片上传失败:', err);
+            reject(err);
+          });
     });
   }
 });

@@ -19,86 +19,295 @@ Page({
     ws: null,
     isConnected: false,
     reconnectTimer: null,
-    heartbeatTimer: null
+    heartbeatTimer: null,
+    currentUserAvatar: '/static/assets/icons/default-avatar.png',
+    receiverAvatar: '/static/assets/icons/default-avatar.png',
+    currentUserName: '', // ✅ 新增：当前用户昵称
+    receiverName: '' // ✅ 新增：接收者昵称
   },
 
+
   onLoad: function (options) {
-    const receiver = options.receiver;
-    const currentUserId = options.currentUserId;
+    console.log('🚀 聊天页面初始化收到的参数:', options);
+
+    // ✅ 关键修改：增加有效性检查，防止 NaN
+    let receiver = parseInt(options.receiver);
+    const currentUserId = parseInt(options.currentUserId);
+
+    if (isNaN(receiver)) {
+      receiver = parseInt(options.targetId || options.otherUserId);
+    }
+
     // 优先使用从 message 页面传递过来的 name 参数作为聊天标题
-    const chatName = options.name ? decodeURIComponent(options.name) : receiver;
+    const chatName = options.name ? decodeURIComponent(options.name) : (isNaN(receiver) ? '未知用户' : String(receiver));
+
+    console.log('🚀 聊天页面初始化:', { receiver, currentUserId, chatName });
+
+    if (isNaN(receiver) || !receiver) {
+      wx.showToast({ title: '聊天对象信息缺失', icon: 'none' });
+      setTimeout(() => { wx.navigateBack(); }, 1500);
+      return;
+    }
+
+    // ✅ 获取当前用户信息
+    const userInfo = wx.getStorageSync('userInfo');
+    let currentUserAvatar = '/static/assets/icons/default-avatar.png';
+    let currentUserName = '我';
+
+    if (userInfo) {
+      console.log('👤 [onLoad] 当前用户信息:', userInfo);
+
+      if (userInfo.avatar) {
+        console.log('🖼️ [onLoad] 当前用户原始头像路径:', userInfo.avatar);
+        currentUserAvatar = this.processImageUrl(userInfo.avatar);
+        console.log('🖼️ [onLoad] 当前用户处理后头像 URL:', currentUserAvatar);
+      } else {
+        console.warn('⚠️ [onLoad] 用户信息中没有 avatar 字段');
+      }
+
+      currentUserName = userInfo.nickname || userInfo.username || '我';
+    } else {
+      console.warn('⚠️ [onLoad] 本地存储中没有 userInfo');
+    }
 
     this.setData({
       receiver,
       chatName,
-      currentUserId: currentUserId || 'currentUserID'
+      currentUserId: currentUserId || 252,
+      currentUserAvatar: currentUserAvatar,
+      currentUserName: currentUserName,
+      receiverName: chatName // 接收者昵称默认为聊天名称
     });
 
     wx.setNavigationBarTitle({ title: chatName });
 
-    // ✅ 加载聊天记录
-    this.loadChatHistory();
+    // ✅ 新增：加载对方用户的头像信息
+    this.loadReceiverInfo(receiver);
 
-    // ✅ 连接 WebSocket
+    this.loadChatHistory();
     this.connectWebSocket();
   },
 
+  // ✅ 新增：加载接收者信息（头像等）
+  loadReceiverInfo: function(receiverId) {
+    const token = wx.getStorageSync('token');
+    if (!token || !receiverId) return;
+
+    console.log('🔍 [loadReceiverInfo] 开始加载接收者信息，receiverId:', receiverId);
+
+    wx.request({
+      url: `${app.globalData.baseUrl}/users/${receiverId}`,
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      },
+      success: (res) => {
+        console.log('📥 [loadReceiverInfo] 接口响应:', res);
+
+        if (res.statusCode === 200 && res.data.code === 200) {
+          const userData = res.data.data;
+          console.log('👤 [loadReceiverInfo] 用户原始数据:', userData);
+
+          let avatarUrl = '/static/assets/icons/default-avatar.png';
+          let userName = '未知用户';
+
+          if (userData.avatar) {
+            console.log('🖼️ [loadReceiverInfo] 原始头像路径:', userData.avatar);
+            avatarUrl = this.processImageUrl(userData.avatar);
+            console.log('🖼️ [loadReceiverInfo] 处理后头像 URL:', avatarUrl);
+          } else {
+            console.warn('⚠️ [loadReceiverInfo] 用户数据中没有 avatar 字段');
+          }
+
+          if (userData.nickname || userData.username) {
+            userName = userData.nickname || userData.username;
+          }
+
+          this.setData({
+            receiverAvatar: avatarUrl,
+            receiverName: userName
+          });
+
+          console.log('✅ [loadReceiverInfo] 加载成功:', { avatarUrl, userName });
+        } else {
+          console.error('❌ [loadReceiverInfo] 接口返回错误:', res.data);
+        }
+      },
+      fail: (err) => {
+        console.error('❌ [loadReceiverInfo] 网络请求失败:', err);
+      }
+    });
+  },
+
   onUnload() {
-    // 页面卸载时关闭 WebSocket 连接
-    this.closeWebSocket();
+    console.log('🔴 页面卸载，彻底关闭 WebSocket');
+    this.closeWebSocket(true);
   },
 
   onHide() {
-    // 页面隐藏时也关闭 WebSocket
-    this.closeWebSocket();
+    // ✅ 修复：页面隐藏时不要永久关闭，只停止心跳即可
+    // 这样用户切出去回消息列表再回来，连接还在，体验更流畅
+    console.log('🟡 页面隐藏，停止心跳');
+    this.stopHeartbeat();
   },
 
   onShow() {
+    console.log('🟢 页面显示，检查连接状态');
+    // 如果断开了，重新连
+    if (!this.data.isConnected) {
+      this.connectWebSocket();
+    }
     this.scrollToBottom();
   },
 
-  // ✅ 加载聊天记录（使用后端接口）
+  // ✅ 新增：统一的消息格式转换函数（智能检测版本 - 修复版）
+  formatMessage: function(rawMsg) {
+    if (!rawMsg) return null;
+    const msg = { ...rawMsg };
+
+    console.log('🔍 [formatMessage] 原始消息:', rawMsg);
+
+    // 1. 兼容字段名：将 senderId/receiverId 映射为 sender/receiver
+    msg.sender = msg.sender || msg.senderId;
+    msg.receiver = msg.receiver || msg.receiverId;
+    msg.messageType = msg.messageType || msg.msgType;
+
+    // ✅ 关键修复：智能检测消息类型
+    // 优先检查 metadata 中是否有 images 字段，如果有则强制识别为图片
+    let detectedType = msg.messageType;
+
+    if (msg.metadata) {
+      try {
+        // ✅ 修复：处理字符串类型的 metadata（可能包含转义字符）
+        let metadataObj;
+        if (typeof msg.metadata === 'string') {
+          // 先尝试直接解析
+          try {
+            metadataObj = JSON.parse(msg.metadata);
+          } catch (e) {
+            // 如果失败，尝试去除转义字符后再解析
+            const cleanMetadata = msg.metadata.replace(/\\"/g, '"');
+            metadataObj = JSON.parse(cleanMetadata);
+          }
+        } else {
+          metadataObj = msg.metadata;
+        }
+
+        console.log('🔍 [formatMessage] 解析后的 metadata 对象:', metadataObj);
+
+        if (metadataObj && metadataObj.images && Array.isArray(metadataObj.images) && metadataObj.images.length > 0) {
+          detectedType = 1; // 强制识别为图片
+          console.log('🖼️ [formatMessage] 检测到 metadata.images，强制识别为图片类型');
+        } else if (metadataObj && metadataObj.linkUrl) {
+          detectedType = 3; // 链接类型
+          console.log('🔗 [formatMessage] 检测到 metadata.linkUrl，识别为链接类型');
+        }
+      } catch (e) {
+        console.warn('⚠️ [formatMessage] metadata 解析失败，使用原始 msgType:', e);
+        console.warn('⚠️ [formatMessage] metadata 原始值:', msg.metadata);
+      }
+    }
+
+    // 2. 根据检测后的类型转换 type 和 content
+    if (detectedType === 1) { // 图片
+      msg.type = 'image';
+
+      if (msg.metadata) {
+        try {
+          // ✅ 修复：同样处理字符串类型的 metadata
+          let metadata;
+          if (typeof msg.metadata === 'string') {
+            try {
+              metadata = JSON.parse(msg.metadata);
+            } catch (e) {
+              const cleanMetadata = msg.metadata.replace(/\\"/g, '"');
+              metadata = JSON.parse(cleanMetadata);
+            }
+          } else {
+            metadata = msg.metadata;
+          }
+
+          console.log('🖼️ [formatMessage] 解析后的 metadata:', metadata);
+
+          if (metadata.images && Array.isArray(metadata.images) && metadata.images.length > 0) {
+            // ✅ 关键：拼接完整 URL 并进行协议转换（HTTP/HTTPS）
+            let imageUrl = metadata.images[0];
+            console.log('🖼️ [formatMessage] 原始图片路径:', imageUrl);
+
+            msg.content = this.processImageUrl(imageUrl);
+            console.log('🖼️ [formatMessage] 处理后的图片 URL:', msg.content);
+          } else {
+            console.warn('⚠️ [formatMessage] metadata.images 为空');
+            msg.content = '';
+          }
+        } catch (e) {
+          console.error('❌ [formatMessage] 解析图片 metadata 失败:', e, 'metadata 原始值:', msg.metadata);
+          msg.content = '';
+        }
+      } else {
+        console.warn('⚠️ [formatMessage] metadata 字段不存在');
+        msg.content = '';
+      }
+    } else if (detectedType === 2) { // 文件
+      msg.type = 'file';
+      msg.content = msg.content || '[文件]';
+    } else if (detectedType === 3) { // 链接
+      msg.type = 'link';
+      // 链接消息通常也需要从 metadata 取 URL
+      if (msg.metadata) {
+        try {
+          let metadata;
+          if (typeof msg.metadata === 'string') {
+            metadata = JSON.parse(msg.metadata);
+          } else {
+            metadata = msg.metadata;
+          }
+          msg.content = metadata.linkUrl || msg.content;
+        } catch(e) {}
+      }
+    } else { // 默认为文本
+      msg.type = 'text';
+      msg.content = msg.content || '';
+    }
+
+    console.log('✅ [formatMessage] 转换后的消息:', msg);
+    return msg;
+  },
+
+
+  // ✅ 修改：加载聊天记录时使用转换函数
   loadChatHistory: function () {
     const { currentUserId, receiver } = this.data;
+    if (!currentUserId || !receiver) return;
 
-    if (!currentUserId || !receiver) {
-      console.error('用户 ID 或接收者 ID 为空');
-      return;
-    }
-
-    // ✅ 获取 Token
     const token = wx.getStorageSync('token');
-    if (!token) {
-      console.error('Token 不存在，请先登录');
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
-      setTimeout(() => {
-        wx.reLaunch({
-          url: '/pages/login/login'
-        });
-      }, 1500);
-      return;
-    }
-
-    wx.showLoading({ title: '加载中...' });
+    if (!token) return;
 
     wx.request({
       url: `${app.globalData.baseUrl}/messages/history`,
       method: 'GET',
-      data: {
-        userId1: currentUserId,
-        userId2: receiver
-      },
-      header: {
-        // ✅ 添加认证头
-        'Authorization': token
-      },
+      data: { userId1: currentUserId, userId2: receiver },
+      header: { 'Authorization': token },
       success: (res) => {
         if (res.statusCode === 200 && res.data.code === 200) {
-          const messages = res.data.data.messages || [];
-          const processedMessages = this.processChatRecords(messages);
+          let messages = [];
+          if (Array.isArray(res.data.data)) {
+            messages = res.data.data;
+          } else if (res.data.data && Array.isArray(res.data.data.messages)) {
+            messages = res.data.data.messages;
+          }
+
+          console.log('=== 原始历史消息数据 ===', messages);
+
+          // ✅ 核心修改：对每一条历史消息进行格式转换
+          const formattedMessages = messages.map(msg => this.formatMessage(msg));
+
+          console.log('=== formatMessage 转换后的数据 ===', formattedMessages);
+
+          // ✅ 关键修复：processChatRecords 不应该再修改 type 和 content 字段
+          const processedMessages = this.processChatRecords(formattedMessages);
+
+          console.log('=== processChatRecords 处理后的最终数据 ===', processedMessages);
 
           this.setData({
             chatRecords: processedMessages
@@ -106,38 +315,13 @@ Page({
             this.scrollToBottom();
           });
 
-          // ✅ 修改：延迟标记已读，等待页面渲染完成
           setTimeout(() => {
             this.markMessagesAsRead(receiver);
           }, 500);
-        } else if (res.statusCode === 401) {
-          console.error('未授权访问，请重新登录');
-          wx.showToast({
-            title: '请先登录',
-            icon: 'none'
-          });
-          setTimeout(() => {
-            wx.reLaunch({
-              url: '/pages/login/login'
-            });
-          }, 1500);
-        } else {
-          console.error('加载聊天记录失败:', res.data);
-          wx.showToast({
-            title: res.data.message || '加载失败',
-            icon: 'none'
-          });
         }
       },
       fail: (err) => {
         console.error('加载聊天记录网络错误:', err);
-        wx.showToast({
-          title: '网络错误',
-          icon: 'none'
-        });
-      },
-      complete: () => {
-        wx.hideLoading();
       }
     });
   },
@@ -259,288 +443,186 @@ Page({
     }
   },
 
-  // ✅ 连接 WebSocket - 添加超详细调试日志
+  // ✅ 新增：统一处理图片 URL 的方法（参考 message.js）
+  processImageUrl(imagePath) {
+    if (!imagePath && imagePath !== 0) {
+      console.warn('⚠️ [processImageUrl] 输入路径为空');
+      return '';
+    }
+
+    const imageUrl = String(imagePath).trim();
+    if (!imageUrl) {
+      console.warn('⚠️ [processImageUrl] 修剪后路径为空');
+      return '';
+    }
+
+    const app = getApp();
+    const baseURL = app.globalData.baseUrl;
+
+    console.log('🔗 [processImageUrl] 输入路径:', imageUrl);
+    console.log('🔗 [processImageUrl] baseURL:', baseURL);
+
+    // 如果已经是完整 URL，直接返回
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      // ✅ 关键修复：将 HTTPS 强制转换为 HTTP（仅用于开发环境）
+      if (imageUrl.startsWith('https://')) {
+        const httpUrl = imageUrl.replace('https://', 'http://');
+        console.log('🔗 [processImageUrl] HTTPS -> HTTP:', httpUrl);
+        return httpUrl;
+      }
+      console.log('🔗 [processImageUrl] 已是完整 HTTP URL，直接返回');
+      return imageUrl;
+    }
+
+    // 如果是相对路径，拼接完整域名
+    if (imageUrl.startsWith('/api')) {
+      const serverRoot = baseURL.replace(/\/api$/, '');
+      // ✅ 确保使用 HTTP
+      const finalUrl = serverRoot + imageUrl;
+      const result = finalUrl.startsWith('https://') ? finalUrl.replace('https://', 'http://') : finalUrl;
+      console.log('🔗 [processImageUrl] /api 路径拼接结果:', result);
+      return result;
+    } else {
+      const finalUrl = baseURL + (imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl);
+      // ✅ 确保使用 HTTP
+      const result = finalUrl.startsWith('https://') ? finalUrl.replace('https://', 'http://') : finalUrl;
+      console.log('🔗 [processImageUrl] 相对路径拼接结果:', result);
+      return result;
+    }
+  },
+
+  // ✅ 修复：连接 WebSocket - 增加防抖和状态检查
   connectWebSocket: function() {
+    // 1. 如果已经连接成功，直接返回，不要重复连接
+    if (this.data.isConnected) {
+      console.log('✅ WebSocket 已连接，跳过本次连接请求');
+      return;
+    }
+
+    // 2. 如果正在连接中（有 socketTaskId 但未 open），也跳过，防止并发请求
+    if (this.data.ws && this.data.ws.readyState === 0) {
+      console.log('⏳ WebSocket 正在连接中，请稍候...');
+      return;
+    }
+
     const token = wx.getStorageSync('token');
-
-    // ✅ 获取 userId - 从多个来源尝试获取
     const userInfo = wx.getStorageSync('userInfo');
-    let userId = null;
+    let userId = userInfo?.id || wx.getStorageSync('userId') || this.data.currentUserId;
 
-    // 优先从 userInfo 中获取
-    if (userInfo && userInfo.id) {
-      userId = userInfo.id;
-    }
-
-    // 如果 userInfo 中没有，尝试直接从 storage 获取
-    if (!userId) {
-      userId = wx.getStorageSync('userId');
-    }
-
-    // 如果还是没有，从 options 参数中获取（如果有）
-    if (!userId) {
-      userId = this.data.currentUserId;
-    }
-
-    // ✅ 详细日志：连接前检查
-    console.log('\n');
-    console.log('========================================');
-    console.log('=== 🚀 WebSocket 连接前检查 ===');
-    console.log('========================================');
-    console.log('📍 Token:', token ? token.substring(0, 20) + '...' : '❌ 不存在');
-    console.log('📍 UserInfo:', userInfo);
-    console.log('📍 UserId 来源:', userInfo?.id ? 'userInfo' : wx.getStorageSync('userId') ? 'storage' : 'currentUserId');
-    console.log('📍 最终 UserId:', userId);
-    console.log('========================================\n');
-
-    if (!token) {
-      console.error('❌ Token 不存在，无法连接 WebSocket');
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
+    if (!token || !userId) {
+      console.error('❌ 缺少 Token 或 UserId，无法连接');
       return;
     }
 
-    if (!userId) {
-      console.error('❌ UserId 不存在，无法连接 WebSocket');
-      wx.showToast({
-        title: '用户信息异常',
-        icon: 'none'
-      });
-      return;
-    }
-
-    // 关闭旧连接
+    // ✅ 关键：在发起新连接前，先确保旧连接已彻底关闭
     if (this.data.ws) {
-      console.log('⚠️ 检测到旧连接，正在关闭...');
-      this.data.ws.close();
+      console.log('⚠️ 检测到残留连接对象，先手动关闭...');
+      try {
+        this.data.ws.close();
+      } catch (e) {}
+      this.data.ws = null;
     }
 
-    // ✅ 构建 WebSocket URL
-    const wsUrl = `ws://localhost:8090/ws/message?userId=${userId}&token=${token}`;
+    const wsUrl = `ws://139.199.87.181:8080/api/ws/message?userId=${userId}&token=${token}`;
+    console.log('📡 正在建立 WebSocket 连接...', wsUrl);
 
-    console.log('\n');
-    console.log('========================================');
-    console.log('=== 📡 WebSocket 连接详情 ===');
-    console.log('========================================');
-    console.log('🌐 WebSocket URL:', wsUrl);
-    console.log('📦 连接参数:', {
-      userId: userId,
-      userIdType: typeof userId,
-      tokenExists: !!token
-    });
-    console.log('========================================\n');
-
-    // ✅ 开始连接
-    console.log('⏳ 正在发起 WebSocket 连接请求...');
-
-    wx.connectSocket({
+    // 3. 发起连接
+    const socketTask = wx.connectSocket({
       url: wsUrl,
-      success: (res) => {
-        console.log('\n');
-        console.log('========================================');
-        console.log('✅ WebSocket 连接请求已发送');
-        console.log('========================================');
-        console.log('响应对象:', res);
-        console.log('========================================\n');
+      success: () => {
+        console.log('✅ 连接请求已发送');
       },
       fail: (err) => {
-        console.log('\n');
-        console.log('========================================');
-        console.log('❌ WebSocket 连接失败');
-        console.log('========================================');
-        console.error('错误对象:', err);
-        console.error('错误详情:', JSON.stringify(err));
-        console.error('错误码:', err.errCode);
-        console.error('错误信息:', err.errMsg);
-
-        // ✅ 尝试给出具体建议
-        console.log('\n🔍 错误分析:');
-        if (err.errMsg.includes('url')) {
-          console.warn('⚠️ URL 可能有问题，请检查是否包含 http/https 前缀');
-          console.warn('  当前 URL:', wsUrl);
-        } else if (err.errMsg.includes('domain')) {
-          console.warn('⚠️ 域名未配置，请在微信公众平台配置 WebSocket 合法域名');
-          console.warn('  或在开发者工具中开启"不校验合法域名"');
-        } else if (err.errMsg.includes('timeout')) {
-          console.warn('⚠️ 连接超时，后端服务可能未启动');
-        } else if (err.errMsg.includes('401')) {
-          console.error('⚠️ 身份验证失败 (401)，Token 可能无效或 userId 不匹配');
-        } else if (err.errMsg.includes('403')) {
-          console.error('⚠️ 拒绝访问 (403)，后端拒绝了连接请求');
-        } else if (err.errMsg.includes('404')) {
-          console.error('⚠️ 接口不存在 (404)，后端 WebSocket 端点可能未配置');
-        } else if (err.errMsg.includes('500')) {
-          console.error('⚠️ 服务器内部错误 (500)，后端服务异常');
-        }
-
-        console.log('\n💡 建议操作:');
-        if (err.errMsg && err.errMsg.includes('domain')) {
-          console.warn('1. 在微信开发者工具中开启"不校验合法域名"');
-          console.warn('   位置：右上角"详情" → "本地设置" → 勾选"不校验合法域名"');
-        } else {
-          console.warn('1. 检查后端 WebSocket 服务是否启动');
-          console.warn('   命令：netstat -ano | findstr :8090');
-          console.warn('2. 查看后端日志，确认 WebSocket 是否正常启动');
-          console.warn('3. 检查后端 Token 验证逻辑是否正确');
-        }
-
-        console.log('========================================\n');
-
-        // ✅ 如果是 401 错误，提示用户
-        if (err.errMsg && err.errMsg.includes('401')) {
-          console.error('⚠️ Token 验证失败，可能是 userId 与 Token 不匹配');
-          console.error('💡 建议：请检查后端 Token 生成逻辑，确保 Token 中的 userId 与前端传递的一致');
-
-          wx.showModal({
-            title: '连接失败',
-            content: '身份验证失败，请重新登录',
-            confirmText: '重新登录',
-            success: (res) => {
-              if (res.confirm) {
-                // 清除所有缓存，跳转到登录页
-                wx.clearStorageSync();
-                wx.reLaunch({
-                  url: '/pages/login/login'
-                });
-              }
-            }
-          });
-        }
-
+        console.error('❌ 连接请求发送失败', err);
         this.setData({ isConnected: false });
-        // 5 秒后重连
+        // 只有非人为关闭才重连
+        if (!this.data.isPermanentlyClosed) {
+          this.scheduleReconnect();
+        }
+      }
+    });
+
+    // 保存当前 socket 任务引用
+    this.setData({ ws: socketTask });
+
+    // 4. 监听打开事件
+    socketTask.onOpen(() => {
+      console.log('✅ WebSocket 连接正式打开');
+      this.setData({
+        isConnected: true,
+        isPermanentlyClosed: false // 重置关闭标志
+      });
+      this.startHeartbeat();
+    });
+
+    // 5. 监听关闭事件
+    socketTask.onClose((res) => {
+      console.log('🔴 WebSocket 已关闭', res.code);
+      this.setData({ isConnected: false });
+      this.stopHeartbeat();
+
+      // 如果不是永久关闭且不是正常关闭(1000)，则尝试重连
+      if (!this.data.isPermanentlyClosed && res.code !== 1000) {
         this.scheduleReconnect();
       }
     });
 
-    // 监听 WebSocket 连接打开
-    wx.onSocketOpen((res) => {
-      console.log('\n');
-      console.log('========================================');
-      console.log('✅ WebSocket 连接已打开');
-      console.log('========================================');
-      console.log('打开事件详情:', res);
-      console.log('========================================\n');
-
-      this.setData({ isConnected: true });
-      this.startHeartbeat();
-    });
-
-    // 监听 WebSocket 连接关闭
-    wx.onSocketClose((res) => {
-      console.log('\n');
-      console.log('========================================');
-      console.log('🔴 WebSocket 连接已关闭');
-      console.log('========================================');
-      console.log('关闭事件详情:', res);
-      console.log('关闭码:', res.code);
-      console.log('关闭原因:', res.reason);
-      console.log('是否干净:', res.wasClean);
-
-      // ✅ 1006 表示异常关闭
-      if (res.code === 1006) {
-        console.error('\n⚠️ 异常关闭（1006），可能是：');
-        console.error('1. 后端拒绝连接（认证失败）');
-        console.error('2. 网络问题');
-        console.error('3. 服务器未启动');
-        console.error('4. 防火墙阻止了连接');
-      } else if (res.code === 1000) {
-        console.log('✅ 正常关闭 (1000)');
-      } else if (res.code === 1001) {
-        console.warn('⚠️ 端点离开 (1001)');
-      } else if (res.code === 1002) {
-        console.error('❌ 协议错误 (1002)');
-      } else if (res.code === 1003) {
-        console.error('❌ 数据类型不支持 (1003)');
-      } else if (res.code === 1005) {
-        console.warn('⚠️ 无状态码 (1005)');
-      }
-
-      console.log('========================================\n');
-
-      this.setData({ isConnected: false });
-      this.stopHeartbeat();
-
-      // 3 秒后尝试重连
-      this.scheduleReconnect();
-    });
-
-    // 监听 WebSocket 错误
-    wx.onSocketError((res) => {
-      console.log('\n');
-      console.log('========================================');
-      console.log('⚠️ WebSocket 错误');
-      console.log('========================================');
-      console.error('错误事件详情:', res);
-      console.error('错误码:', res.errCode);
-      console.error('错误信息:', res.errMsg);
-
-      // ✅ 如果是 401 错误，提示用户
-      if (res.errCode === 401) {
-        console.error('\n⚠️ Token 验证失败：userId 与 Token 不匹配');
-        console.error('当前 userId:', userId);
-        console.error('Token 中的 userId 可能是：183（与实际不符）');
-      } else {
-        console.warn('\n⚠️ WebSocket 连接错误，请检查网络或服务状态');
-      }
-
-      console.log('========================================\n');
-
+    // 6. 监听错误
+    socketTask.onError((err) => {
+      console.error('⚠️ WebSocket 发生错误', err);
       this.setData({ isConnected: false });
       this.stopHeartbeat();
     });
 
-    // 监听 WebSocket 消息
-    wx.onSocketMessage((res) => {
-      console.log('\n');
-      console.log('========================================');
-      console.log('📨 收到 WebSocket 消息');
-      console.log('========================================');
-      console.log('原始数据:', res.data);
-      console.log('数据类型:', typeof res.data);
-
-      try {
-        const data = JSON.parse(res.data);
-        console.log('解析后的数据:', data);
-        console.log('消息类型:', data.type);
-        console.log('========================================\n');
-
-        // 处理新消息推送
-        if (data.type === 'MESSAGE') {
-          console.log('📩 收到新消息推送');
-          this.handleNewMessage(data);
-        }
-
-        // 处理通知推送
-        if (data.type === 'NOTIFICATION') {
-          console.log('🔔 收到通知推送');
-          this.handleNotification(data);
-        }
-      } catch (err) {
-        console.error('❌ 解析 WebSocket 消息失败:', err);
-        console.error('原始数据:', res.data);
-        console.log('========================================\n');
-      }
+    // 7. 监听消息
+    socketTask.onMessage((res) => {
+      this.handleSocketMessage(res.data);
     });
   },
 
-  // ✅ 处理新消息
-  handleNewMessage: function(data) {
-    const { receiver, chatRecords, currentUserId } = this.data;
 
-    // 判断是否是当前会话的消息
+  handleSocketMessage: function(dataStr) {
+    try {
+      const data = JSON.parse(dataStr);
+      console.log('📨 收到消息:', data);
+
+      // 兼容后端返回的数组格式或对象格式
+      const messages = Array.isArray(data) ? data : [data];
+
+      messages.forEach(msg => {
+        if (msg.type === 'MESSAGE' || msg.msgType) {
+          this.handleNewMessage(msg);
+        }
+      });
+    } catch (e) {
+      console.error('解析消息失败', e);
+    }
+  },
+
+  // ✅ 修改：处理新消息（WebSocket）
+  handleNewMessage: function(data) {
+    const { receiver, chatRecords, currentUserId, currentUserName, currentUserAvatar, receiverName, receiverAvatar } = this.data;
+
     if (data.senderId === receiver || data.receiverId === currentUserId) {
+      // ✅ 使用简化后的转换函数
+      const formattedData = this.formatMessage(data);
+
+      // 处理头像（如果后端没返回头像，则本地匹配）
+      let senderAvatar = formattedData.senderAvatar;
+      if (!senderAvatar) {
+        senderAvatar = (formattedData.sender == currentUserId) ? currentUserAvatar : receiverAvatar;
+      }
+
+      const senderName = (formattedData.sender == currentUserId) ? currentUserName : receiverName;
+
       const newMessage = {
-        id: data.messageId || `msg-${Date.now()}`,
-        sender: data.senderId,
-        receiver: data.receiverId,
-        content: data.content,
-        type: data.messageType || 'text',
-        timestamp: data.sendTime || new Date().toISOString(),
-        formattedTime: this.formatTime(new Date(data.sendTime)),
-        showTime: true
+        ...formattedData,
+        id: formattedData.id || formattedData.messageId || `msg-${Date.now()}`,
+        timestamp: formattedData.timestamp || formattedData.sendTime || new Date().toISOString(),
+        formattedTime: this.formatTime(new Date(formattedData.sendTime)),
+        showTime: true,
+        senderAvatar: senderAvatar,
+        senderName: senderName
       };
 
       const newRecords = [...chatRecords, newMessage];
@@ -548,10 +630,7 @@ Page({
         this.scrollToBottom();
       });
 
-      // 保存到本地缓存
       wx.setStorageSync(`chatRecords_${receiver}`, newRecords);
-
-      // 如果在聊天页面，标记为已读
       this.markMessagesAsRead(receiver);
     }
   },
@@ -606,70 +685,100 @@ Page({
     }, 3000); // 3 秒后重连
   },
 
-  // ✅ 关闭 WebSocket
-  closeWebSocket: function() {
-    this.stopHeartbeat();
 
+  // ✅ 修复：关闭 WebSocket
+  closeWebSocket: function(isPermanent = false) {
+    console.log(`🔴 准备关闭 WebSocket (永久: ${isPermanent})`);
+
+    this.setData({
+      isPermanentlyClosed: isPermanent
+    });
+
+    this.stopHeartbeat();
     if (this.data.reconnectTimer) {
       clearTimeout(this.data.reconnectTimer);
       this.data.reconnectTimer = null;
     }
 
     if (this.data.ws) {
-      wx.closeSocket({
-        success: () => {
-          console.log('WebSocket 连接已关闭');
-        }
-      });
+      try {
+        this.data.ws.close();
+      } catch (e) {
+        console.warn('关闭 Socket 时出错', e);
+      }
+      this.setData({ ws: null });
     }
   },
 
   processChatRecords: function (records) {
+    if (!Array.isArray(records)) return [];
+
+    const { currentUserId, currentUserName, currentUserAvatar, receiverName, receiverAvatar } = this.data;
+
     return records.map((record, index, array) => {
-      // 补充 type 字段
-      if (!record.type) {
-        record.type = 'text';
-      }
+      // ✅ 核心修复：统一字段名，确保 WXML 能读到
+      const normalizedRecord = {
+        ...record,
+        id: record.id || record.messageId || `msg-${Date.now()}-${index}`,
+        // 兼容 sender 和 senderId
+        sender: record.sender || record.senderId,
+        // 兼容 receiver 和 receiverId
+        receiver: record.receiver || record.receiverId,
+        // ✅ 关键修复：只有当 content 为空时才使用 message 字段
+        // 对于图片消息，content 已经被 formatMessage 设置为图片 URL，不应被覆盖
+        content: record.content || record.message || '',
+        // 兼容时间字段
+        timestamp: record.timestamp || record.sendTime || record.createTime,
+        // ✅ 关键修复：如果已经有 type 字段（由 formatMessage 设置），则不再覆盖
+        type: record.type || (record.messageType === 1 ? 'image' : record.messageType === 2 ? 'file' : record.messageType === 3 ? 'link' : 'text'),
+        // ✅ 新增：根据发送者设置头像和昵称
+        senderAvatar: (record.sender == currentUserId) ? currentUserAvatar : receiverAvatar,
+        senderName: (record.sender == currentUserId) ? currentUserName : receiverName
+      };
 
-      // 格式化时间显示
-      record.formattedTime = this.formatTime(record.timestamp || record.sendTime);
-      record.showTime = index === 0 || !this.isTimeGap(array, index);
-      record.id = record.id || record.messageId || `msg-${Date.now()}-${index}`;
+      normalizedRecord.formattedTime = this.formatTime(normalizedRecord.timestamp);
+      // 只有当两条消息间隔超过 5 分钟才显示时间
+      normalizedRecord.showTime = index === 0 || !this.isTimeGap(array, index);
 
-      return record;
+      return normalizedRecord;
     });
   },
-
 
   formatTime: function (timestamp) {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now - date;
+    if (!timestamp) return '';
 
-    // 今天的消息只显示时间
-    if (diff < 24 * 60 * 60 * 1000 && date.toDateString() === now.toDateString()) {
-      return date.toLocaleTimeString('zh-CN', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+    // 1. 解析时间
+    let date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      date = new Date(timestamp.replace(/-/g, '/'));
     }
 
-    // 昨天的消息显示"昨天"
+    // 2. ✅ 关键修复：补偿时区（转为北京时间 UTC+8）
+    const utcTime = date.getTime() + (date.getTimezoneOffset() * 60000);
+    const chinaTime = new Date(utcTime + (8 * 3600000));
+
+    const now = new Date();
+    const diff = now - chinaTime;
+
+    // ✅ 关键修改：定义 24 小时制的选项
+    const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
+
+    // 3. 今天的消息只显示时间
+    if (diff < 24 * 60 * 60 * 1000 && chinaTime.toDateString() === now.toDateString()) {
+      return chinaTime.toLocaleTimeString('zh-CN', timeOptions);
+    }
+
+    // 4. 昨天的消息显示"昨天"
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
-    if (date.toDateString() === yesterday.toDateString()) {
-      return '昨天 ' + date.toLocaleTimeString('zh-CN', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+    if (chinaTime.toDateString() === yesterday.toDateString()) {
+      return '昨天 ' + chinaTime.toLocaleTimeString('zh-CN', timeOptions);
     }
 
-    // 其他显示完整日期
-    return date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    // 5. 其他显示完整日期
+    return chinaTime.toLocaleDateString('zh-CN') + ' ' + chinaTime.toLocaleTimeString('zh-CN', timeOptions);
   },
+
 
   isTimeGap: function (records, index) {
     if (index === 0) return false;
@@ -690,40 +799,32 @@ Page({
     this.setData({ showFunctionPanel: !this.data.showFunctionPanel });
   },
 
-  // ✅ 发送消息（使用 WebSocket）- 优化：添加详细日志
+  // ✅ 发送消息（增强健壮性）
   sendMessage: function () {
-    const { message, receiver, currentUserId, chatRecords, isConnected } = this.data;
+    const { message, receiver, currentUserId, currentUserName, currentUserAvatar, chatRecords, isConnected } = this.data;
 
-    console.log('\n');
-    console.log('========================================');
-    console.log('📤 尝试发送消息');
-    console.log('========================================');
-    console.log('消息内容:', message);
-    console.log('接收者 ID:', receiver);
-    console.log('当前用户 ID:', currentUserId);
-    console.log('WebSocket 连接状态:', isConnected ? '已连接 ✅' : '未连接 ❌');
-    console.log('========================================\n');
+    console.log('--- 准备发送 ---', { message, receiver, currentUserId, isConnected });
 
-    if (!message.trim()) {
-      console.warn('⚠️ 消息内容为空，取消发送');
+    if (!message || !message.trim()) {
+      wx.showToast({ title: '消息不能为空', icon: 'none' });
       return;
     }
 
+    if (!receiver) {
+      wx.showToast({ title: '接收者信息丢失', icon: 'none' });
+      return;
+    }
+
+    // ✅ 如果未连接，先尝试重连再发送
     if (!isConnected) {
-      console.warn('⚠️ WebSocket 未连接，无法发送消息');
-      wx.showModal({
-        title: '发送失败',
-        content: '网络连接不可用，请检查网络后重试',
-        confirmText: '重试',
-        success: (res) => {
-          if (res.confirm) {
-            this.connectWebSocket();
-          }
-        }
-      });
+      wx.showToast({ title: '正在重连服务器...', icon: 'none' });
+      this.connectWebSocket();
+      // 等待 1 秒后再尝试发送
+      setTimeout(() => this.sendMessage(), 1000);
       return;
     }
 
+    // 1. 本地乐观更新 UI
     const newMessage = {
       id: `msg-${Date.now()}`,
       sender: currentUserId,
@@ -731,139 +832,226 @@ Page({
       content: message,
       type: 'text',
       timestamp: new Date().toISOString(),
-      formattedTime: this.formatTime(new Date().toISOString()),
-      showTime: true
+      formattedTime: this.formatTime(new Date()),
+      showTime: true,
+      senderAvatar: currentUserAvatar, // ✅ 添加当前用户头像
+      senderName: currentUserName // ✅ 添加当前用户昵称
     };
 
-    console.log('📦 准备通过 WebSocket 发送消息:', newMessage);
-    console.log('JSON 数据:', JSON.stringify({
+    const newRecords = [...(chatRecords || []), newMessage];
+    this.setData({
+      message: '',
+      chatRecords: newRecords
+    }, () => {
+      this.scrollToBottom();
+    });
+
+    // 2. 通过 WebSocket 发送
+    const wsPayload = {
       type: 'MESSAGE',
-      senderId: currentUserId,
-      receiverId: receiver,
+      senderId: Number(currentUserId), // 确保是数字
+      receiverId: Number(receiver),    // 确保是数字
       content: message,
       messageType: 'text'
-    }));
+    };
 
-    // 通过 WebSocket 发送
     wx.sendSocketMessage({
-      data: JSON.stringify({
-        type: 'MESSAGE',
-        senderId: currentUserId,
-        receiverId: receiver,
-        content: message,
-        messageType: 'text'
-      }),
-      success: () => {
-        console.log('\n');
-        console.log('========================================');
-        console.log('✅ WebSocket 消息发送成功');
-        console.log('========================================\n');
-
-        // 添加到聊天记录的 UI
-        const newRecords = [...(chatRecords || []), newMessage];
-        this.setData({
-          message: '',
-          chatRecords: newRecords
-        }, () => {
-          wx.setStorageSync('chatRecords_' + receiver, newRecords);
-          this.scrollToBottom();
-        });
-      },
+      data: JSON.stringify(wsPayload),
       fail: (err) => {
-        console.log('\n');
-        console.log('========================================');
-        console.log('❌ WebSocket 消息发送失败');
-        console.log('========================================');
-        console.error('错误详情:', err);
-        console.log('========================================\n');
-
-        wx.showToast({
-          title: '发送失败，请检查网络',
-          icon: 'none'
-        });
+        console.error('❌ 发送失败:', err);
+        wx.showToast({ title: '发送失败', icon: 'none' });
       }
     });
   },
 
-
-  // 拍摄并发送图片消息
-  takePhoto: function () {
-    const { receiver, currentUserId, chatRecords, isConnected } = this.data;
-
-    if (!isConnected) {
-      wx.showToast({
-        title: '网络连接中...',
-        icon: 'none'
+  // ✅ 新增：上传图片到服务器
+  uploadChatImage: function(filePath) {
+    return new Promise((resolve, reject) => {
+      const token = wx.getStorageSync('token');
+      wx.uploadFile({
+        url: `${app.globalData.baseUrl}/messages/upload/image`,
+        filePath: filePath,
+        name: 'file', // 后端要求的参数名
+        header: {
+          'Authorization': token
+        },
+        success: (res) => {
+          if (res.statusCode === 200) {
+            try {
+              const data = JSON.parse(res.data);
+              if (data.code === 200) {
+                // ✅ 关键修复：使用 processImageUrl 统一处理，自动转 HTTPS
+                let imageUrl = data.data;
+                imageUrl = this.processImageUrl(imageUrl);
+                console.log('✅ 图片上传成功，处理后 URL:', imageUrl);
+                resolve(imageUrl);
+              } else {
+                reject(new Error(data.message || '上传失败'));
+              }
+            } catch (e) {
+              reject(e);
+            }
+          } else {
+            reject(new Error('网络错误'));
+          }
+        },
+        fail: (err) => {
+          reject(err);
+        }
       });
+    });
+  },
+
+  // ✅ 修改：发送图片时的本地预览也保持格式一致
+  takePhoto: function () {
+    const { receiver, currentUserId, currentUserName, currentUserAvatar, chatRecords, isConnected } = this.data;
+    if (!isConnected) {
+      wx.showToast({ title: '网络连接中...', icon: 'none' });
       return;
     }
 
-    wx.chooseImage({
+    wx.chooseMedia({
       count: 1,
-      sizeType: ['original'],
+      mediaType: ['image'],
       sourceType: ['camera'],
-      success: (res) => {
-        let imgPath = res.tempFilePaths[0];
-        if (imgPath.startsWith('http://tmp/')) {
-          imgPath = imgPath.replace('http://tmp/', 'wxfile://');
+      success: async (res) => {
+        wx.showLoading({ title: '发送中...' });
+        const tempFilePath = res.tempFiles[0].tempFilePath;
+
+        try {
+          const imageUrl = await this.uploadChatImage(tempFilePath);
+
+          // ✅ 构造符合前端统一格式的消息对象
+          const newMessage = {
+            id: `msg-${Date.now()}`,
+            sender: currentUserId,
+            receiver: receiver,
+            type: 'image', // ✅ 明确指定类型
+            content: imageUrl, // ✅ 直接存放处理后的 URL
+            timestamp: new Date().toISOString(),
+            formattedTime: this.formatTime(new Date()),
+            showTime: true,
+            senderAvatar: currentUserAvatar,
+            senderName: currentUserName
+          };
+
+          const newRecords = [...(chatRecords || []), newMessage];
+          this.setData({
+            chatRecords: newRecords,
+            showFunctionPanel: false
+          }, () => {
+            this.scrollToBottom();
+          });
+
+          // ✅ 修复：发送相对路径给后端，metadata 作为对象传递（不要手动 stringify）
+          const relativePath = imageUrl.replace(/^https?:\/\/[^\/]+/, '');
+          console.log('📤 [takePhoto] 准备发送 WebSocket 消息:', {
+            receiverId: Number(receiver),
+            msgType: 1,
+            metadata: { images: [relativePath] }
+          });
+
+          wx.sendSocketMessage({
+            data: JSON.stringify({
+              type: 'MESSAGE',
+              senderId: Number(currentUserId),
+              receiverId: Number(receiver),
+              content: '',
+              msgType: 1, // ✅ 使用 msgType 而不是 messageType
+              metadata: { images: [relativePath] } // ✅ 作为对象传递，让 JSON.stringify 自动处理
+            }),
+            fail: (err) => {
+              console.error('❌ 图片消息发送失败:', err);
+              wx.showToast({ title: '发送失败', icon: 'none' });
+            }
+          });
+
+          wx.hideLoading();
+        } catch (error) {
+          wx.hideLoading();
+          wx.showToast({ title: '图片上传失败', icon: 'none' });
+          console.error(error);
         }
-
-        const newMessage = {
-          id: `msg-${Date.now()}`,
-          sender: currentUserId,
-          receiver: receiver,
-          content: imgPath,
-          type: 'image',
-          timestamp: new Date().toISOString(),
-          formattedTime: this.formatTime(new Date().toISOString()),
-          showTime: true
-        };
-
-        console.log('发送图片消息', newMessage);
-
-        // TODO: 这里应该上传图片到服务器，然后发送图片 URL
-        // 暂时先发送本地路径
-
-        const newRecords = [...(chatRecords || []), newMessage];
-        this.setData({
-          chatRecords: newRecords,
-          showFunctionPanel: false
-        }, () => {
-          wx.setStorageSync('chatRecords_' + receiver, newRecords);
-          this.scrollToBottom();
-        });
       }
     });
   },
 
-  // 选择图片并发送图片消息
+  // ✅ 修复：选择相册图片并发送
   chooseImage: function () {
-    const { receiver, chatRecords } = this.data;
-    wx.chooseImage({
+    const { receiver, currentUserId, currentUserName, currentUserAvatar, chatRecords, isConnected } = this.data;
+
+    if (!isConnected) {
+      wx.showToast({ title: '网络连接中...', icon: 'none' });
+      return;
+    }
+
+    wx.chooseMedia({
       count: 1,
-      sizeType: ['compressed'],
+      mediaType: ['image'],
       sourceType: ['album'],
-      success: (res) => {
-        let imgPath = res.tempFilePaths[0];
-        if (imgPath.startsWith('http://tmp/')) {
-          imgPath = imgPath.replace('http://tmp/', 'wxfile://');
+      success: async (res) => {
+        wx.showLoading({ title: '发送中...' });
+        const tempFilePath = res.tempFiles[0].tempFilePath;
+
+        try {
+          // 1. 上传图片
+          const imageUrl = await this.uploadChatImage(tempFilePath);
+
+          // ✅ 修复：提取相对路径
+          const relativePath = imageUrl.replace(/^https?:\/\/[^\/]+/, '');
+          console.log('📤 [chooseImage] 准备发送 WebSocket 消息:', {
+            receiverId: Number(receiver),
+            msgType: 1,
+            metadata: { images: [relativePath] }
+          });
+
+          // 2. 构造 WebSocket 消息（✅ metadata 作为对象）
+          const wsPayload = {
+            type: 'MESSAGE',
+            senderId: Number(currentUserId),
+            receiverId: Number(receiver),
+            content: '',
+            msgType: 1, // ✅ 使用 msgType
+            metadata: { images: [relativePath] } // ✅ 作为对象传递
+          };
+
+          // 3. 本地乐观更新 UI
+          const newMessage = {
+            id: `msg-${Date.now()}`,
+            sender: currentUserId,
+            receiver: receiver,
+            content: imageUrl,
+            type: 'image',
+            timestamp: new Date().toISOString(),
+            formattedTime: this.formatTime(new Date()),
+            showTime: true,
+            senderAvatar: currentUserAvatar, // ✅ 添加头像
+            senderName: currentUserName // ✅ 添加昵称
+          };
+
+          const newRecords = [...(chatRecords || []), newMessage];
+          this.setData({
+            chatRecords: newRecords,
+            showFunctionPanel: false
+          }, () => {
+            this.scrollToBottom();
+          });
+
+          // 4. 通过 WebSocket 发送
+          wx.sendSocketMessage({
+            data: JSON.stringify(wsPayload),
+            fail: (err) => {
+              console.error('❌ 图片消息发送失败:', err);
+              wx.showToast({ title: '发送失败', icon: 'none' });
+            }
+          });
+
+          wx.hideLoading();
+        } catch (error) {
+          wx.hideLoading();
+          wx.showToast({ title: '图片上传失败', icon: 'none' });
+          console.error(error);
         }
-        const newMessage = {
-          id: `msg-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-          sender: 'currentUserID',
-          receiver,
-          content: imgPath,
-          type: 'image',
-          timestamp: new Date().toISOString(),
-          formattedTime: this.formatTime(new Date().toISOString()),
-          showTime: true
-        };
-        console.log('发送图片消息', newMessage);
-        const newRecords = [...(chatRecords || []), newMessage];
-        this.setData({ chatRecords: newRecords, showFunctionPanel: false }, () => {
-          wx.setStorageSync('chatRecords_' + receiver, newRecords);
-          this.scrollToBottom();
-        });
       }
     });
   },
@@ -933,4 +1121,13 @@ Page({
   onShow: function () {
     this.scrollToBottom();
   },
+
+  // ✅ 新增：预览图片
+  previewImage: function(e) {
+    const url = e.currentTarget.dataset.src;
+    wx.previewImage({
+      current: url,
+      urls: [url]
+    });
+  }
 });

@@ -113,6 +113,38 @@
   color: #2867CE;
 }
 
+/* ✅ 新增：产品介绍样式 */
+.product-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+/* ✅ 新增：公司 logo 容器样式 */
+.company-logo-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rpx;
+  padding: 1rpx;
+  background-color: #fafafa;
+  border-radius: 12rpx;
+}
+
+.company-logo {
+  width: 400rpx;
+  height: 400rpx;
+}
+
+.intro-text {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.8;
+  text-align: justify;
+  text-indent: 2em;
+}
+
+
 /* 页脚样式 */
 .footer {
   text-align: center;

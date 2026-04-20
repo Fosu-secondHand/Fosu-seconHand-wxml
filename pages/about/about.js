@@ -64,23 +64,11 @@ Page({
 
   },
 
-  // 复制微信号
-  copyWechat() {
-    wx.setClipboardData({
-      data: 'FOSU_Official',
-      success: () => {
-        wx.showToast({
-          title: '微信号已复制',
-          icon: 'success'
-        });
-      }
-    });
-  },
 
   // 复制邮箱
   copyEmail() {
     wx.setClipboardData({
-      data: 'support@fosu.edu.cn',
+      data: 'fosu_secondhand@163.com',
       success: () => {
         wx.showToast({
           title: '邮箱已复制',

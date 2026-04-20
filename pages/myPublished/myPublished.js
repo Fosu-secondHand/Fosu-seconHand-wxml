@@ -1,3 +1,5 @@
+const authMixin = require('../../utils/authMixin.js');
+
 Page({
   data: {
     goodsList: [],     // 发布的商品列表
@@ -6,37 +8,103 @@ Page({
     hasUserInfo: false // 是否有用户信息
   },
 
+  // ✅ 引入混入方法
+  ...authMixin.methods,
+
   onLoad() {
+    // ✅ 新增：使用统一的登录检查
+    if (!this.requireLogin('查看我的发布')) {
+      return;
+    }
+
     this.loadUserInfo();
   },
 
   onShow() {
+    // ✅ 新增：重新检查登录状态
+    if (!this.checkLogin()) {
+      console.warn('⚠️ myPublished onShow: 用户未登录，跳转到登录页');
+      wx.redirectTo({
+        url: '/pages/login/login'
+      });
+      return;
+    }
+
+    // ✅ 新增：同步登录状态
+    this.syncLoginState();
+
     if (this.data.hasUserInfo && this.data.userInfo) {
+      // ✅ 验证 userInfo.id 是否有效
+      if (!this.data.userInfo.id || this.data.userInfo.id === 'undefined') {
+        console.error('❌ userInfo.id 无效', this.data.userInfo);
+        wx.redirectTo({
+          url: '/pages/login/login'
+        });
+        return;
+      }
+
       this.loadPublishedProducts(this.data.userInfo.id);
     }
   },
 
   loadUserInfo() {
+    // ✅ 新增：再次验证登录状态
+    if (!this.checkLogin()) {
+      console.warn('⚠️ loadUserInfo: 用户未登录');
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      setTimeout(() => {
+        wx.redirectTo({
+          url: '/pages/login/login'
+        });
+      }, 1500);
+      return;
+    }
+
     // 页面加载时获取用户信息
     const app = getApp();
     const userInfo = app.globalData.userInfo;
 
     if (userInfo && userInfo.id) {
+      // ✅ 确保 id 是数字类型
+      const userId = parseInt(userInfo.id);
+      if (isNaN(userId) || userId <= 0) {
+        console.error('❌ userInfo.id 格式错误:', userInfo.id);
+        wx.showToast({
+          title: '用户信息异常',
+          icon: 'none'
+        });
+        return;
+      }
+
       this.setData({
-        userInfo: userInfo,
+        userInfo: { ...userInfo, id: userId },
         hasUserInfo: true
       });
       // 获取发布的商品列表
-      this.loadPublishedProducts(userInfo.id);
+      this.loadPublishedProducts(userId);
     } else {
       // 如果没有用户信息，尝试从本地存储获取
       const storedUserInfo = wx.getStorageSync('userInfo');
       if (storedUserInfo && storedUserInfo.id) {
+        // ✅ 确保 id 是数字类型
+        const userId = parseInt(storedUserInfo.id);
+        if (isNaN(userId) || userId <= 0) {
+          console.error('❌ storedUserInfo.id 格式错误:', storedUserInfo.id);
+          wx.showToast({
+            title: '用户信息异常',
+            icon: 'none'
+          });
+          return;
+        }
+
         this.setData({
-          userInfo: storedUserInfo,
+          userInfo: { ...storedUserInfo, id: userId },
           hasUserInfo: true
         });
-        this.loadPublishedProducts(storedUserInfo.id);
+        this.loadPublishedProducts(userId);
       } else {
         wx.showToast({
           title: '请先登录',
@@ -56,17 +124,45 @@ Page({
    * 获取用户发布的商品列表
    */
   loadPublishedProducts(userId) {
+    // ✅ 新增：验证 userId 是否有效
+    if (!userId || userId === 'undefined' || isNaN(parseInt(userId))) {
+      console.error('❌ loadPublishedProducts: userId 无效', userId);
+      wx.showToast({
+        title: '用户信息异常',
+        icon: 'none'
+      });
+      return;
+    }
+
+    const numericUserId = parseInt(userId);
+
     this.setData({ loading: true });
 
     const app = getApp();
     const token = wx.getStorageSync('token');
+
+    // ✅ 新增：验证 token 是否存在
+    if (!token) {
+      console.error('❌ loadPublishedProducts: token 不存在');
+      this.setData({ loading: false });
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      setTimeout(() => {
+        wx.redirectTo({
+          url: '/pages/login/login'
+        });
+      }, 1500);
+      return;
+    }
 
     // 调用后端接口获取发布的商品列表
     wx.request({
       url: `${app.globalData.baseUrl}/products/published-by-user`,
       method: 'GET',
       data: {
-        userId: userId
+        userId: numericUserId
       },
       header: {
         'Authorization': token,
@@ -152,8 +248,9 @@ Page({
             title: '未授权访问，请重新登录',
             icon: 'none'
           });
-          // 清除本地存储并跳转到登录页
-          wx.clearStorageSync();
+          // ✅ 修复：只清除登录相关数据
+          wx.removeStorageSync('token');
+          wx.removeStorageSync('userInfo');
           setTimeout(() => {
             wx.redirectTo({
               url: '/pages/login/login'
@@ -177,17 +274,17 @@ Page({
       }
     });
   },
-/**
- * 商品点击事件 - 跳转到商品详情页
- */
-onGoodsTap(e) {
-  const productId = e.currentTarget.dataset.id;
-  if (productId) {
-    wx.navigateTo({
-      url: `/pages/GoodDetail/GoodDetail?id=${productId}`
-    });
-  }
-},
+  /**
+   * 商品点击事件 - 跳转到商品详情页
+   */
+  onGoodsTap(e) {
+    const productId = e.currentTarget.dataset.id;
+    if (productId) {
+      wx.navigateTo({
+        url: `/pages/GoodDetail/GoodDetail?id=${productId}`
+      });
+    }
+  },
 
   editGoods(e) {
     try {
@@ -275,9 +372,29 @@ onGoodsTap(e) {
    * 调用后端接口删除商品
    */
   performDelete(goodsId) {
+    // ✅ 新增：验证登录状态
+    if (!this.checkLogin()) {
+      console.warn('⚠️ performDelete: 用户未登录');
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+
     const app = getApp();
     const token = wx.getStorageSync('token');
-    const userId = this.data.userInfo.id; // 获取当前用户ID
+    const userId = this.data.userInfo?.id; // ✅ 安全获取用户ID
+
+    // ✅ 验证 userId 是否有效
+    if (!userId || userId === 'undefined') {
+      console.error('❌ performDelete: userId 无效');
+      wx.showToast({
+        title: '用户信息异常',
+        icon: 'none'
+      });
+      return;
+    }
 
     // 确保 goodsId 是数字类型
     const productId = parseInt(goodsId);
@@ -285,14 +402,6 @@ onGoodsTap(e) {
     if (isNaN(productId)) {
       wx.showToast({
         title: '商品ID无效',
-        icon: 'none'
-      });
-      return;
-    }
-
-    if (!userId) {
-      wx.showToast({
-        title: '用户信息缺失',
         icon: 'none'
       });
       return;

@@ -1,4 +1,6 @@
 // pages/idle/idle.js
+const authMixin = require('../../utils/authMixin.js');
+
 Page({
     data: {
         description: '',      // 商品描述
@@ -32,17 +34,26 @@ Page({
         // 添加新分类相关字段
         showAddCategory: false,
         newCategoryName: '',
-        needContinuePublish: false
+        needContinuePublish: false,
+        isLogin: false  // ✅ 新增：登录状态
     },
+
+    // ✅ 引入混入方法
+    ...authMixin.methods,
 
 
     onLoad(options) {
+        // ✅ 新增：使用统一的登录检查方法
+        if (!this.requireLogin('发布商品')) {
+            return;
+        }
+
         // 获取全局app实例
         const app = getApp();
         this.baseURL = app.globalData.baseUrl;
 
-        // 同步用户登录状态
-        this.syncLoginStatus();
+        // ✅ 同步用户登录状态（使用 mixin 提供的方法）
+        this.syncLoginState();
 
         // 获取分类列表
         this.fetchCategories();
@@ -63,79 +74,175 @@ Page({
                 wx.removeStorageSync('editingGoods');
             }
         }
-    }, // 注意这里的结束括号
+    },
 
 
     onShow() {
+        // ✅ 修改：重新检查登录状态，使用弹窗提示
+        if (!this.checkLogin()) {
+            console.warn('⚠️ onShow: 用户未登录，显示弹窗提示');
+            wx.showModal({
+                title: '提示',
+                content: '请先登录后再发布商品',
+                confirmText: '去登录',
+                cancelText: '取消',
+                confirmColor: '#07c160',
+                success: (res) => {
+                    if (res.confirm) {
+                        wx.navigateTo({
+                            url: '/pages/login/login'
+                        });
+                    }
+                }
+            });
+            return;
+        }
+
         // 每次页面显示时检查用户地址信息
         const token = wx.getStorageSync('token');
         const userInfo = wx.getStorageSync('userInfo');
 
         if (token && userInfo && userInfo.id) {
-            // 重新获取用户详细信息，更新地址状态
+            // ✅ 重新获取用户详细信息，更新地址状态
             this.getUserDetail(userInfo.id, token).then(userDetail => {
-                // 如果之前因为没有地址而中断了发布流程，现在有了地址则可以继续
-                if (this.data.loading && this.data.needContinuePublish) {
-                    this.continuePublish(userInfo, token);
-                    this.setData({
-                        needContinuePublish: false
-                    });
+                console.log('onShow: 用户地址信息已更新', userDetail.address);
+
+                // ✅ 检查用户是否有地址信息
+                if (userDetail.address && userDetail.address.trim() !== '') {
+                    // 如果有地址且之前因为没地址而中断了发布流程，现在可以继续
+                    if (this.data.loading && this.data.needContinuePublish) {
+                        console.log('onShow: 地址已填写，继续发布流程');
+                        this.continuePublish(userInfo, token);
+                        this.setData({
+                            needContinuePublish: false
+                        });
+                    }
+                } else {
+                    console.log('onShow: 用户仍未填写地址');
                 }
             }).catch(err => {
-                console.error('获取用户信息失败:', err);
+                console.error('onShow: 获取用户信息失败:', err);
             });
         }
     },
 
 
-// 同步登录状态方法
-    syncLoginStatus() {
-        try {
-            // 检查本地存储的用户信息
-            const token = wx.getStorageSync('token');
-            const userInfo = wx.getStorageSync('userInfo');
 
-            console.log('同步登录状态 - token:', token ? '存在' : '不存在');
-            console.log('同步登录状态 - userInfo:', userInfo);
-
-            if (token && userInfo && userInfo.isLogin) {
-                // 确保用户信息结构正确
-                const normalizedUserInfo = {
-                    id: userInfo.id || userInfo.userId,
-                    ...userInfo
-                };
-                // 这里可以设置一些页面需要的用户数据
-                console.log('同步登录状态成功:', normalizedUserInfo);
-            } else if (token) {
-                // 有token但没有userInfo，可能需要重新获取用户信息
-                console.log('有token但缺少用户信息');
-            } else {
-                // 没有token，可能需要重新登录
-                console.log('未检测到登录状态');
-            }
-        } catch (error) {
-            console.error('同步登录状态失败:', error);
-        }
-    },
+    // Deleted:// 同步登录状态方法
+    // Deleted:syncLoginStatus() {
+    // Deleted:try {
+    // Deleted:// 检查本地存储的用户信息
+    // Deleted:const token = wx.getStorageSync('token');
+    // Deleted:const userInfo = wx.getStorageSync('userInfo');
+    // Deleted:
+    // Deleted:console.log('同步登录状态 - token:', token ? '存在' : '不存在');
+    // Deleted:console.log('同步登录状态 - userInfo:', userInfo);
+    // Deleted:
+    // Deleted:if (token && userInfo && userInfo.isLogin) {
+    // Deleted:// 确保用户信息结构正确
+    // Deleted:const normalizedUserInfo = {
+    // Deleted:id: userInfo.id || userInfo.userId,
+    // Deleted:...userInfo
+    // Deleted:};
+    // Deleted:// 这里可以设置一些页面需要的用户数据
+    // Deleted:console.log('同步登录状态成功:', normalizedUserInfo);
+    // Deleted:} else if (token) {
+    // Deleted:// 有token但没有userInfo，可能需要重新获取用户信息
+    // Deleted:console.log('有token但缺少用户信息');
+    // Deleted:} else {
+    // Deleted:// 没有token，可能需要重新登录
+    // Deleted:console.log('未检测到登录状态');
+    // Deleted:}
+    // Deleted:} catch (error) {
+    // Deleted:console.error('同步登录状态失败:', error);
+    // Deleted:}
+    // Deleted:},
 
 
     fetchCategories() {
-        // 检查baseUrl是否有效
-        if (!this.baseURL) {
-            console.error('API地址未配置');
+        // ✅ 新增：使用统一的登录检查
+        if (!this.checkLogin()) {
+            console.warn('⚠️ fetchCategories: 用户未登录');
             return;
         }
 
+        // 检查 baseUrl 是否有效
+        if (!this.baseURL) {
+            console.error('API 地址未配置');
+            return;
+        }
+
+        // ✅ 获取 token
+        const token = wx.getStorageSync('token');
+
         wx.request({
-            url: this.baseURL + '/products/categories', // 假设这个接口获取分类列表
+            url: this.baseURL + '/products/categories',
             method: 'GET',
+            header: {
+                // ✅ 添加认证头（如果需要登录）
+                'Authorization': token ? `Bearer ${token}` : ''
+            },
             success: (res) => {
+                console.log('=== 获取分类列表原始响应 ===');
+                console.log('完整响应:', res);
+                console.log('res.data:', res.data);
+
                 if (res.statusCode === 200 && res.data) {
+                    // ✅ 详细打印每个分类对象的所有字段
+                    console.log('\n=== 分类列表详细信息 ===');
+                    res.data.forEach((category, index) => {
+                        console.log(`\n分类${index + 1}:`);
+                        console.log('  完整对象:', category);
+                        console.log('  所有键名:', Object.keys(category));
+
+                        // 检查可能的 ID 字段
+                        const possibleIdFields = ['id', 'category_id', 'categoryId', 'category_Id'];
+                        possibleIdFields.forEach(field => {
+                            if (category[field] !== undefined) {
+                                console.log(`  ✅ 找到字段 "${field}":`, category[field]);
+                            }
+                        });
+                    });
+
+                    // ✅ 标准化分类数据结构，统一使用 id 字段
+                    const normalizedCategories = res.data.map(category => {
+                        // 尝试不同的 ID 字段名，优先级：category_Id > categoryId > category_id > id
+                        let id = category.category_Id || category.categoryId || category.category_id || category.id;
+                        // 尝试不同的 name 字段名
+                        let name = category.name || category.category_name || category.categoryName;
+
+                        return {
+                            id: id,  // 统一使用 id 字段
+                            name: name,
+                            originalData: category // 保留原始数据以便调试
+                        };
+                    });
+
+                    console.log('\n=== 标准化后的分类列表 ===');
+                    console.log(normalizedCategories);
+
                     this.setData({
-                        categoryOptions: res.data
+                        categoryOptions: normalizedCategories
+                    });
+
+                    console.log('\n✅ 分类列表已设置到页面 data 中');
+                } else if (res.statusCode === 401) {
+                    console.error('未授权访问，请先登录');
+                    wx.showModal({
+                        title: '提示',
+                        content: '请先登录',
+                        confirmText: '去登录',
+                        success: (confirmRes) => {
+                            if (confirmRes.confirm) {
+                                wx.navigateTo({
+                                    url: '/pages/login/login'
+                                });
+                            }
+                        }
                     });
                 } else {
                     console.error('获取分类列表失败，状态码:', res.statusCode);
+                    console.error('响应数据:', res.data);
                 }
             },
             fail: (err) => {
@@ -154,32 +261,52 @@ Page({
         this.setData({ description: e.detail.value });
     },
 
-    // 选择图片
+    // 选择图片（增加拍照选项）
     chooseImage() {
-        const maxCount = 9 - this.data.images.length;
-        if (maxCount <= 0) {
-            wx.showToast({ title: '最多上传9张图片', icon: 'none' });
+        // ✅ 新增：使用统一的登录检查
+        if (!this.requireLogin('上传图片')) {
             return;
         }
 
-        wx.chooseImage({
-            count: maxCount,
-            sizeType: ['compressed'],
-            sourceType: ['album', 'camera'],
+        const maxCount = 9 - this.data.images.length;
+        if (maxCount <= 0) {
+            wx.showToast({ title: '最多上传 9 张图片', icon: 'none' });
+            return;
+        }
+
+        // ✅ 显示选择菜单：让用户选择相册或拍照
+        wx.showActionSheet({
+            itemList: ['从相册选择', '拍照'],
+            itemColor: '#333',
             success: (res) => {
-                this.setData({ images: [...this.data.images, ...res.tempFilePaths] });
-            },
-            fail: (err) => {
-                console.error('选择图片失败:', err);
-                if (err.errMsg && !err.errMsg.includes('fail cancel')) {
-                    wx.showToast({
-                        title: '选择图片失败',
-                        icon: 'none'
+                if (!res.cancel) {
+                    const sourceType = res.tapIndex === 0 ? ['album'] : ['camera'];
+
+                    wx.chooseImage({
+                        count: sourceType[0] === 'camera' ? 1 : maxCount, // 拍照只能拍 1 张
+                        sizeType: ['compressed'],
+                        sourceType: sourceType,
+                        success: (chooseRes) => {
+                            this.setData({
+                                images: [...this.data.images, ...chooseRes.tempFilePaths]
+                            });
+                        },
+                        fail: (err) => {
+                            // 只在非取消操作时才显示错误提示
+                            if (err.errMsg && !err.errMsg.includes('fail cancel')) {
+                                console.error('选择图片失败:', err);
+                                wx.showToast({
+                                    title: sourceType[0] === 'camera' ? '拍照失败' : '选择图片失败',
+                                    icon: 'none'
+                                });
+                            }
+                        }
                     });
                 }
             }
         });
     },
+
 
     // 删除图片
     deleteImage(e) {
@@ -261,9 +388,52 @@ Page({
     goAuction() {
         wx.navigateTo({ url: '/pages/auctionPrice/auctionPrice' }); // 如无此页面可后续补充
     },
-
-    // 修改 submitPublish 方法
     submitPublish() {
+        // ✅ 新增：使用统一的登录检查
+        if (!this.requireLogin('发布商品')) {
+            return;
+        }
+
+        // ✅ 新增：获取用户信息并验证
+        const token = wx.getStorageSync('token');
+        const userInfo = wx.getStorageSync('userInfo');
+
+        console.log('=== submitPublish: 检查用户信息 ===');
+        console.log('userInfo:', userInfo);
+        console.log('userInfo.id:', userInfo?.id);
+        console.log('userInfo.id 类型:', typeof userInfo?.id);
+
+        // ✅ 关键修复：验证 userInfo.id 是否有效
+        if (!userInfo || !userInfo.id || userInfo.id === 'undefined' || userInfo.id === undefined || userInfo.id === null) {
+            console.error('❌ 用户 ID 无效:', userInfo?.id);
+            wx.showModal({
+                title: '登录状态异常',
+                content: '您的登录信息已过期，请重新登录',
+                confirmText: '去登录',
+                success: (res) => {
+                    if (res.confirm) {
+                        wx.navigateTo({
+                            url: '/pages/login/login'
+                        });
+                    }
+                }
+            });
+            return;
+        }
+
+        // ✅ 确保 userId 是数字类型
+        const userId = parseInt(userInfo.id);
+        if (isNaN(userId) || userId <= 0) {
+            console.error('❌ 用户 ID 格式错误:', userInfo.id);
+            wx.showToast({
+                title: '用户信息异常',
+                icon: 'none'
+            });
+            return;
+        }
+
+        console.log('✅ 用户 ID 验证通过:', userId);
+
         // 表单验证
         if (!this.data.description.trim()) {
             return wx.showToast({ title: '请填写商品描述', icon: 'none' });
@@ -290,17 +460,58 @@ Page({
             return wx.showToast({ title: '价格超出限制', icon: 'none' });
         }
 
-        // 检查用户登录状态
-        const token = wx.getStorageSync('token');
-        const userInfo = wx.getStorageSync('userInfo');
+        // ✅ 新增：验证分类 ID 是否有效
+        if (!this.data.category.id || typeof this.data.category.id !== 'number') {
+            console.error('无效的分类 ID:', this.data.category);
+            return wx.showToast({
+                title: '分类信息无效，请重新选择',
+                icon: 'none'
+            });
+        }
 
-        // 如果未登录，显示登录提示弹窗
-        if (!token || !userInfo || !userInfo.id) {
+        // ✅ 打印当前选择的分类信息
+        console.log('=== 提交前验证分类信息 ===');
+        console.log('选中的分类:', this.data.category);
+        console.log('分类 ID:', this.data.category.id);
+        console.log('分类名称:', this.data.category.name);
+
+        // ✅ 验证分类是否存在于列表中
+        const categoryExists = this.data.categoryOptions.some(cat => cat.id === this.data.category.id);
+        console.log('分类是否在选项中存在:', categoryExists);
+
+        if (!categoryExists) {
+            console.warn('⚠️ 分类不在有效列表中，请重新选择');
+            return wx.showToast({
+                title: '分类无效，请重新选择',
+                icon: 'none'
+            });
+        }
+
+        // ✅ 删除旧的登录检查逻辑，改用 mixin 提供的 checkLogin()
+        // Deleted:const token = wx.getStorageSync('token');
+        // Deleted:const userInfo = wx.getStorageSync('userInfo');
+
+        // 检查用户地址信息
+        this.checkUserAddress(userInfo, token);
+    },
+
+
+
+    checkUserAddress(userInfo, token) {
+        this.setData({ loading: true });
+
+        console.log('=== 开始检查用户地址 ===');
+        console.log('用户 ID:', userInfo.id);
+        console.log('Token:', token ? '存在' : '不存在');
+
+        // ✅ 新增：再次验证 userInfo.id 是否有效
+        if (!userInfo.id || userInfo.id === 'undefined' || userInfo.id === undefined) {
+            console.error('❌ checkUserAddress: 用户 ID 无效');
+            this.setData({ loading: false });
             wx.showModal({
-                title: '提示',
-                content: '请先登录后再发布商品',
+                title: '登录状态异常',
+                content: '您的登录信息已损坏，请重新登录',
                 confirmText: '去登录',
-                cancelText: '取消',
                 success: (res) => {
                     if (res.confirm) {
                         wx.navigateTo({
@@ -312,19 +523,31 @@ Page({
             return;
         }
 
-        // 检查用户地址信息
-        this.checkUserAddress(userInfo, token);
-    },
-
-
-
-    checkUserAddress(userInfo, token) {
-        this.setData({ loading: true });
+        // ✅ 确保 userId 是数字类型
+        const userId = parseInt(userInfo.id);
+        if (isNaN(userId)) {
+            console.error('❌ checkUserAddress: 用户 ID 格式错误:', userInfo.id);
+            this.setData({ loading: false });
+            wx.showToast({
+                title: '用户信息异常',
+                icon: 'none'
+            });
+            return;
+        }
 
         // 获取用户详细信息
-        this.getUserDetail(userInfo.id, token).then(userDetail => {
+        this.getUserDetail(userId, token).then(userDetail => {
+            console.log('=== 获取到用户详情 ===');
+            console.log('完整用户数据:', userDetail);
+            console.log('address 字段值:', userDetail.address);
+            console.log('address 类型:', typeof userDetail.address);
+            console.log('address 是否为空字符串:', userDetail.address === '');
+            console.log('address trim 后:', userDetail.address ? userDetail.address.trim() : 'null');
+
             // 检查用户是否有地址信息
             if (!userDetail.address || userDetail.address.trim() === '') {
+                console.log('❌ 结论：用户没有地址，需要提示填写');
+
                 this.setData({
                     loading: false,
                     needContinuePublish: true  // 添加标记，表示需要继续发布
@@ -337,11 +560,13 @@ Page({
                     cancelText: '取消',
                     success: (res) => {
                         if (res.confirm) {
+                            console.log('用户点击去填写，跳转到地址页');
                             wx.navigateTo({
                                 url: '/pages/address/address'
                             });
                         } else {
                             // 用户取消时也需要重置状态
+                            console.log('用户取消填写地址');
                             this.setData({
                                 needContinuePublish: false
                             });
@@ -351,10 +576,11 @@ Page({
                 return;
             }
 
+            console.log('✅ 结论：用户有地址，继续发布流程');
             // 如果有地址信息，继续执行发布操作
             this.continuePublish(userInfo, token);
         }).catch(err => {
-            console.error('获取用户信息失败:', err);
+            console.error('❌ 获取用户信息失败:', err);
             this.setData({
                 loading: false,
                 needContinuePublish: false
@@ -368,9 +594,29 @@ Page({
 
 
 
+
     // 继续执行发布流程
     continuePublish(userInfo, token) {
-        const sellerId = userInfo.id;
+        // ✅ 新增：验证 userInfo.id
+        if (!userInfo.id || userInfo.id === 'undefined') {
+            console.error('❌ continuePublish: 用户 ID 无效');
+            this.setData({ loading: false });
+            wx.showModal({
+                title: '登录状态异常',
+                content: '您的登录信息已损坏，请重新登录',
+                confirmText: '去登录',
+                success: (res) => {
+                    if (res.confirm) {
+                        wx.navigateTo({
+                            url: '/pages/login/login'
+                        });
+                    }
+                }
+            });
+            return;
+        }
+
+        const sellerId = parseInt(userInfo.id);
 
         // 首先获取用户详细信息
         this.getUserDetail(sellerId, token).then(userDetail => {
@@ -565,8 +811,17 @@ Page({
 // 获取用户详细信息
     getUserDetail(userId, token) {
         return new Promise((resolve, reject) => {
+            // ✅ 新增：验证 userId 是否有效
+            if (!userId || userId === 'undefined' || userId === undefined || isNaN(parseInt(userId))) {
+                console.error('❌ getUserDetail: userId 无效:', userId);
+                reject(new Error('用户 ID 无效'));
+                return;
+            }
+
+            const numericUserId = parseInt(userId);
+
             wx.request({
-                url: `${this.baseURL}/users/${userId}`,
+                url: `${this.baseURL}/users/${numericUserId}`,
                 method: 'GET',
                 header: {
                     'Authorization': `Bearer ${token}`,
@@ -586,6 +841,7 @@ Page({
         });
     },
 
+
     // 上传图片方法
     uploadImages() {
         return new Promise((resolve, reject) => {
@@ -594,15 +850,15 @@ Page({
                 return;
             }
 
-            // 检查baseUrl是否有效
+            // 检查 baseUrl 是否有效
             if (!this.baseURL) {
-                reject(new Error('API地址未配置'));
+                reject(new Error('API 地址未配置'));
                 return;
             }
 
-            // 获取认证token
+            // 获取认证 token
             const token = wx.getStorageSync('token');
-            console.log('获取到的token:', token); // 调试信息
+            console.log('获取到的 token:', token);
             if (!token) {
                 reject(new Error('用户未登录，请先登录'));
                 return;
@@ -611,43 +867,88 @@ Page({
             const uploadPromises = this.data.images.map((imagePath, index) => {
                 return new Promise((resolve, reject) => {
                     wx.uploadFile({
-                        url: this.baseURL + '/products/upload/image', // 更新为新的图片上传接口
+                        url: this.baseURL + '/products/upload/image',
                         filePath: imagePath,
-                        name: 'file', // 根据接口文档，参数名为file
+                        name: 'file',
                         header: {
-                            'Authorization': `Bearer ${token}` // 添加认证头
+                            'Authorization': `Bearer ${token}`
                         },
                         success: (res) => {
-                            console.log(`第${index+1}张图片上传响应:`, res); // 调试信息
+                            console.log(`第${index+1}张图片上传响应:`, res);
+                            console.log(`第${index+1}张图片上传响应 data 字段:`, res.data);
+
                             if (res.statusCode === 200) {
                                 try {
                                     const data = JSON.parse(res.data);
-                                    // 根据新接口返回结构调整，获取图片URL
-                                    // 假设图片URL在data字段中
-                                    const imageUrl = data.data || data.url || null;
+                                    console.log(`第${index+1}张图片上传解析后的数据:`, data);
+
+                                    // 根据接口返回获取图片 URL
+                                    let imageUrl = data.data || data.url || data.imageUrl || null;
+
                                     if (imageUrl) {
-                                        resolve(imageUrl);
+                                        console.log(`第${index+1}张图片原始 URL:`, imageUrl);
+
+                                        // ✅ 判断是否为完整 URL
+                                        if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+                                            // 已经是完整 URL，强制转换为 HTTP（开发环境）
+                                            if (imageUrl.startsWith('https://')) {
+                                                imageUrl = imageUrl.replace('https://', 'http://');
+                                                console.log(`⚠️ 将 HTTPS 转换为 HTTP:`, imageUrl);
+                                            }
+                                            console.log(`第${index+1}张图片使用完整 URL`);
+                                            resolve(imageUrl);
+                                        } else if (imageUrl.startsWith('/')) {
+                                            // 相对路径，需要拼接域名
+                                            // 从 baseURL 提取域名部分（去掉 /api）
+                                            const domain = this.baseURL.replace('/api', '');
+
+                                            // ✅ 确保使用 HTTP 协议
+                                            const finalUrl = domain.startsWith('http://') ? domain + imageUrl : 'http://' + domain.replace(/^https?:\/\//, '') + imageUrl;
+
+                                            console.log(`第${index+1}张图片拼接后的 URL:`, finalUrl);
+                                            resolve(finalUrl);
+                                        } else {
+                                            // 不带斜杠的相对路径
+                                            const domain = this.baseURL.replace('/api', '');
+
+                                            // ✅ 确保使用 HTTP 协议
+                                            const finalUrl = domain.startsWith('http://') ? domain + '/' + imageUrl : 'http://' + domain.replace(/^https?:\/\//, '') + '/' + imageUrl;
+
+                                            console.log(`第${index+1}张图片拼接后的 URL:`, finalUrl);
+                                            resolve(finalUrl);
+                                        }
                                     } else {
+                                        console.error(`第${index+1}张图片上传返回数据格式不正确:`, data);
                                         reject(new Error(`第${index+1}张图片上传返回数据格式不正确`));
                                     }
                                 } catch (parseError) {
-                                    reject(new Error(`第${index+1}张图片上传数据解析失败`));
+                                    console.error(`第${index+1}张图片上传数据解析失败:`, parseError);
+                                    console.error(`原始响应数据:`, res.data);
+                                    reject(new Error(`第${index+1}张图片上传数据解析失败：${parseError.message}`));
                                 }
                             } else {
-                                reject(new Error(`第${index+1}张图片上传失败，状态码: ${res.statusCode}`));
+                                console.error(`第${index+1}张图片上传失败，状态码:`, res.statusCode);
+                                reject(new Error(`第${index+1}张图片上传失败，状态码：${res.statusCode}`));
                             }
                         },
                         fail: (err) => {
                             console.error(`第${index+1}张图片上传失败:`, err);
-                            reject(new Error(`第${index+1}张图片上传失败: ${err.errMsg || '网络错误'}`));
+                            reject(new Error(`第${index+1}张图片上传失败：${err.errMsg || '网络错误'}`));
                         }
                     });
                 });
             });
 
+
             Promise.all(uploadPromises)
-                .then(resolve)
-                .catch(reject);
+                .then(urls => {
+                    console.log('所有图片上传成功，URL 列表:', urls);
+                    resolve(urls);
+                })
+                .catch(err => {
+                    console.error('图片上传失败:', err);
+                    reject(err);
+                });
         });
     },
 
@@ -693,8 +994,18 @@ Page({
             return;
         }
 
-        // 根据ID找到对应的分类对象
+        // 根据 ID 找到对应的分类对象
         const selectedCategory = this.data.categoryOptions[categoryIndex];
+
+        // ✅ 打印选择的分类信息（包含所有可能用于发送的字段）
+        console.log('\n=== 用户选择分类 ===');
+        console.log('选中的分类:', selectedCategory);
+        console.log('分类 ID:', selectedCategory.id);
+        console.log('分类名称:', selectedCategory.name);
+        console.log('原始数据:', selectedCategory.originalData);
+
+        // ✅ 提示用户将要在请求中使用的值
+        console.log('\n📤 提交时将使用 categoryId:', selectedCategory.id);
 
         this.setData({
             category: selectedCategory,
@@ -788,32 +1099,32 @@ Page({
         });
     },
     // 增加商品数量
-increaseQuantity() {
-    this.setData({
-        quantity: this.data.quantity + 1
-    });
-},
+    increaseQuantity() {
+        this.setData({
+            quantity: this.data.quantity + 1
+        });
+    },
 
 // 减少商品数量
-decreaseQuantity() {
-    if (this.data.quantity > 1) {
-        this.setData({
-            quantity: this.data.quantity - 1
-        });
-    }
-},
+    decreaseQuantity() {
+        if (this.data.quantity > 1) {
+            this.setData({
+                quantity: this.data.quantity - 1
+            });
+        }
+    },
 
 // 直接输入商品数量
-onQuantityInput(e) {
-    let value = parseInt(e.detail.value);
-    if (isNaN(value) || value < 1) {
-        value = 1;
+    onQuantityInput(e) {
+        let value = parseInt(e.detail.value);
+        if (isNaN(value) || value < 1) {
+            value = 1;
+        }
+        if (value > 999) {
+            value = 999;
+        }
+        this.setData({
+            quantity: value
+        });
     }
-    if (value > 999) {
-        value = 999;
-    }
-    this.setData({
-        quantity: value
-    });
-}
 });

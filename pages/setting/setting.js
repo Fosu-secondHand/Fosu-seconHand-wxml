@@ -86,8 +86,17 @@ Page({
       }
 
       // ✅ 修改：合并缓存数据和默认值，优先使用微信授权信息
+      let avatarUrl = userInfo.avatarUrl || userInfo.avatar || '/static/assets/icons/default-avatar.png';
+
+      // ✅ 关键修复：如果头像是相对路径，拼接完整域名
+      const app = getApp();
+      if (avatarUrl && !avatarUrl.startsWith('http') && !avatarUrl.startsWith('/static')) {
+        const serverRoot = app.globalData.baseUrl.replace(/\/api$/, '');
+        avatarUrl = serverRoot + avatarUrl;
+      }
+
       const defaultData = {
-        avatarUrl: userInfo.avatarUrl || userInfo.avatar || '/static/assets/icons/default-avatar.png',
+        avatarUrl: avatarUrl,
         nickname: userInfo.nickname || userInfo.nickName || '未设置昵称',
         accountNumber: accountNumber,
         intro: userInfo.intro || '',
@@ -113,18 +122,48 @@ Page({
   },
 
 
-
   // 保存用户信息到缓存
   saveUserInfo(skipServerUpdate = false) {
     try {
-      const userInfo = {
+      // ✅ 修复：先获取现有的 userInfo，保留关键字段
+      const existingUserInfo = wx.getStorageSync('userInfo') || {};
+
+      console.log('Setting: 保存前的现有 userInfo:', existingUserInfo);
+
+      // ✅ 构建更新数据（只更新需要修改的字段）
+      const updateData = {
         avatarUrl: this.data.avatarUrl,
+        avatar: this.data.avatarUrl,         // ✅ 同时更新 avatar
         nickname: this.data.nickname,
+        nickName: this.data.nickname,        // ✅ 同时更新 nickName（兼容旧代码）
         accountNumber: this.data.accountNumber,
         intro: this.data.intro,
         phone: this.data.phone,
         notificationEnabled: this.data.notificationEnabled
       };
+
+      // ✅ 关键修复：合并现有数据和更新数据，保留 id、token、isLogin 等关键字段
+      const userInfo = {
+        ...existingUserInfo,  // 保留原有字段（id, token, isLogin 等）
+        ...updateData         // 覆盖需要更新的字段
+      };
+
+      // ✅ 验证关键字段是否存在
+      if (!userInfo.id || userInfo.id === 'undefined') {
+        console.error('❌ Setting: 保存后发现 userInfo.id 丢失！', userInfo);
+        wx.showToast({
+          title: '用户信息异常',
+          icon: 'none'
+        });
+        return;
+      }
+
+      console.log('Setting: 准备保存的 userInfo:', {
+        id: userInfo.id,
+        nickname: userInfo.nickname,
+        nickName: userInfo.nickName,
+        avatar: userInfo.avatar
+      });
 
       wx.setStorageSync('userInfo', userInfo);
       this.updateProfilePage(userInfo);
@@ -148,6 +187,8 @@ Page({
       });
     }
   },
+
+
   // ✅ 优化：更新用户信息到服务器
   updateUserInfoToServer() {
     const app = getApp();
@@ -184,14 +225,23 @@ Page({
         console.log('Setting: 服务器响应:', res);
         if (res.statusCode === 200 && res.data.code === 200) {
           console.log('Setting: 用户信息更新成功');
-          // 同步更新本地存储的 userInfo
+
+          // ✅ 修复：同步更新本地存储的 userInfo，同时更新 nickname 和 nickName
           const localUserInfo = wx.getStorageSync('userInfo') || {};
           Object.assign(localUserInfo, {
             avatar: this.data.avatarUrl,
+            avatarUrl: this.data.avatarUrl,  // ✅ 同时更新 avatarUrl
             nickname: this.data.nickname,
+            nickName: this.data.nickname,    // ✅ 同时更新 nickName（大写N）
             phone: this.data.phone
           });
           wx.setStorageSync('userInfo', localUserInfo);
+
+          console.log('✅ 本地 userInfo 已更新:', {
+            nickname: localUserInfo.nickname,
+            nickName: localUserInfo.nickName,
+            avatar: localUserInfo.avatar
+          });
 
           wx.showToast({
             title: '同步成功',
@@ -280,27 +330,129 @@ Page({
     });
   },
 
-  // ✅ 修改：头像上传应该调用真实接口
+  // ✅ 修改：使用 Base64 方式上传头像
   uploadAvatar() {
-    if (!this.data.tempAvatarUrl) return;
-
-    wx.showLoading({ title: '上传中...' });
-
-    // TODO: 这里应该调用真实的图片上传接口
-    // 例如：wx.uploadFile 或者将图片转为 base64 后调用后端接口
-
-    // 暂时保留模拟上传，实际项目中需要替换为真实接口
-    setTimeout(() => {
-      this.setData({
-        avatarUrl: this.data.tempAvatarUrl,
-        isAvatarEditModalShow: false
+    if (!this.data.tempAvatarUrl) {
+      wx.showToast({
+        title: '请先选择图片',
+        icon: 'none'
       });
+      return;
+    }
 
-      // 头像上传成功后，调用用户信息更新接口
-      this.saveUserInfo(false); // 传入 false 表示需要更新到服务器
-      wx.hideLoading();
-    }, 1000);
+    const app = getApp();
+    const token = wx.getStorageSync('token');
+    const userInfo = wx.getStorageSync('userInfo');
+
+    if (!app.globalData.baseUrl || !token || !userInfo.id) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+
+    wx.showLoading({ title: '处理中...' });
+
+    // ✅ 将图片转为 Base64
+    wx.getFileSystemManager().readFile({
+      filePath: this.data.tempAvatarUrl,
+      encoding: 'base64',
+      success: (res) => {
+        // ✅ 添加 Base64 前缀
+        const base64Image = 'data:image/png;base64,' + res.data;
+
+        console.log('Setting: 图片转 Base64 成功，长度:', base64Image.length);
+
+        // ✅ 调用用户信息更新接口
+        wx.request({
+          url: `${app.globalData.baseUrl}/users/${userInfo.id}`,
+          method: 'PUT',
+          header: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          data: {
+            nickname: this.data.nickname,
+            avatar: base64Image  // ✅ Base64 格式的头像
+          },
+          success: (res) => {
+            console.log('Setting: 服务器响应:', res);
+
+            if (res.statusCode === 200 && res.data.code === 200) {
+              // ✅ 获取服务器返回的头像 URL
+              let avatarUrl = res.data.data.avatar;
+
+              // ✅ 关键修复：如果返回的是相对路径，拼接完整域名
+              if (avatarUrl && !avatarUrl.startsWith('http')) {
+                // 从 baseUrl 中提取服务器根地址
+                const serverRoot = app.globalData.baseUrl.replace(/\/api$/, '');
+                avatarUrl = serverRoot + avatarUrl;
+              }
+
+              console.log('Setting: 最终头像 URL:', avatarUrl);
+
+              this.setData({
+                avatarUrl: avatarUrl,
+                isAvatarEditModalShow: false
+              });
+
+              // ✅ 更新本地缓存（同时更新 nickname 和 nickName）
+              const localUserInfo = wx.getStorageSync('userInfo') || {};
+              localUserInfo.avatarUrl = avatarUrl;
+              localUserInfo.avatar = avatarUrl;
+              // ✅ 确保昵称字段也同步（如果之前有修改）
+              if (this.data.nickname) {
+                localUserInfo.nickname = this.data.nickname;
+                localUserInfo.nickName = this.data.nickname;  // ✅ 同时更新大写N版本
+              }
+              wx.setStorageSync('userInfo', localUserInfo);
+
+              // ✅ 同步到个人主页
+              this.updateProfilePage({
+                avatarUrl: avatarUrl,
+                nickname: this.data.nickname,
+                nickName: this.data.nickname
+              });
+
+              wx.hideLoading();
+              wx.showToast({
+                title: '头像更新成功',
+                icon: 'success'
+              });
+
+              console.log('Setting: 头像上传成功', avatarUrl);
+            } else {
+              wx.hideLoading();
+              wx.showToast({
+                title: res.data.message || '更新失败',
+                icon: 'none'
+              });
+            }
+          },
+
+          fail: (err) => {
+            console.error('Setting: 更新用户信息网络错误:', err);
+            wx.hideLoading();
+            wx.showToast({
+              title: '网络错误',
+              icon: 'none'
+            });
+          }
+        });
+      },
+      fail: (err) => {
+        console.error('Setting: 图片转 Base64 失败:', err);
+        wx.hideLoading();
+        wx.showToast({
+          title: '图片处理失败',
+          icon: 'none'
+        });
+      }
+    });
   },
+
+
 
 
   // ================= 昵称编辑 =================
@@ -430,6 +582,24 @@ Page({
   },
 
   // ================= 手机绑定 =================
+  openBindPhone() {
+    this.setData({
+      isBindPhoneModalShow: true,
+      tempPhone: this.data.phone
+    });
+  },
+
+  closeBindPhoneModal() {
+    this.setData({
+      isBindPhoneModalShow: false,
+      tempPhone: ''
+    });
+  },
+
+  onPhoneInput(e) {
+    this.setData({ tempPhone: e.detail.value });
+  },
+
   getWechatPhone() {
     wx.choosePhoneNumber({
       success: (res) => {
@@ -506,9 +676,13 @@ Page({
               app.logout();
             }
 
-            wx.clearStorageSync();
+            // ✅ 修复：只清除登录相关数据，保留其他设置
+            wx.removeStorageSync('token');
+            wx.removeStorageSync('userInfo');
 
-            wx.setStorageSync('userInfo', { isLogin: false });
+            // Deleted:wx.clearStorageSync();
+
+            // Deleted:wx.setStorageSync('userInfo', { isLogin: false });
 
             setTimeout(() => {
               wx.reLaunch({
